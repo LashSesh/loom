@@ -111,6 +111,17 @@ dependencies = [
 [[package]]
 name = "cce-runner"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-crystal",
+ "cce-kernel",
+ "cce-loom",
+ "cce-materialize",
+ "cce-observe",
+ "cce-phaseblock",
+ "cce-phc",
+ "cce-spiral",
+]
 
 [[package]]
 name = "cce-spiral"

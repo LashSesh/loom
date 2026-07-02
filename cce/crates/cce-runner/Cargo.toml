@@ -6,3 +6,12 @@ license = "SEE-REPO-ROOT"
 publish = false
 
 [dependencies]
+cce-core = { path = "../cce-core" }
+cce-crystal = { path = "../cce-crystal" }
+cce-kernel = { path = "../cce-kernel" }
+cce-phaseblock = { path = "../cce-phaseblock" }
+cce-spiral = { path = "../cce-spiral" }
+cce-phc = { path = "../cce-phc" }
+cce-loom = { path = "../cce-loom" }
+cce-observe = { path = "../cce-observe" }
+cce-materialize = { path = "../cce-materialize" }
