@@ -92,7 +92,10 @@ impl Preamble {
 
     pub fn decode(buf: &[u8]) -> Result<Self, FormatError> {
         if buf.len() < PREAMBLE_LEN {
-            return Err(FormatError::Truncated { need: PREAMBLE_LEN, have: buf.len() });
+            return Err(FormatError::Truncated {
+                need: PREAMBLE_LEN,
+                have: buf.len(),
+            });
         }
         if buf[..9] != MAGIC {
             return Err(FormatError::BadMagic);
@@ -160,7 +163,10 @@ impl Frame {
     pub fn decode(buf: &[u8], at: usize) -> Result<(Self, usize), FormatError> {
         let need = at + FRAME_HEADER_LEN;
         if buf.len() < need {
-            return Err(FormatError::Truncated { need, have: buf.len() });
+            return Err(FormatError::Truncated {
+                need,
+                have: buf.len(),
+            });
         }
         let kind = u16::from_le_bytes(buf[at..at + 2].try_into().unwrap());
         let seg_flags = u16::from_le_bytes(buf[at + 2..at + 4].try_into().unwrap());
@@ -178,10 +184,17 @@ impl Frame {
         }
         let end = at + FRAME_HEADER_LEN + stored_len as usize;
         if buf.len() < end {
-            return Err(FormatError::Truncated { need: end, have: buf.len() });
+            return Err(FormatError::Truncated {
+                need: end,
+                have: buf.len(),
+            });
         }
         let payload = buf[at + FRAME_HEADER_LEN..end].to_vec();
-        let frame = Frame { kind, seg_flags, payload };
+        let frame = Frame {
+            kind,
+            seg_flags,
+            payload,
+        };
         if frame.multihash() != digest {
             return Err(FormatError::FrameDigestMismatch { kind });
         }
@@ -210,7 +223,10 @@ impl Footer {
 
     pub fn decode(file: &[u8]) -> Result<Self, FormatError> {
         if file.len() < FOOTER_LEN {
-            return Err(FormatError::Truncated { need: FOOTER_LEN, have: file.len() });
+            return Err(FormatError::Truncated {
+                need: FOOTER_LEN,
+                have: file.len(),
+            });
         }
         let f = &file[file.len() - FOOTER_LEN..];
         if f[56..64] != END_MAGIC {
@@ -235,7 +251,12 @@ mod tests {
 
     #[test]
     fn preamble_roundtrip_and_negatives() {
-        let p = Preamble { major: 1, minor: 0, flags: FLAG_SEALED, header_len: 42 };
+        let p = Preamble {
+            major: 1,
+            minor: 0,
+            flags: FLAG_SEALED,
+            header_len: 42,
+        };
         let b = p.encode();
         assert_eq!(Preamble::decode(&b).unwrap(), p);
         let mut bad = b;
@@ -243,7 +264,10 @@ mod tests {
         assert_eq!(Preamble::decode(&bad), Err(FormatError::BadMagic));
         let mut v2 = p.encode();
         v2[9] = 0x02;
-        assert!(matches!(Preamble::decode(&v2), Err(FormatError::BadVersion { .. })));
+        assert!(matches!(
+            Preamble::decode(&v2),
+            Err(FormatError::BadVersion { .. })
+        ));
         let mut rf = p.encode();
         rf[11] = 0b0000_0100;
         assert_eq!(Preamble::decode(&rf), Err(FormatError::ReservedFlagSet));
@@ -251,7 +275,11 @@ mod tests {
 
     #[test]
     fn frame_roundtrip_digest_checked_before_use() {
-        let f = Frame { kind: KIND_MANIFEST, seg_flags: 0, payload: vec![1, 2, 3] };
+        let f = Frame {
+            kind: KIND_MANIFEST,
+            seg_flags: 0,
+            payload: vec![1, 2, 3],
+        };
         let enc = f.encode();
         let (back, end) = Frame::decode(&enc, 0).unwrap();
         assert_eq!(back, f);
@@ -277,7 +305,11 @@ mod tests {
     fn footer_roundtrip() {
         let mut root = [0u8; 34];
         root[..2].copy_from_slice(&MULTIHASH_SHA256);
-        let f = Footer { segtab_offset: 512, segtab_stored_len: 99, core_root: root };
+        let f = Footer {
+            segtab_offset: 512,
+            segtab_stored_len: 99,
+            core_root: root,
+        };
         let mut file = vec![0u8; 100];
         file.extend_from_slice(&f.encode());
         assert_eq!(Footer::decode(&file).unwrap(), f);

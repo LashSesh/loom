@@ -85,7 +85,6 @@ pub fn sha256(data: &[u8]) -> [u8; 32] {
     out
 }
 
-
 #[cfg(test)]
 mod tests {
     use super::sha256;

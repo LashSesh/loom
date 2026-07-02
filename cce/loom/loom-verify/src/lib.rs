@@ -40,13 +40,17 @@ pub struct VerificationReport {
 }
 
 fn diag(level: &str, point: &str, detail: &str) -> Diagnosis {
-    Diagnosis { level: level.into(), point: point.into(), detail: detail.into() }
+    Diagnosis {
+        level: level.into(),
+        point: point.into(),
+        detail: detail.into(),
+    }
 }
 
 const KNOWN_KINDS: [u16; 26] = [
-    0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015,
-    0x0016, 0x0017, 0x0018, 0x0020, 0x0021, 0x0030, 0x0031, 0x0032, 0x0033, 0x0050, 0x0060,
-    0x0061, 0x0062, 0x0063, 0x0064,
+    0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0010, 0x0011, 0x0012, 0x0013, 0x0014, 0x0015, 0x0016,
+    0x0017, 0x0018, 0x0020, 0x0021, 0x0030, 0x0031, 0x0032, 0x0033, 0x0050, 0x0060, 0x0061, 0x0062,
+    0x0063, 0x0064,
 ];
 
 fn get<'a>(map: &'a Cv, key: &str) -> Option<&'a Cv> {
@@ -72,13 +76,26 @@ fn required_kinds(profile: &str) -> Vec<u16> {
     let mut base = vec![KIND_MANIFEST, KIND_CANON_DESC];
     match profile {
         "inspection" => {}
-        "workcell" => base.extend([KIND_CL_SUBSTRATE, KIND_PHC, KIND_RUNTIME_PROFILE, KIND_GATE_REPORTS]),
+        "workcell" => base.extend([
+            KIND_CL_SUBSTRATE,
+            KIND_PHC,
+            KIND_RUNTIME_PROFILE,
+            KIND_GATE_REPORTS,
+        ]),
         "source" => base.extend([KIND_CSA_NSB, KIND_EVIDENCE]),
         "hbm" => base.extend([KIND_HBM, KIND_EVIDENCE]),
         "runtime" => base.extend([KIND_LEDGER, KIND_REPLAY_MANIFEST]),
         "full" => base.extend([
-            KIND_CL_SUBSTRATE, KIND_PHC, KIND_LEDGER, KIND_RESIDUE, KIND_GATE_REPORTS,
-            KIND_EVIDENCE, KIND_REPLAY_MANIFEST, KIND_RUNTIME_PROFILE, KIND_CSA_NSB, KIND_HBM,
+            KIND_CL_SUBSTRATE,
+            KIND_PHC,
+            KIND_LEDGER,
+            KIND_RESIDUE,
+            KIND_GATE_REPORTS,
+            KIND_EVIDENCE,
+            KIND_REPLAY_MANIFEST,
+            KIND_RUNTIME_PROFILE,
+            KIND_CSA_NSB,
+            KIND_HBM,
         ]),
         _ => {}
     }
@@ -86,9 +103,19 @@ fn required_kinds(profile: &str) -> Vec<u16> {
 }
 
 pub const MANIFEST_REQUIRED_FIELDS: [&str; 13] = [
-    "title", "container_class", "domain_refs", "scale", "pl_level", "claims", "origin",
-    "profiles_required", "profiles_optional", "residue_summary", "capability_declarations",
-    "license_summary", "created",
+    "title",
+    "container_class",
+    "domain_refs",
+    "scale",
+    "pl_level",
+    "claims",
+    "origin",
+    "profiles_required",
+    "profiles_optional",
+    "residue_summary",
+    "capability_declarations",
+    "license_summary",
+    "created",
 ];
 
 /// L0: Struktur (Praeambel/Footer/Frames/Digests/SEGTAB/Root).
@@ -129,7 +156,10 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                 diagnoses.push(diag(
                     "L1",
                     "unknown_kind_required",
-                    &format!("Kind 0x{:04x} mit required_understand — quarantine", entry.kind),
+                    &format!(
+                        "Kind 0x{:04x} mit required_understand — quarantine",
+                        entry.kind
+                    ),
                 ));
             } else {
                 preserved_unknown.push(entry.kind);
@@ -172,7 +202,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
     };
     for field in MANIFEST_REQUIRED_FIELDS {
         if get(&manifest, field).is_none() {
-            diagnoses.push(diag("L1", "manifest_field", &format!("Pflichtfeld '{field}' fehlt")));
+            diagnoses.push(diag(
+                "L1",
+                "manifest_field",
+                &format!("Pflichtfeld '{field}' fehlt"),
+            ));
         }
     }
     if diagnoses.iter().any(|d| d.point == "manifest_field") {
@@ -191,7 +225,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
             if let Some(name) = as_text(p) {
                 if !loom_format::PROFILES.contains(&name) {
                     reject = true;
-                    diagnoses.push(diag("L2", "profile_unknown", &format!("Profil '{name}' unbekannt (N1) — kein stilles Teilverstehen")));
+                    diagnoses.push(diag(
+                        "L2",
+                        "profile_unknown",
+                        &format!("Profil '{name}' unbekannt (N1) — kein stilles Teilverstehen"),
+                    ));
                     continue;
                 }
                 for k in required_kinds(name) {
@@ -214,14 +252,22 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
         for d in &e.deps {
             if !digests.contains(d) {
                 reject = true;
-                diagnoses.push(diag("L2", "dep_unresolved", &format!("Kind 0x{:04x}: dep nicht aufloesbar (N11)", e.kind)));
+                diagnoses.push(diag(
+                    "L2",
+                    "dep_unresolved",
+                    &format!("Kind 0x{:04x}: dep nicht aufloesbar (N11)", e.kind),
+                ));
             }
         }
     }
     // Zyklen ueber deps (Digest-Graph):
     {
-        let idx: BTreeMap<[u8; 34], usize> =
-            dec.segtab.iter().enumerate().map(|(i, e)| (e.digest, i)).collect();
+        let idx: BTreeMap<[u8; 34], usize> = dec
+            .segtab
+            .iter()
+            .enumerate()
+            .map(|(i, e)| (e.digest, i))
+            .collect();
         let mut resolved: BTreeSet<usize> = BTreeSet::new();
         let mut changed = true;
         while changed {
@@ -230,7 +276,10 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                 if resolved.contains(&i) {
                     continue;
                 }
-                if e.deps.iter().all(|d| idx.get(d).map(|j| resolved.contains(j)).unwrap_or(true)) {
+                if e.deps
+                    .iter()
+                    .all(|d| idx.get(d).map(|j| resolved.contains(j)).unwrap_or(true))
+                {
                     resolved.insert(i);
                     changed = true;
                 }
@@ -256,7 +305,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
             for c in csus {
                 if !eps.contains(c) {
                     reject = true;
-                    diagnoses.push(diag("L2", "evidence_missing", &format!("CSU {c} ohne EvidencePack (N5)")));
+                    diagnoses.push(diag(
+                        "L2",
+                        "evidence_missing",
+                        &format!("CSU {c} ohne EvidencePack (N5)"),
+                    ));
                 }
             }
         }
@@ -276,7 +329,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
             for c in commits {
                 if !gated.contains(c) {
                     reject = true;
-                    diagnoses.push(diag("L2", "gate_report_missing", &format!("Commit {c} ohne GateReport (N6)")));
+                    diagnoses.push(diag(
+                        "L2",
+                        "gate_report_missing",
+                        &format!("Commit {c} ohne GateReport (N6)"),
+                    ));
                 }
             }
         }
@@ -289,12 +346,20 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                         for score_key in ["score", "confidence", "ranking"] {
                             if get(r, score_key).is_some() {
                                 reject = true;
-                                diagnoses.push(diag("L2", "score_as_verdict", &format!("GATE_REPORTS mit '{score_key}'-Feld (N14)")));
+                                diagnoses.push(diag(
+                                    "L2",
+                                    "score_as_verdict",
+                                    &format!("GATE_REPORTS mit '{score_key}'-Feld (N14)"),
+                                ));
                             }
                         }
                         if get(r, "verdict").is_none() {
                             reject = true;
-                            diagnoses.push(diag("L2", "verdict_missing", "GateReport ohne boolesches Verdikt (N14-Klasse)"));
+                            diagnoses.push(diag(
+                                "L2",
+                                "verdict_missing",
+                                "GateReport ohne boolesches Verdikt (N14-Klasse)",
+                            ));
                         }
                     }
                 }
@@ -327,7 +392,9 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
             diagnoses.push(diag(
                 "L2",
                 "residue_summary_mismatch",
-                &format!("residue_summary.count={declared_count} ≠ RESIDUE-Segment {residue_count} (N6)"),
+                &format!(
+                    "residue_summary.count={declared_count} ≠ RESIDUE-Segment {residue_count} (N6)"
+                ),
             ));
         }
     }
@@ -340,12 +407,17 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
             let ledger_has_proof = by_kind
                 .get(&KIND_LEDGER)
                 .map(|ls| {
-                    ls.iter().any(|l| matches!(get(l, "closure_proof"), Some(Cv::Bool(true))))
+                    ls.iter()
+                        .any(|l| matches!(get(l, "closure_proof"), Some(Cv::Bool(true))))
                 })
                 .unwrap_or(false);
             if !ledger_has_proof {
                 reject = true;
-                diagnoses.push(diag("L2", "claim_over_evidence", "claims.closed/certified ohne gruenen Abschlussbeweis im LEDGER"));
+                diagnoses.push(diag(
+                    "L2",
+                    "claim_over_evidence",
+                    "claims.closed/certified ohne gruenen Abschlussbeweis im LEDGER",
+                ));
             }
         }
     }
@@ -367,7 +439,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
             for bad in ["on_open", "hidden_model_call"] {
                 if get(pm, bad).is_some() {
                     reject = true;
-                    diagnoses.push(diag("L2", "hidden_model_call_on_open", &format!("PROVIDER_MANIFEST mit '{bad}' (N15)")));
+                    diagnoses.push(diag(
+                        "L2",
+                        "hidden_model_call_on_open",
+                        &format!("PROVIDER_MANIFEST mit '{bad}' (N15)"),
+                    ));
                 }
             }
         }
@@ -397,7 +473,13 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                     if let Some(id) = as_text(r) {
                         if !declared.contains(id) {
                             reject = true;
-                            diagnoses.push(diag("L2", "inference_profile_dangling", &format!("INFERENCE_PROFILE referenziert unbekannten Provider '{id}'")));
+                            diagnoses.push(diag(
+                                "L2",
+                                "inference_profile_dangling",
+                                &format!(
+                                    "INFERENCE_PROFILE referenziert unbekannten Provider '{id}'"
+                                ),
+                            ));
                         }
                     }
                 }
@@ -405,7 +487,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
         }
         if !by_kind.contains_key(&KIND_PROVIDER_MANIFEST) {
             reject = true;
-            diagnoses.push(diag("L2", "provider_manifest_required", "0x0061 vorhanden ⇒ 0x0060 Pflicht"));
+            diagnoses.push(diag(
+                "L2",
+                "provider_manifest_required",
+                "0x0061 vorhanden ⇒ 0x0060 Pflicht",
+            ));
         }
     }
     // 0x0062: jede Response evidence-gebunden.
@@ -415,7 +501,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                 for r in resps {
                     if get(r, "evidence_ref").is_none() {
                         reject = true;
-                        diagnoses.push(diag("L2", "trace_unbound", "INFERENCE_TRACE-Response ohne evidence_ref"));
+                        diagnoses.push(diag(
+                            "L2",
+                            "trace_unbound",
+                            "INFERENCE_TRACE-Response ohne evidence_ref",
+                        ));
                     }
                 }
             }
@@ -428,11 +518,19 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                 for o in outputs {
                     if get(o, "evidence_ref").is_none() {
                         reject = true;
-                        diagnoses.push(diag("L2", "candidate_unbound", "CandidateOutput ohne evidence_ref"));
+                        diagnoses.push(diag(
+                            "L2",
+                            "candidate_unbound",
+                            "CandidateOutput ohne evidence_ref",
+                        ));
                     }
                     if matches!(get(o, "is_commit"), Some(Cv::Bool(true))) {
                         reject = true;
-                        diagnoses.push(diag("L2", "candidate_marked_commit", "CandidateOutput als Commit markiert — nie zulaessig (C.7)"));
+                        diagnoses.push(diag(
+                            "L2",
+                            "candidate_marked_commit",
+                            "CandidateOutput als Commit markiert — nie zulaessig (C.7)",
+                        ));
                     }
                 }
             }
@@ -447,7 +545,11 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                         || matches!(get(e, "implicit_grant"), Some(Cv::Bool(true)))
                     {
                         reject = true;
-                        diagnoses.push(diag("L2", "tool_implicit_grant", "TOOL_PROFILE mit impliziter Freigabe — Deklaration ≠ Aktivierung"));
+                        diagnoses.push(diag(
+                            "L2",
+                            "tool_implicit_grant",
+                            "TOOL_PROFILE mit impliziter Freigabe — Deklaration ≠ Aktivierung",
+                        ));
                     }
                 }
             }
@@ -477,5 +579,10 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
     } else {
         Verdict::Valid
     };
-    VerificationReport { verdict, diagnoses, preserved_unknown, residue_count }
+    VerificationReport {
+        verdict,
+        diagnoses,
+        preserved_unknown,
+        residue_count,
+    }
 }

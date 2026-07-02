@@ -6,3 +6,5 @@ license = "SEE-REPO-ROOT"
 publish = false
 
 [dependencies]
+loom-canon = { path = "../loom-canon" }
+cce-core = { path = "../../crates/cce-core" }

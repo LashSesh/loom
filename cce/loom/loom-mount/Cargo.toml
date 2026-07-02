@@ -6,3 +6,7 @@ license = "SEE-REPO-ROOT"
 publish = false
 
 [dependencies]
+loom-canon = { path = "../loom-canon" }
+loom-format = { path = "../loom-format" }
+loom-codec = { path = "../loom-codec" }
+loom-verify = { path = "../loom-verify" }

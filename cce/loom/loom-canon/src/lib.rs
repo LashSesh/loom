@@ -7,6 +7,7 @@
 //!     Integer-Mantisse) [K3]
 //!   - Text NFC-normalisiert (Teilmengen-Pruefung, s. `nfc_check`)
 //!   - Tag-Whitelist {0 (Zeit, nur Evidence-Felder), 4}
+//!
 //! Ergebnis: gleiche Semantik ⇒ gleiche kanonische Bytes [K5].
 
 /// Das kanonische Wertemodell. Es gibt KEINEN Float-Konstruktor —
@@ -54,7 +55,10 @@ pub fn nfc_check(s: &str) -> Result<(), CanonError> {
     for c in s.chars() {
         if ('\u{0300}'..='\u{036f}').contains(&c) {
             return Err(CanonError::TextNotNfc {
-                hint: format!("kombinierendes Zeichen U+{:04X} (dekomponierte Form)", c as u32),
+                hint: format!(
+                    "kombinierendes Zeichen U+{:04X} (dekomponierte Form)",
+                    c as u32
+                ),
             });
         }
     }
@@ -243,7 +247,9 @@ pub fn decode(buf: &[u8]) -> Result<Cv, CanonError> {
     let mut r = Reader { buf, pos: 0 };
     let v = decode_item(&mut r, 0)?;
     if r.pos != buf.len() {
-        return Err(CanonError::TrailingBytes { extra: buf.len() - r.pos });
+        return Err(CanonError::TrailingBytes {
+            extra: buf.len() - r.pos,
+        });
     }
     Ok(v)
 }
@@ -256,7 +262,7 @@ fn decode_item(r: &mut Reader, depth: u32) -> Result<Cv, CanonError> {
     // Major 7 mit ai=25/26/27 ist Float16/32/64 — VOR dem generischen
     // Head-Parser abfangen (dessen Argument-Semantik gilt nur fuer Ints).
     if let Some(&ib) = r.buf.get(r.pos) {
-        if ib >> 5 == 7 && matches!(ib & 0x1f, 25 | 26 | 27) {
+        if ib >> 5 == 7 && matches!(ib & 0x1f, 25..=27) {
             return Err(CanonError::FloatForbidden);
         }
     }
@@ -315,7 +321,7 @@ fn decode_item(r: &mut Reader, depth: u32) -> Result<Cv, CanonError> {
             21 => Ok(Cv::Bool(true)),
             22 => Ok(Cv::Null),
             // 25/26/27 = Float16/32/64 — verboten [K3].
-            25 | 26 | 27 => Err(CanonError::FloatForbidden),
+            25..=27 => Err(CanonError::FloatForbidden),
             _ => Err(CanonError::MalformedHeader { at }),
         },
         _ => unreachable!(),

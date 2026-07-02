@@ -25,6 +25,8 @@ dependencies = [
  "cce-phc",
  "cce-store",
  "cce-toolgateway",
+ "loom-conformance",
+ "loom-verify",
  "nexus-adapter",
  "nexus-adapter-git",
  "nexus-adapter-local-corpus",
@@ -201,6 +203,13 @@ version = "0.1.0"
 [[package]]
 name = "loom-cli"
 version = "0.1.0"
+dependencies = [
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+ "loom-mount",
+ "loom-verify",
+]
 
 [[package]]
 name = "loom-codec"
@@ -213,10 +222,33 @@ dependencies = [
 [[package]]
 name = "loom-conformance"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-hbm",
+ "cce-materialize",
+ "cce-phc",
+ "loom-canon",
+ "loom-codec",
+ "loom-export",
+ "loom-format",
+ "loom-gate",
+ "loom-mount",
+ "loom-project",
+ "loom-replay",
+ "loom-runner",
+ "loom-verify",
+ "nexus-core",
+]
 
 [[package]]
 name = "loom-export"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-materialize",
+ "loom-canon",
+ "loom-verify",
+]
 
 [[package]]
 name = "loom-format"
@@ -228,22 +260,49 @@ dependencies = [
 [[package]]
 name = "loom-gate"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "loom-canon",
+]
 
 [[package]]
 name = "loom-mount"
 version = "0.1.0"
+dependencies = [
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+ "loom-verify",
+]
 
 [[package]]
 name = "loom-project"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-phc",
+ "loom-canon",
+]
 
 [[package]]
 name = "loom-replay"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+]
 
 [[package]]
 name = "loom-runner"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "loom-canon",
+ "loom-mount",
+ "loom-verify",
+]
 
 [[package]]
 name = "loom-verify"
@@ -257,6 +316,13 @@ dependencies = [
 [[package]]
 name = "loom-viewer"
 version = "0.1.0"
+dependencies = [
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+ "loom-mount",
+ "loom-verify",
+]
 
 [[package]]
 name = "nexus-adapter"

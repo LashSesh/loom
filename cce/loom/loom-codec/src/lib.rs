@@ -23,7 +23,12 @@ pub struct Segment {
 
 impl Segment {
     pub fn canonical(kind: u16, value: &Cv) -> Result<Segment, loom_canon::CanonError> {
-        Ok(Segment { kind, seg_flags: 0, payload: value.encode()?, deps: vec![] })
+        Ok(Segment {
+            kind,
+            seg_flags: 0,
+            payload: value.encode()?,
+            deps: vec![],
+        })
     }
 
     pub fn multihash(&self) -> [u8; 34] {
@@ -47,7 +52,12 @@ pub fn build_header(container_class: &str, profiles_required: &[&str]) -> Cv {
         ("container_class", Cv::Text(container_class.into())),
         (
             "profiles_required",
-            Cv::Array(profiles_required.iter().map(|p| Cv::Text((*p).into())).collect()),
+            Cv::Array(
+                profiles_required
+                    .iter()
+                    .map(|p| Cv::Text((*p).into()))
+                    .collect(),
+            ),
         ),
         ("profiles_optional", Cv::Array(vec![])),
         (
@@ -141,7 +151,9 @@ impl SegtabEntry {
         }
         let mut digest = [0u8; 34];
         digest.copy_from_slice(d);
-        let Cv::Array(dep_items) = &items[6] else { return None };
+        let Cv::Array(dep_items) = &items[6] else {
+            return None;
+        };
         let mut deps = Vec::new();
         for di in dep_items {
             let Cv::Bytes(db) = di else { return None };
@@ -189,13 +201,23 @@ pub fn seal_canonical(
         return Err(PackError::DuplicateSegtab);
     }
     let header_cv = build_header(container_class, profiles_required);
-    let header_bytes = header_cv.encode().map_err(|e| PackError::Canon(format!("{e:?}")))?;
-    let header_seg = Segment { kind: KIND_HEADER, seg_flags: 0, payload: header_bytes.clone(), deps: vec![] };
+    let header_bytes = header_cv
+        .encode()
+        .map_err(|e| PackError::Canon(format!("{e:?}")))?;
+    let header_seg = Segment {
+        kind: KIND_HEADER,
+        seg_flags: 0,
+        payload: header_bytes.clone(),
+        deps: vec![],
+    };
 
     // Dedupe-Pflicht: gleicher Digest genau einmal physisch.
     let mut logical: Vec<Segment> = Vec::new();
     for s in segments {
-        if !logical.iter().any(|l| l.kind == s.kind && l.multihash() == s.multihash()) {
+        if !logical
+            .iter()
+            .any(|l| l.kind == s.kind && l.multihash() == s.multihash())
+        {
             logical.push(s.clone());
         }
     }
@@ -211,7 +233,11 @@ pub fn seal_canonical(
         header_len: header_seg.encode_len() as u32,
     };
     let mut offset = loom_format::PREAMBLE_LEN as u64;
-    let header_frame = Frame { kind: KIND_HEADER, seg_flags: 0, payload: header_seg.payload.clone() };
+    let header_frame = Frame {
+        kind: KIND_HEADER,
+        seg_flags: 0,
+        payload: header_seg.payload.clone(),
+    };
     let header_offset = offset;
     offset += header_frame.encode().len() as u64;
 
@@ -227,7 +253,11 @@ pub fn seal_canonical(
     });
     let mut frames: Vec<Frame> = Vec::new();
     for s in &logical {
-        let frame = Frame { kind: s.kind, seg_flags: s.seg_flags, payload: s.payload.clone() };
+        let frame = Frame {
+            kind: s.kind,
+            seg_flags: s.seg_flags,
+            payload: s.payload.clone(),
+        };
         entries.push(SegtabEntry {
             kind: s.kind,
             digest: s.multihash(),
@@ -255,8 +285,14 @@ pub fn seal_canonical(
 
     // SEGTAB-Frame (eintragslos: kein Selbsteintrag).
     let segtab_cv = Cv::Array(entries.iter().map(|e| e.to_cv()).collect());
-    let segtab_payload = segtab_cv.encode().map_err(|e| PackError::Canon(format!("{e:?}")))?;
-    let segtab_frame = Frame { kind: KIND_SEGTAB, seg_flags: 0, payload: segtab_payload };
+    let segtab_payload = segtab_cv
+        .encode()
+        .map_err(|e| PackError::Canon(format!("{e:?}")))?;
+    let segtab_frame = Frame {
+        kind: KIND_SEGTAB,
+        seg_flags: 0,
+        payload: segtab_payload,
+    };
     let segtab_offset = offset;
     let segtab_encoded = segtab_frame.encode();
 
@@ -275,7 +311,11 @@ pub fn seal_canonical(
     bytes.extend_from_slice(&segtab_encoded);
     bytes.extend_from_slice(&footer.encode());
 
-    Ok(Sealed { bytes, core_root, segtab: entries })
+    Ok(Sealed {
+        bytes,
+        core_root,
+        segtab: entries,
+    })
 }
 
 impl Segment {
@@ -312,13 +352,13 @@ pub fn decode_sealed(bytes: &[u8]) -> Result<Decoded, DecodeError> {
         return Err(DecodeError::NotSealed);
     }
     let footer = Footer::decode(bytes).map_err(DecodeError::Format)?;
-    let (segtab_frame, _end) = Frame::decode(bytes, footer.segtab_offset as usize)
-        .map_err(DecodeError::Format)?;
+    let (segtab_frame, _end) =
+        Frame::decode(bytes, footer.segtab_offset as usize).map_err(DecodeError::Format)?;
     if segtab_frame.kind != KIND_SEGTAB {
         return Err(DecodeError::SegtabNotTable);
     }
-    let segtab_cv =
-        loom_canon::decode(&segtab_frame.payload).map_err(|e| DecodeError::Canon(format!("{e:?}")))?;
+    let segtab_cv = loom_canon::decode(&segtab_frame.payload)
+        .map_err(|e| DecodeError::Canon(format!("{e:?}")))?;
     let Cv::Array(items) = segtab_cv else {
         return Err(DecodeError::SegtabNotTable);
     };
@@ -349,7 +389,12 @@ pub fn decode_sealed(bytes: &[u8]) -> Result<Decoded, DecodeError> {
         }
         frames.push((e.clone(), frame));
     }
-    Ok(Decoded { preamble, footer, segtab: entries, frames })
+    Ok(Decoded {
+        preamble,
+        footer,
+        segtab: entries,
+        frames,
+    })
 }
 
 /// core_root aus der dekodierten Tabelle neu berechnen (Verify-Baustein).
@@ -382,7 +427,9 @@ mod tests {
         Segment {
             kind: KIND_CANON_DESC,
             seg_flags: 0,
-            payload: Cv::Text(loom_canon::CANON_RULES_TEXT.into()).encode().unwrap(),
+            payload: Cv::Text(loom_canon::CANON_RULES_TEXT.into())
+                .encode()
+                .unwrap(),
             deps: vec![],
         }
     }
@@ -390,10 +437,14 @@ mod tests {
     #[test]
     fn seal_decode_roundtrip_and_root_stable() {
         let m = Segment::canonical(KIND_MANIFEST, &manifest_cv()).unwrap();
-        let sealed1 = seal_canonical("inspection", &["inspection"], &[m.clone(), canon_desc()]).unwrap();
+        let sealed1 =
+            seal_canonical("inspection", &["inspection"], &[m.clone(), canon_desc()]).unwrap();
         // Reihenfolge der Eingabe-Segmente ist egal (C1-Kern):
         let sealed2 = seal_canonical("inspection", &["inspection"], &[canon_desc(), m]).unwrap();
-        assert_eq!(sealed1.bytes, sealed2.bytes, "canonical-stored ist byte-deterministisch");
+        assert_eq!(
+            sealed1.bytes, sealed2.bytes,
+            "canonical-stored ist byte-deterministisch"
+        );
         assert_eq!(sealed1.core_root, sealed2.core_root);
         let dec = decode_sealed(&sealed1.bytes).unwrap();
         assert_eq!(recompute_core_root(&dec.segtab), dec.footer.core_root);
@@ -416,11 +467,18 @@ mod tests {
     #[test]
     fn dedupe_same_digest_once() {
         let m = Segment::canonical(KIND_MANIFEST, &manifest_cv()).unwrap();
-        let sealed =
-            seal_canonical("inspection", &["inspection"], &[m.clone(), m.clone(), canon_desc()])
-                .unwrap();
+        let sealed = seal_canonical(
+            "inspection",
+            &["inspection"],
+            &[m.clone(), m.clone(), canon_desc()],
+        )
+        .unwrap();
         let dec = decode_sealed(&sealed.bytes).unwrap();
-        let manifests = dec.segtab.iter().filter(|e| e.kind == KIND_MANIFEST).count();
+        let manifests = dec
+            .segtab
+            .iter()
+            .filter(|e| e.kind == KIND_MANIFEST)
+            .count();
         assert_eq!(manifests, 1, "Dedupe-Pflicht beim Seal");
     }
 }

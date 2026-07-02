@@ -91,6 +91,25 @@ def main() -> int:
         print(f"IG-A1 VERLETZT (Tor-Trennung): {gate_bad}")
         return 1
 
+    # 3b. Reader-Prinzip (LOOM Teil 6 / G9-Gate): der Viewer-Pfad ist
+    #     MOTORFREI — loom-viewer und seine loom-*-Kette haengen an
+    #     keinem cce-*/nexus-*/cockpit-*-Crate.
+    viewer_closure = set()
+    stack = ["loom-viewer"]
+    while stack:
+        n = stack.pop()
+        if n in viewer_closure or n not in deps:
+            continue
+        viewer_closure.add(n)
+        stack.extend(deps[n])
+    motorful = sorted(
+        d for d in viewer_closure
+        if d.startswith(("cce-", "nexus-", "cockpit-"))
+    )
+    if motorful:
+        print(f"READER-PRINZIP VERLETZT: Viewer-Pfad haengt am Motor: {motorful}")
+        return 1
+
     # 4. Symbol-Scan (F.1 Ausgangs-Gate G8a): kein Modell-/Tool-Socket
     #    ausserhalb der Gateways — der Workspace ist dependency-frei;
     #    jede Socket-/HTTP-Primitive ausserhalb providers/ bzw.

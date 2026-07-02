@@ -32,6 +32,8 @@ nexus-adapter-git = { path = "../nexus/adapters/git_repository" }
 cce-inference = { path = "../crates/cce-inference" }
 cce-toolgateway = { path = "../crates/cce-toolgateway" }
 cce-phaseblock = { path = "../crates/cce-phaseblock" }
+loom-conformance = { path = "../loom/loom-conformance" }
+loom-verify = { path = "../loom/loom-verify" }
 
 # Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
 [[test]]
