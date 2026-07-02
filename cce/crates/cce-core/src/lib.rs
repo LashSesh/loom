@@ -29,6 +29,7 @@ pub mod replay;
 pub mod residue;
 pub mod signature;
 pub mod value;
+pub mod wheel_window;
 
 pub use canonical::{CanonicalClass, CanonicalState, Canonicalize};
 pub use closure::{is_closed, ClosureCertificate};
@@ -42,3 +43,4 @@ pub use replay::{HitlDecision, RunDescriptor};
 pub use residue::{Residue, ResidueKind, ResidueStatus, Severity};
 pub use signature::{sha256, ContentAddress, Digest};
 pub use value::CanonValue;
+pub use wheel_window::{WheelWindow, WindowDirection};

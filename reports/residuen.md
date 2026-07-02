@@ -39,3 +39,12 @@ Bauordnung spricht von sechs Kantentypen.
 Vorläufige Behandlung: Implementierung folgt der normativen Formel (5 Kantentypen,
 Autoritätsordnung: Spec über Wurzeldokument-Wortlaut); kein sechster Typ erfunden.
 Blockiert: nichts
+
+R-Agent-5: Nummernzuordnung V0–V9, LOOM-Abnahme (10), TAT P1–P7
+Fundstelle: Bauverfassung Teil 7.5 (Kataloge), PHC §17/§18, LOOM/TAT-Verweise
+Frage/Konflikt: Wie bei K/C-Katalogen (R-Agent-2) verweisen die geforderten Test-
+kataloge auf den nicht beiliegenden Quell-Korpus; die Einzelnummern sind dort.
+Vorläufige Behandlung: konservative Materialisierung aller im Spec-Repo verankerten
+Eigenschaften (Loader-Kette, Themenfelder aus Teil 6.1-Testzeilen, TAT-Normalform),
+fortlaufend nummeriert und in den Testdateien dokumentiert.
+Blockiert: nichts

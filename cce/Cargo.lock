@@ -13,6 +13,14 @@ dependencies = [
 [[package]]
 name = "cce-conformance"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-crystal",
+ "cce-loom",
+ "cce-materialize",
+ "cce-observe",
+ "cce-phc",
+]
 
 [[package]]
 name = "cce-core"
@@ -51,18 +59,38 @@ version = "0.1.0"
 [[package]]
 name = "cce-loom"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-phc",
+]
 
 [[package]]
 name = "cce-materialize"
 version = "0.1.0"
+dependencies = [
+ "cce-ccc",
+ "cce-core",
+ "cce-crystal",
+ "cce-loom",
+ "cce-observe",
+ "cce-phc",
+]
 
 [[package]]
 name = "cce-merkaba"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+]
 
 [[package]]
 name = "cce-observe"
 version = "0.1.0"
+dependencies = [
+ "cce-ccc",
+ "cce-core",
+ "cce-crystal",
+]
 
 [[package]]
 name = "cce-phaseblock"
@@ -75,6 +103,10 @@ dependencies = [
 [[package]]
 name = "cce-phc"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-crystal",
+]
 
 [[package]]
 name = "cce-runner"

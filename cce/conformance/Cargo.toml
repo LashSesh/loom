@@ -6,3 +6,9 @@ license = "SEE-REPO-ROOT"
 publish = false
 
 [dependencies]
+cce-core = { path = "../crates/cce-core" }
+cce-crystal = { path = "../crates/cce-crystal" }
+cce-phc = { path = "../crates/cce-phc" }
+cce-loom = { path = "../crates/cce-loom" }
+cce-observe = { path = "../crates/cce-observe" }
+cce-materialize = { path = "../crates/cce-materialize" }
