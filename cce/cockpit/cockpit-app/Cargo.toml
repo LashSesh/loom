@@ -5,4 +5,15 @@ edition = "2021"
 license = "SEE-REPO-ROOT"
 publish = false
 
+# Toolkit-Wahl gemaess S3.1.1-Empfehlung: egui (S3.10-R1 damit
+# entschieden; Feindesign bleibt LC-R5-Anschluss).
 [dependencies]
+cockpit-core = { path = "../cockpit-core" }
+cce-core = { path = "../../crates/cce-core" }
+cce-materialize = { path = "../../crates/cce-materialize" }
+cce-inference = { path = "../../crates/cce-inference" }
+eframe = { version = "0.35", default-features = false, features = ["glow", "x11", "wayland"] }
+
+[[bin]]
+name = "cce-cockpit"
+path = "src/main.rs"
