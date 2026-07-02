@@ -205,6 +205,10 @@ version = "0.1.0"
 [[package]]
 name = "loom-codec"
 version = "0.1.0"
+dependencies = [
+ "loom-canon",
+ "loom-format",
+]
 
 [[package]]
 name = "loom-conformance"
@@ -217,6 +221,9 @@ version = "0.1.0"
 [[package]]
 name = "loom-format"
 version = "0.1.0"
+dependencies = [
+ "loom-canon",
+]
 
 [[package]]
 name = "loom-gate"
@@ -241,6 +248,11 @@ version = "0.1.0"
 [[package]]
 name = "loom-verify"
 version = "0.1.0"
+dependencies = [
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+]
 
 [[package]]
 name = "loom-viewer"

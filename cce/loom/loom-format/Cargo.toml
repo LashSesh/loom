@@ -5,4 +5,6 @@ edition = "2021"
 license = "SEE-REPO-ROOT"
 publish = false
 
+# Bewusst motorfrei: Teil des Viewer-Pfads (Reader-Prinzip).
 [dependencies]
+loom-canon = { path = "../loom-canon" }
