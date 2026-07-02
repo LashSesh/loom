@@ -39,6 +39,12 @@ dependencies = [
 [[package]]
 name = "cce-hbm"
 version = "0.1.0"
+dependencies = [
+ "cce-ccc",
+ "cce-core",
+ "cce-crystal",
+ "cce-lattice",
+]
 
 [[package]]
 name = "cce-kernel"

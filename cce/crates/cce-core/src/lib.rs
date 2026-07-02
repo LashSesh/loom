@@ -16,6 +16,7 @@
 pub mod adapter_parity;
 pub mod bcik;
 pub mod canonical;
+pub mod capability;
 pub mod closure;
 pub mod gate;
 pub mod hf_import;
@@ -32,6 +33,7 @@ pub mod value;
 pub mod wheel_window;
 
 pub use canonical::{CanonicalClass, CanonicalState, Canonicalize};
+pub use capability::CapabilityLock;
 pub use closure::{is_closed, ClosureCertificate};
 pub use gate::{Gate, GateChain, GateKind, GateReport, GateVerdict};
 pub use ledger::{Ledger, LedgerEvent, LedgerEventKind};
