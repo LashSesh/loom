@@ -6,6 +6,7 @@
 //! ausserhalb des Abschlusspfads.
 
 pub mod engine;
+pub mod journey;
 pub mod kanzel;
 pub mod persistence;
 pub mod state;

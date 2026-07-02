@@ -34,6 +34,8 @@ cce-toolgateway = { path = "../crates/cce-toolgateway" }
 cce-phaseblock = { path = "../crates/cce-phaseblock" }
 loom-conformance = { path = "../loom/loom-conformance" }
 loom-verify = { path = "../loom/loom-verify" }
+cockpit-core = { path = "../cockpit/cockpit-core" }
+cce-runner = { path = "../crates/cce-runner" }
 
 # Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
 [[test]]
