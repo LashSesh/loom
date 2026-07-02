@@ -12,3 +12,5 @@ cce-phc = { path = "../crates/cce-phc" }
 cce-loom = { path = "../crates/cce-loom" }
 cce-observe = { path = "../crates/cce-observe" }
 cce-materialize = { path = "../crates/cce-materialize" }
+cce-library = { path = "../crates/cce-library" }
+cce-store = { path = "../crates/cce-store" }

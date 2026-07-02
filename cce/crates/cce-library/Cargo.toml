@@ -6,3 +6,7 @@ license = "SEE-REPO-ROOT"
 publish = false
 
 [dependencies]
+cce-core = { path = "../cce-core" }
+cce-materialize = { path = "../cce-materialize" }
+cce-phc = { path = "../cce-phc" }
+cce-store = { path = "../cce-store" }
