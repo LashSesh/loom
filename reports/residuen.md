@@ -20,3 +20,22 @@ Vorläufige Behandlung: konservative Auslegung — alle verankerten Eigenschafte
 materialisiert und fortlaufend nummeriert; die zwei explizit verankerten Nummern (K12, C13)
 liegen auf ihren Spec-Positionen. Zuordnungstabelle in den Testdateien dokumentiert.
 Blockiert: nichts
+
+R-Agent-3: PhaseBlock-10-Tupel — Feldzuordnung
+Fundstelle: REBASE_KONSOLIDIERUNG §1.1 ("PhaseBlock (10-Tupel)"), 01_MASTER_BUILD G2
+Frage/Konflikt: Das 10-Tupel wird gefordert, die zehn Felder werden im Spec-Repo nicht
+einzeln aufgezählt (Quelle: Strukturpause, nicht beiliegend). Die Accept-8-Kriterien
+benennen die Pflichtinhalte (Typed/Boundary/Seam/Gate/Evidence/Residue/Replay/Reanalysis).
+Vorläufige Behandlung: konservative Zuordnung — (id, scale, phase, inputs[HITL],
+payload_digest, gate_reports, evidence_refs, residue_field, rd_ref, parent_refs);
+deckt alle Accept-8-Prüfgegenstände ab, keines erfunden.
+Blockiert: nichts
+
+R-Agent-4: HyperDAG-Kantentypen — Zählweise
+Fundstelle: REBASE_KONSOLIDIERUNG §1.1 / S15.5 (Formel: E_dep, E_seam, E_phase,
+E_scale, E_commit) vs. 01_MASTER_BUILD G2 ("HyperDAG H mit 6 Kantentypen")
+Frage/Konflikt: Die normative Formel nennt fünf Kantenmengen; die konsolidierte
+Bauordnung spricht von sechs Kantentypen.
+Vorläufige Behandlung: Implementierung folgt der normativen Formel (5 Kantentypen,
+Autoritätsordnung: Spec über Wurzeldokument-Wortlaut); kein sechster Typ erfunden.
+Blockiert: nichts

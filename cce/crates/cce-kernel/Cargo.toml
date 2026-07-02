@@ -6,3 +6,4 @@ license = "SEE-REPO-ROOT"
 publish = false
 
 [dependencies]
+cce-core = { path = "../cce-core" }

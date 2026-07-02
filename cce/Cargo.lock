@@ -33,6 +33,9 @@ version = "0.1.0"
 [[package]]
 name = "cce-kernel"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+]
 
 [[package]]
 name = "cce-lattice"
@@ -64,6 +67,10 @@ version = "0.1.0"
 [[package]]
 name = "cce-phaseblock"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-kernel",
+]
 
 [[package]]
 name = "cce-phc"
