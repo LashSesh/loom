@@ -4,7 +4,7 @@
 //! In G0 ist das Harness leer, aber vorhanden und CI-gebunden.
 
 /// Kennung des Regressionswaechters; waechst mit jeder Phase.
-pub const GUARD_PHASES: &[&str] = &["G0", "G1", "G2", "G3"];
+pub const GUARD_PHASES: &[&str] = &["G0", "G1", "G2", "G3", "G4"];
 
 #[cfg(test)]
 mod tests {

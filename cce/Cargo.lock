@@ -115,6 +115,10 @@ version = "0.1.0"
 [[package]]
 name = "cce-spiral"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-phaseblock",
+]
 
 [[package]]
 name = "cce-store"
