@@ -29,3 +29,11 @@ nexus-store = { path = "../nexus/nexus-store" }
 nexus-adapter-local-corpus = { path = "../nexus/adapters/local_corpus" }
 nexus-adapter-wikimedia = { path = "../nexus/adapters/wikimedia" }
 nexus-adapter-git = { path = "../nexus/adapters/git_repository" }
+cce-inference = { path = "../crates/cce-inference" }
+cce-toolgateway = { path = "../crates/cce-toolgateway" }
+cce-phaseblock = { path = "../crates/cce-phaseblock" }
+
+# Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
+[[test]]
+name = "inference_catalog"
+path = "inference/inference_catalog.rs"

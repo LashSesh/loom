@@ -70,7 +70,60 @@ def main() -> int:
         print(f"INV-11 VERLETZT: Kern haengt ohne Port an Aussenschicht: {bad}")
         return 1
 
-    print(f"check_acyclic: OK ({len(deps)} Workspace-Crates, DAG, Schichten sauber)")
+    # 3. Tor-Trennung (IG-A1, Overlay 05): kein Pfad bedient zwei Tore.
+    #    source_acquisition (nexus-*) / model_egress (cce-inference) /
+    #    tool_egress (cce-toolgateway) sind im Crate-Graph disjunkt.
+    gate_bad = []
+    for n, ds in deps.items():
+        if n in ("cce-inference", "cce-toolgateway"):
+            for d in ds:
+                if d.startswith("nexus-"):
+                    gate_bad.append((n, d, "gateway haengt an CSA-Tor"))
+        if n.startswith("nexus-"):
+            for d in ds:
+                if d in ("cce-inference", "cce-toolgateway"):
+                    gate_bad.append((n, d, "CSA-Tor haengt an Gateway"))
+        if n == "cce-inference" and "cce-toolgateway" in ds:
+            gate_bad.append((n, "cce-toolgateway", "model- und tool-Tor verschmolzen"))
+        if n == "cce-toolgateway" and "cce-inference" in ds:
+            gate_bad.append((n, "cce-inference", "tool- und model-Tor verschmolzen"))
+    if gate_bad:
+        print(f"IG-A1 VERLETZT (Tor-Trennung): {gate_bad}")
+        return 1
+
+    # 4. Symbol-Scan (F.1 Ausgangs-Gate G8a): kein Modell-/Tool-Socket
+    #    ausserhalb der Gateways — der Workspace ist dependency-frei;
+    #    jede Socket-/HTTP-Primitive ausserhalb providers/ bzw.
+    #    nexus-fetch ist ein Verstoss.
+    import os
+    root = os.path.join(sys.path[0], "..")
+    needles = ("TcpStream", "UdpSocket", "reqwest", "hyper::", "curl", "ureq")
+    sock_bad = []
+    for base, _dirs, files in os.walk(root):
+        if "target" in base.split(os.sep):
+            continue
+        rel = os.path.relpath(base, root)
+        exempt = rel.startswith(
+            (os.path.join("crates", "cce-inference", "src", "providers"),
+             os.path.join("nexus", "nexus-fetch"))
+        )
+        for f in files:
+            if not f.endswith(".rs"):
+                continue
+            path = os.path.join(base, f)
+            with open(path, encoding="utf-8", errors="replace") as fh:
+                text = fh.read()
+            for needle in needles:
+                if needle in text and not exempt:
+                    sock_bad.append((os.path.join(rel, f), needle))
+    if sock_bad:
+        print(f"G8a VERLETZT: Socket-/HTTP-Symbol ausserhalb der Gateways: {sock_bad}")
+        return 1
+
+    print(
+        f"check_acyclic: OK ({len(deps)} Workspace-Crates, DAG, Schichten sauber, "
+        "Tor-Trennung + Socket-Scan sauber)"
+    )
     return 0
 
 

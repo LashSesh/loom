@@ -16,12 +16,15 @@ version = "0.1.0"
 dependencies = [
  "cce-core",
  "cce-crystal",
+ "cce-inference",
  "cce-library",
  "cce-loom",
  "cce-materialize",
  "cce-observe",
+ "cce-phaseblock",
  "cce-phc",
  "cce-store",
+ "cce-toolgateway",
  "nexus-adapter",
  "nexus-adapter-git",
  "nexus-adapter-local-corpus",
@@ -59,6 +62,14 @@ dependencies = [
  "cce-core",
  "cce-crystal",
  "cce-lattice",
+]
+
+[[package]]
+name = "cce-inference"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-store",
 ]
 
 [[package]]
@@ -166,6 +177,13 @@ version = "0.1.0"
 dependencies = [
  "cce-core",
  "cce-phaseblock",
+]
+
+[[package]]
+name = "cce-toolgateway"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
 ]
 
 [[package]]

@@ -38,6 +38,9 @@ members = [
     "nexus/adapters/local_corpus",
     "nexus/adapters/wikimedia",
     "nexus/adapters/git_repository",
+    # L9c Inference/Tool (Overlay 05, Teil C/F — Phase G8a)
+    "crates/cce-inference",
+    "crates/cce-toolgateway",
     # .loom-Container (LOOM Teil 11)
     "loom/loom-canon",
     "loom/loom-format",

@@ -1,0 +1,11 @@
+[package]
+name = "cce-inference"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# Tor-Trennung im Crate-Graph (IG-A1): KEINE nexus-*-Abhaengigkeit.
+[dependencies]
+cce-core = { path = "../cce-core" }
+cce-store = { path = "../cce-store" }
