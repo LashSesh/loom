@@ -5,6 +5,10 @@ version = 4
 [[package]]
 name = "cce-ccc"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-lattice",
+]
 
 [[package]]
 name = "cce-conformance"
@@ -17,6 +21,10 @@ version = "0.1.0"
 [[package]]
 name = "cce-crystal"
 version = "0.1.0"
+dependencies = [
+ "cce-ccc",
+ "cce-core",
+]
 
 [[package]]
 name = "cce-hbm"
@@ -29,6 +37,9 @@ version = "0.1.0"
 [[package]]
 name = "cce-lattice"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+]
 
 [[package]]
 name = "cce-library"
