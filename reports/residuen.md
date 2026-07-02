@@ -48,3 +48,10 @@ Vorläufige Behandlung: konservative Materialisierung aller im Spec-Repo veranke
 Eigenschaften (Loader-Kette, Themenfelder aus Teil 6.1-Testzeilen, TAT-Normalform),
 fortlaufend nummeriert und in den Testdateien dokumentiert.
 Blockiert: nichts
+
+---
+
+ENDSTAND (G12-Gesamtabnahme): R-Agent-1..5 bleiben dokumentiert wie oben;
+keines blockiert. Das vollständige End-Residuenregister der Abnahme
+(inkl. 02_MASTER_DOD §3 + F.3-Ergänzungen + Betriebs-/Umgebungsgrenzen)
+steht in reports/ABSCHLUSSBERICHT.md §3/§4.

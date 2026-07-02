@@ -4,6 +4,7 @@
 //! Materialisierung NUR nach Gate/Evidence/Trace/Replay; reobserve-Pflicht.
 
 pub mod adapter;
+pub mod catalog;
 pub mod document;
 
 pub use adapter::{check_adapter_parity_typed, DomainAdapter, OpenAction};
