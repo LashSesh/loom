@@ -1,0 +1,8 @@
+[package]
+name = "cockpit-core"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]

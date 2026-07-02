@@ -1,0 +1,4 @@
+# G0: gepinnte Toolchain (Determinismus, Bauverfassung Teil 6 / 01_MASTER_BUILD G0)
+[toolchain]
+channel = "1.94.1"
+components = ["rustfmt", "clippy"]

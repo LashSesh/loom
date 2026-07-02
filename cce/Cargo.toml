@@ -1,0 +1,72 @@
+[workspace]
+resolver = "2"
+members = [
+    # Motor (Bauverfassung Teil 6)
+    "crates/cce-core",
+    "crates/cce-lattice",
+    "crates/cce-ccc",
+    "crates/cce-crystal",
+    "crates/cce-phc",
+    "crates/cce-loom",
+    "crates/cce-observe",
+    "crates/cce-merkaba",
+    "crates/cce-materialize",
+    "crates/cce-runner",
+    # Rebase-Unterbau (REBASE_KONSOLIDIERUNG §8.2)
+    "crates/cce-kernel",
+    "crates/cce-phaseblock",
+    "crates/cce-spiral",
+    "crates/cce-hbm",
+    # Substanz
+    "crates/cce-store",
+    "crates/cce-library",
+    # CSA (CSA §13)
+    "nexus/nexus-core",
+    "nexus/nexus-policy",
+    "nexus/nexus-cell",
+    "nexus/nexus-adapter",
+    "nexus/nexus-ingress",
+    "nexus/nexus-fetch",
+    "nexus/nexus-decode",
+    "nexus/nexus-normalize",
+    "nexus/nexus-validate",
+    "nexus/nexus-evidence",
+    "nexus/nexus-ledger",
+    "nexus/nexus-store",
+    "nexus/nexus-export",
+    "nexus/nexus-cli",
+    "nexus/adapters/local_corpus",
+    "nexus/adapters/wikimedia",
+    "nexus/adapters/git_repository",
+    # .loom-Container (LOOM Teil 11)
+    "loom/loom-canon",
+    "loom/loom-format",
+    "loom/loom-codec",
+    "loom/loom-verify",
+    "loom/loom-mount",
+    "loom/loom-project",
+    "loom/loom-gate",
+    "loom/loom-replay",
+    "loom/loom-export",
+    "loom/loom-viewer",
+    "loom/loom-runner",
+    "loom/loom-cli",
+    "loom/loom-conformance",
+    # Cockpit (S3)
+    "cockpit/cockpit-core",
+    "cockpit/cockpit-app",
+    # Uebergreifende Testmatrix + Regressionswaechter-Einstieg
+    "conformance",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+# Determinismus-Pflicht (Bauverfassung P9): keine Wall-Clock, keine ungeseedete
+# Zufaelligkeit auf dem Abschlusspfad. Externe Abhaengigkeiten bewusst minimal.
+[workspace.dependencies]
+
+[profile.release]
+lto = true
+codegen-units = 1
