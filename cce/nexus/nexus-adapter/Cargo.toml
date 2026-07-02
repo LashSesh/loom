@@ -1,0 +1,10 @@
+[package]
+name = "nexus-adapter"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+cce-core = { path = "../../crates/cce-core" }
+nexus-core = { path = "../nexus-core" }

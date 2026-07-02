@@ -1,0 +1,12 @@
+[package]
+name = "loom-verify"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# Motorfrei: L0–L2 ohne Projektwissen (Reader-Prinzip).
+[dependencies]
+loom-canon = { path = "../loom-canon" }
+loom-format = { path = "../loom-format" }
+loom-codec = { path = "../loom-codec" }

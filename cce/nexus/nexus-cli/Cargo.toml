@@ -1,0 +1,28 @@
+[package]
+name = "nexus-cli"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+cce-core = { path = "../../crates/cce-core" }
+nexus-core = { path = "../nexus-core" }
+nexus-adapter = { path = "../nexus-adapter" }
+nexus-policy = { path = "../nexus-policy" }
+nexus-fetch = { path = "../nexus-fetch" }
+nexus-validate = { path = "../nexus-validate" }
+nexus-evidence = { path = "../nexus-evidence" }
+nexus-ledger = { path = "../nexus-ledger" }
+nexus-export = { path = "../nexus-export" }
+nexus-cell = { path = "../nexus-cell" }
+nexus-store = { path = "../nexus-store" }
+nexus-adapter-local-corpus = { path = "../adapters/local_corpus" }
+
+[[bin]]
+name = "nexus"
+path = "src/main.rs"
+
+[lib]
+name = "nexus_cli"
+path = "src/lib.rs"

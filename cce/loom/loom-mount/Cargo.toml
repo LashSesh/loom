@@ -1,0 +1,12 @@
+[package]
+name = "loom-mount"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+loom-canon = { path = "../loom-canon" }
+loom-format = { path = "../loom-format" }
+loom-codec = { path = "../loom-codec" }
+loom-verify = { path = "../loom-verify" }

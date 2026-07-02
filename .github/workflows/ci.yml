@@ -1,0 +1,22 @@
+# CI-Skeleton (G0). Spiegelt exakt cce/ci/run_ci.sh — fail-closed.
+name: cce-ci
+on: [push, pull_request]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Spec-Integritaet
+        run: cd cce-spec-repo && sha256sum -c INTEGRITAET.sha256
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.94.1"
+          components: rustfmt, clippy
+      - name: fmt
+        run: cd cce && cargo fmt --all -- --check
+      - name: clippy (fail-closed)
+        run: cd cce && cargo clippy --workspace --all-targets -- -D warnings
+      - name: check_acyclic (INV-11)
+        run: cd cce && python3 ci/check_acyclic.py
+      - name: test (Regressionswaechter)
+        run: cd cce && cargo test --workspace

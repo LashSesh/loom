@@ -1,0 +1,11 @@
+[package]
+name = "cce-toolgateway"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# Tor-Trennung (IG-A1): tool_egress ist ein EIGENES Tor — keine
+# nexus-*- und keine cce-inference-Abhaengigkeit.
+[dependencies]
+cce-core = { path = "../cce-core" }

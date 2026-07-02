@@ -1,0 +1,12 @@
+[package]
+name = "cce-hbm"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+cce-core = { path = "../cce-core" }
+cce-lattice = { path = "../cce-lattice" }
+cce-ccc = { path = "../cce-ccc" }
+cce-crystal = { path = "../cce-crystal" }

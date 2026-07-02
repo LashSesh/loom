@@ -1,0 +1,10 @@
+[package]
+name = "loom-gate"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+loom-canon = { path = "../loom-canon" }
+cce-core = { path = "../../crates/cce-core" }

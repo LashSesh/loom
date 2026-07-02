@@ -1,0 +1,28 @@
+[package]
+name = "loom-conformance"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# Zeugensuite (Teil 10): baut R-Dateien ueber Motor-Ports (B7).
+[dependencies]
+loom-canon = { path = "../loom-canon" }
+loom-format = { path = "../loom-format" }
+loom-codec = { path = "../loom-codec" }
+loom-verify = { path = "../loom-verify" }
+loom-mount = { path = "../loom-mount" }
+loom-gate = { path = "../loom-gate" }
+loom-project = { path = "../loom-project" }
+loom-replay = { path = "../loom-replay" }
+loom-export = { path = "../loom-export" }
+loom-runner = { path = "../loom-runner" }
+cce-core = { path = "../../crates/cce-core" }
+cce-phc = { path = "../../crates/cce-phc" }
+cce-materialize = { path = "../../crates/cce-materialize" }
+cce-hbm = { path = "../../crates/cce-hbm" }
+nexus-core = { path = "../../nexus/nexus-core" }
+
+[[bin]]
+name = "golden-gen"
+path = "src/bin/golden_gen.rs"

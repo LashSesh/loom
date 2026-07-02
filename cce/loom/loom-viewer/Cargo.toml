@@ -1,0 +1,24 @@
+[package]
+name = "loom-viewer"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# READER-PRINZIP-NACHWEIS (G9-Ausgangs-Gate): dieses Target haengt an
+# KEINEM cce-*-Crate — nur loom-canon/format/codec/verify/mount.
+# ci/check_acyclic.py erzwingt das (Viewer-Regel).
+[dependencies]
+loom-canon = { path = "../loom-canon" }
+loom-format = { path = "../loom-format" }
+loom-codec = { path = "../loom-codec" }
+loom-verify = { path = "../loom-verify" }
+loom-mount = { path = "../loom-mount" }
+
+[[bin]]
+name = "loom-viewer"
+path = "src/main.rs"
+
+[lib]
+name = "loom_viewer"
+path = "src/lib.rs"

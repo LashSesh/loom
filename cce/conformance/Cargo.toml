@@ -1,0 +1,43 @@
+[package]
+name = "cce-conformance"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+cce-core = { path = "../crates/cce-core" }
+cce-crystal = { path = "../crates/cce-crystal" }
+cce-phc = { path = "../crates/cce-phc" }
+cce-loom = { path = "../crates/cce-loom" }
+cce-observe = { path = "../crates/cce-observe" }
+cce-materialize = { path = "../crates/cce-materialize" }
+cce-library = { path = "../crates/cce-library" }
+cce-store = { path = "../crates/cce-store" }
+nexus-core = { path = "../nexus/nexus-core" }
+nexus-adapter = { path = "../nexus/nexus-adapter" }
+nexus-policy = { path = "../nexus/nexus-policy" }
+nexus-fetch = { path = "../nexus/nexus-fetch" }
+nexus-validate = { path = "../nexus/nexus-validate" }
+nexus-evidence = { path = "../nexus/nexus-evidence" }
+nexus-ledger = { path = "../nexus/nexus-ledger" }
+nexus-export = { path = "../nexus/nexus-export" }
+nexus-cell = { path = "../nexus/nexus-cell" }
+nexus-ingress = { path = "../nexus/nexus-ingress" }
+nexus-decode = { path = "../nexus/nexus-decode" }
+nexus-store = { path = "../nexus/nexus-store" }
+nexus-adapter-local-corpus = { path = "../nexus/adapters/local_corpus" }
+nexus-adapter-wikimedia = { path = "../nexus/adapters/wikimedia" }
+nexus-adapter-git = { path = "../nexus/adapters/git_repository" }
+cce-inference = { path = "../crates/cce-inference" }
+cce-toolgateway = { path = "../crates/cce-toolgateway" }
+cce-phaseblock = { path = "../crates/cce-phaseblock" }
+loom-conformance = { path = "../loom/loom-conformance" }
+loom-verify = { path = "../loom/loom-verify" }
+cockpit-core = { path = "../cockpit/cockpit-core" }
+cce-runner = { path = "../crates/cce-runner" }
+
+# Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
+[[test]]
+name = "inference_catalog"
+path = "inference/inference_catalog.rs"

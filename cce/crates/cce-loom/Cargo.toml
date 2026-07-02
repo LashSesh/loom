@@ -1,0 +1,10 @@
+[package]
+name = "cce-loom"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+cce-core = { path = "../cce-core" }
+cce-phc = { path = "../cce-phc" }
