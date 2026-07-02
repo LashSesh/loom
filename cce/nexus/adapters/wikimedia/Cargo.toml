@@ -6,3 +6,12 @@ license = "SEE-REPO-ROOT"
 publish = false
 
 [dependencies]
+cce-core = { path = "../../../crates/cce-core" }
+nexus-core = { path = "../../nexus-core" }
+nexus-adapter = { path = "../../nexus-adapter" }
+nexus-decode = { path = "../../nexus-decode" }
+nexus-normalize = { path = "../../nexus-normalize" }
+
+[lib]
+name = "nexus_adapter_wikimedia"
+path = "src/lib.rs"

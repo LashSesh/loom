@@ -22,6 +22,21 @@ dependencies = [
  "cce-observe",
  "cce-phc",
  "cce-store",
+ "nexus-adapter",
+ "nexus-adapter-git",
+ "nexus-adapter-local-corpus",
+ "nexus-adapter-wikimedia",
+ "nexus-cell",
+ "nexus-core",
+ "nexus-decode",
+ "nexus-evidence",
+ "nexus-export",
+ "nexus-fetch",
+ "nexus-ingress",
+ "nexus-ledger",
+ "nexus-policy",
+ "nexus-store",
+ "nexus-validate",
 ]
 
 [[package]]
@@ -216,67 +231,160 @@ version = "0.1.0"
 [[package]]
 name = "nexus-adapter"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-adapter-git"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-core",
+ "nexus-decode",
+ "nexus-normalize",
+]
 
 [[package]]
 name = "nexus-adapter-local-corpus"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-core",
+ "nexus-decode",
+ "nexus-normalize",
+]
 
 [[package]]
 name = "nexus-adapter-wikimedia"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-core",
+ "nexus-decode",
+ "nexus-normalize",
+]
 
 [[package]]
 name = "nexus-cell"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-core",
+ "nexus-policy",
+]
 
 [[package]]
 name = "nexus-cli"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-adapter-local-corpus",
+ "nexus-cell",
+ "nexus-core",
+ "nexus-evidence",
+ "nexus-export",
+ "nexus-fetch",
+ "nexus-ledger",
+ "nexus-policy",
+ "nexus-store",
+ "nexus-validate",
+]
 
 [[package]]
 name = "nexus-core"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+]
 
 [[package]]
 name = "nexus-decode"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-evidence"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-export"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-fetch"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-core",
+ "nexus-policy",
+]
 
 [[package]]
 name = "nexus-ingress"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-ledger"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-normalize"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-policy"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-adapter",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-store"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-store",
+ "nexus-core",
+]
 
 [[package]]
 name = "nexus-validate"
 version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "nexus-core",
+]

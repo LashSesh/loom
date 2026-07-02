@@ -10,6 +10,10 @@ import subprocess
 import sys
 
 ALLOWED_CORE_TO_OUTER = {
+    # cce-conformance ist der Waechter: die Zeugensuite waechst per Spez
+    # mit JEDER Phase (G8 CSA, G8a Inference, G9 .loom) und steht damit
+    # OBERHALB aller Schichten — sie ist Pruefling-Konsument, kein Kern.
+    "cce-conformance": {"*"},
     # LOOM Teil 11: "kein cce-*-Crate haengt von loom-* ab ausser
     # cce-runner/cce-observe ueber den SDK-Port"
     "cce-runner": {"loom-codec", "loom-verify", "loom-format", "loom-canon"},
@@ -59,7 +63,8 @@ def main() -> int:
         if n.startswith("cce-"):
             for d in ds:
                 if d.startswith(("loom-", "nexus-", "cockpit-")):
-                    if d not in ALLOWED_CORE_TO_OUTER.get(n, set()):
+                    allowed = ALLOWED_CORE_TO_OUTER.get(n, set())
+                    if "*" not in allowed and d not in allowed:
                         bad.append((n, d))
     if bad:
         print(f"INV-11 VERLETZT: Kern haengt ohne Port an Aussenschicht: {bad}")
