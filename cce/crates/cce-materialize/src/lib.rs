@@ -11,6 +11,7 @@ pub mod family_a_domains;
 pub mod family_g_domains;
 pub mod family_j_domains;
 pub mod family_n_domains;
+pub mod scale2_folder;
 
 pub use adapter::{check_adapter_parity_typed, DomainAdapter, OpenAction};
 pub use document::{DocCrystal, DocUnit, DocumentAdapter, UnitType};

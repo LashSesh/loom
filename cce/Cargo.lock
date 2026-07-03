@@ -312,6 +312,7 @@ dependencies = [
  "cce-phaseblock",
  "cce-phc",
  "cce-runner",
+ "cce-spiral",
  "cce-store",
  "cce-toolgateway",
  "cockpit-core",

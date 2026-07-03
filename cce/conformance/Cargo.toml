@@ -9,6 +9,7 @@ publish = false
 cce-core = { path = "../crates/cce-core" }
 cce-crystal = { path = "../crates/cce-crystal" }
 cce-phc = { path = "../crates/cce-phc" }
+cce-spiral = { path = "../crates/cce-spiral" }
 cce-loom = { path = "../crates/cce-loom" }
 cce-observe = { path = "../crates/cce-observe" }
 cce-materialize = { path = "../crates/cce-materialize" }

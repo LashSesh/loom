@@ -34,11 +34,11 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
 | C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
-| E Skalen | P8 (SCALE-2) **als Nächstes nach W4** |
+| E Skalen | P8 **fertig**: SCALE-2 Dokumentenmappe (Red(2)-Kerntest, MSC 1→2, Adapter 8/8, PL2); SCALE-3 offen |
 | F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated; Registry-Vollform offen |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 
 ## Nächster Schritt
 
-Interleaving-Einheit **E/P8** (SCALE-2 Dokumentenmappe), danach Welle
-**W5 = Familie F (Projekt/Prozess, PM01–15)**.
+Welle **W5 = Familie F (Projekt/Prozess/Workflow, PM01–15)**; danach
+Interleaving-Einheit **F** (zstd-Transportprofil).
