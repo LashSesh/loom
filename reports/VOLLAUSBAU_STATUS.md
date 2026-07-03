@@ -8,7 +8,7 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 |---|---|---|---|
 | A Dokument/Text | D | **15/15** | D01 = PL4 · D02–D15 = PL3 |
 | J Wissen/Forschung | KNOW | **15/15** | KNOW01–15 = PL3 |
-| G Governance | GOV | 0/12 | PL1 |
+| G Governance | GOV | **12/12** | GOV01–12 = PL3 |
 | N Kommunikation | COM | 0/12 | PL1 |
 | F Projekt/Prozess | PM | 0/15 | PL1 |
 | K Bildung | EDU | 0/12 | PL1 |
@@ -23,22 +23,22 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | M Hardware/CAD | HW | 0/15 | PL1 |
 | P Regulated Advisory | REG | 0/8 | PL1 (PL4 review-gebunden) |
 
-**Summe fertig (≥PL3): 30/213.** Nächste Welle: **W3 = Familie G
-(Governance/Compliance/Audit, GOV01–12).**
+**Summe fertig (≥PL3): 42/213.** Nächste Welle: **W4 = Familie N
+(Kommunikation/CRM, COM01–12).**
 
 ## Parallele Tracks
 
 | Track | Stand |
 |---|---|
-| A Domänen | W1+W2 fertig (Familien A, J, PL3); W3 als Nächstes |
+| A Domänen | W1–W3 fertig (Familien A, J, G, PL3); W4 als Nächstes |
 | B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
 | C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
 | E Skalen | P8 (SCALE-2) — geplant nach W4 |
-| F Härtung | P6(a/b) fertig; P6(c) Ed25519+Keyring freigegeben — geplant nach W3 |
+| F Härtung | P6(a/b) fertig; P6(c) Ed25519+Keyring **als Nächstes nach W3** |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 
 ## Nächster Schritt
 
-Welle **W3 = Familie G (Governance/Compliance/Audit, GOV01–12)**; danach
-Interleaving-Einheit **F/P6(c)** (Ed25519 + OS-Keyring).
+Interleaving-Einheit **F/P6(c)** (Ed25519 + OS-Keyring, CLI-Blatt), danach
+Welle **W4 = Familie N (Kommunikation/CRM, COM01–12)**.

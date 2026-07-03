@@ -8,6 +8,7 @@ pub mod catalog;
 pub mod document;
 pub mod family_a;
 pub mod family_a_domains;
+pub mod family_g_domains;
 pub mod family_j_domains;
 
 pub use adapter::{check_adapter_parity_typed, DomainAdapter, OpenAction};
