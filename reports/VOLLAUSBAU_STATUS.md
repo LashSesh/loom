@@ -1,6 +1,6 @@
 # Vollausbau-Status (eine Seite, Klartext)
 
-Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
+Stand: nach Welle **W7**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -11,8 +11,8 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | G Governance | GOV | **12/12** | GOV01–12 = PL3 |
 | N Kommunikation | COM | **12/12** | COM01–12 = PL3 |
 | F Projekt/Prozess | PM | **15/15** | PM01–15 = PL3 |
-| K Bildung | EDU | 0/12 | PL1 |
-| I Produkt/Business | BUS | 0/15 | PL1 |
+| K Bildung | EDU | **12/12** | EDU01–12 = PL3 |
+| I Produkt/Business | BUS | **15/15** | BUS01–15 = PL3 |
 | B Software Eng. | SWE | 0/15 | PL1 |
 | C Daten/Analytics | DATA | 0/12 | PL1 |
 | D Graph/Netzwerk | GRA | 0/12 | PL1 |
@@ -23,14 +23,14 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | M Hardware/CAD | HW | 0/15 | PL1 |
 | P Regulated Advisory | REG | 0/8 | PL1 (PL4 review-gebunden) |
 
-**Summe fertig (≥PL3): 69/213.** Nächste Welle: **W6 = Familie K
-(Bildung/Training, EDU01–12).**
+**Summe fertig (≥PL3): 96/213.** Nächste Welle: **W8 = Familie B
+(Software Engineering, SWE01–15).**
 
 ## Parallele Tracks
 
 | Track | Stand |
 |---|---|
-| A Domänen | W1–W5 fertig (A, J, G, N, F, PL3); W6 als Nächstes |
+| A Domänen | W1–W7 fertig (A, J, G, N, F, K, I → PL3); W8 als Nächstes |
 | B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
 | C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
@@ -40,5 +40,5 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 
 ## Nächster Schritt
 
-Welle **W6 = Familie K (Bildung/Training, EDU01–12)**; danach weitere
-Wellen fortlaufend (A hat Vorrang, Track-Einheiten dazwischen).
+Welle **W8 = Familie B (Software Engineering, SWE01–15)**; danach weitere
+Wellen fortlaufend (A hat Vorrang, Track-Reste dazwischen).
