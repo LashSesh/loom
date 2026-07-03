@@ -53,6 +53,10 @@ pub struct RunDescriptor {
     pub seed: u64,
     pub domain: String,
     pub export_profile: String,
+    /// S-E2a I.5: `target_core_root`s zitierter `supports`/`derives`-Nähte
+    /// sind Replay-INPUTS — Replay verlangt dieselben Ziele (der Resolver
+    /// darf ein anderer sein, die Klassen nicht). Additiv, Default leer.
+    pub input_digests: Vec<Digest>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -71,11 +75,18 @@ impl RunDescriptor {
             seed,
             domain: domain.to_string(),
             export_profile: "default".to_string(),
+            input_digests: Vec::new(),
         }
     }
 
     pub fn with_decision(mut self, d: HitlDecision) -> Self {
         self.decisions.push(d);
+        self
+    }
+
+    /// S-E2a I.5: einen zitierten Ziel-Digest als Replay-Input anhaengen.
+    pub fn with_input(mut self, d: Digest) -> Self {
+        self.input_digests.push(d);
         self
     }
 
@@ -115,6 +126,15 @@ impl Canonicalize for RunDescriptor {
             ("seed", CanonValue::Int(self.seed as i64)),
             ("domain", CanonValue::text(&self.domain)),
             ("export_profile", CanonValue::text(&self.export_profile)),
+            (
+                "input_digests",
+                CanonValue::List(
+                    self.input_digests
+                        .iter()
+                        .map(|d| CanonValue::Bytes(d.0.to_vec()))
+                        .collect(),
+                ),
+            ),
         ])
     }
 }
@@ -180,6 +200,20 @@ mod tests {
             (0..4).map(|_| r.next_u64()).collect()
         };
         assert_eq!(a, b);
+    }
+
+    /// S-E2a I.5: ein zitierter Ziel-Digest ist Teil der RD-Klasse — sonst
+    /// waere Replay gegen ein ANDERES Ziel unauffaellig gleich klassifiziert.
+    #[test]
+    fn input_digest_changes_rd_class() {
+        let base = RunDescriptor::new(sha256(b"c"), "document", 42);
+        let with_input = base.clone().with_input(sha256(b"target-a"));
+        assert!(!base.equivalent(&with_input));
+        let with_other_input = base.clone().with_input(sha256(b"target-b"));
+        assert!(
+            !with_input.equivalent(&with_other_input),
+            "verschiedene Ziel-Digests muessen verschiedene RD-Klassen ergeben"
+        );
     }
 
     #[test]
