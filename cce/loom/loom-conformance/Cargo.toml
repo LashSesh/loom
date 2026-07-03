@@ -58,3 +58,7 @@ path = "src/bin/blueprint_reference_gen.rs"
 [[bin]]
 name = "blueprint-eigenkorpus-gen"
 path = "src/bin/blueprint_eigenkorpus_gen.rs"
+
+[[bin]]
+name = "risikomatrix-gen"
+path = "src/bin/risikomatrix_gen.rs"

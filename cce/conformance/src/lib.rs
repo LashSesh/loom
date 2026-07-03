@@ -5,7 +5,7 @@
 /// Kennung des Regressionswaechters; waechst mit jeder Phase.
 pub const GUARD_PHASES: &[&str] = &[
     "G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G8a", "G9", "G10", "G11", "G12", "W1",
-    "W2",
+    "W2", "CE1",
 ];
 
 /// Produktversion (S11: Versionierung; Update-DoD-Pfad s. `update_dod`).
@@ -74,6 +74,11 @@ pub const FEATURE_PL: &[(&str, &str, &str)] = &[
         "domaenen_katalog",
         "PL1",
         "crates/cce-materialize/src/catalog.rs (tests)",
+    ),
+    (
+        "ce1_tabellen_zellentyp",
+        "PL2",
+        "conformance/tests/e4a_ce1_table.rs",
     ),
 ];
 

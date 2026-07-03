@@ -1400,3 +1400,122 @@ pub fn build_blueprint_eigenkorpus() -> Sealed {
     )
     .unwrap()
 }
+
+// ---------- Etappe X2/E4a (S-E4a Teil II): CE-1 Tabellen-Zellentyp ----------
+//
+// R-TBL-1: das Referenz-Memo "Risikomatrix" — eine Table-Einheit (3
+// Zeilen) + drei Gegenmassnahmen-Einheiten, je mit einer supports-Naht
+// AUF die Tabelle (haelt sie nicht-verwaist UND belegt real, dass Table
+// Naehte traegt wie jede andere Einheit, S-E4a II.2).
+
+/// Das Referenz-Memo fuer CE-1: R-TBL-1.
+pub fn risikomatrix_memo() -> cce_materialize::document::DocCrystal {
+    use cce_materialize::document::{DocUnit, TableCell, UnitType};
+    let tabelle = DocUnit::new_table(
+        "tbl1",
+        &["Risiko", "Wahrscheinlichkeit", "Kosten"],
+        vec![
+            vec![
+                TableCell::Text("Serverausfall".to_string()),
+                TableCell::DecFrac { num: 15, scale: 1 },
+                TableCell::Int(5000),
+            ],
+            vec![
+                TableCell::Text("Datenverlust".to_string()),
+                TableCell::DecFrac { num: 5, scale: 1 },
+                TableCell::Int(12000),
+            ],
+            vec![
+                TableCell::Text("Lieferverzug".to_string()),
+                TableCell::DecFrac { num: 30, scale: 1 },
+                TableCell::Int(2000),
+            ],
+        ],
+    )
+    .with_seam("refers", "s1");
+    cce_materialize::document::DocCrystal {
+        title: "Risikomatrix".to_string(),
+        units: vec![
+            DocUnit::new("s1", UnitType::Section, "Risikomatrix"),
+            tabelle,
+            DocUnit::new(
+                "c1",
+                UnitType::Countermeasure,
+                "Failover-Cluster gegen Serverausfall",
+            )
+            .with_seam("supports", "tbl1"),
+            DocUnit::new(
+                "c2",
+                UnitType::Countermeasure,
+                "Taegliche Backups gegen Datenverlust",
+            )
+            .with_seam("supports", "tbl1"),
+            DocUnit::new(
+                "c3",
+                UnitType::Countermeasure,
+                "Zweitlieferant gegen Lieferverzug",
+            )
+            .with_seam("supports", "tbl1"),
+        ],
+        covers: vec!["Risikomatrix".to_string()],
+        required_sections: vec!["Risikomatrix".to_string()],
+        no_score_fields: true,
+        ordering: "neutral".to_string(),
+    }
+}
+
+/// R-TBL-1 versiegelt: voller Motorpfad (cce-runner), "full"-Profil wie
+/// R7/der Welt-Kristall — alle sieben DocG-Gates gruen, inkl. der
+/// verschaerften DocG-Structure (ragged_table/invalid_cell_type).
+pub fn build_risikomatrix_workbody() -> Sealed {
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_runner::runner::Run;
+
+    let crystal = risikomatrix_memo();
+    let rd = RunDescriptor::new(sha256(b"risikomatrix-ce1"), "document", 7);
+    let mut run = Run::submit(crystal.clone(), rd).expect("Motor-Submit");
+    run.run_to_end(None)
+        .expect("Motor-Lauf (alle DocG-Gates gruen)");
+    let artifact = run
+        .artifact
+        .as_ref()
+        .expect("Crystal muss real materialisieren (Gates gruen)");
+    let content_class = crystal.canonical_class().0;
+    let byte_digest = artifact.byte_digest();
+
+    let doc_meta = Cv::map(vec![
+        ("title", Cv::Text(crystal.title.clone())),
+        ("units", Cv::Uint(crystal.units.len() as u64)),
+        ("class", Cv::Text(content_class.to_hex())),
+    ]);
+    let artifact_cv = Cv::map(vec![
+        ("artifact_id", Cv::Text("artifact:risikomatrix-md".into())),
+        (
+            "two_digest",
+            Cv::map(vec![
+                ("content_class", Cv::Text(content_class.to_hex())),
+                ("byte_digest", Cv::Text(byte_digest.to_hex())),
+            ]),
+        ),
+    ]);
+    let m = manifest_cv(
+        "Risikomatrix — CE-1 Referenz-Memo (X2/E4a)",
+        "workcell",
+        "PL2",
+        false,
+        0,
+        &[],
+        &["read_segment", "project_workcell", "export_artifact"],
+        "cc0",
+    );
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_DOC, &doc_meta),
+        seg(KIND_ARTIFACT, &artifact_cv),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(artifact.bytes.clone())),
+    ];
+    segs.extend(workcell_segments());
+    seal_canonical("workcell", &["workcell"], &segs).unwrap()
+}
