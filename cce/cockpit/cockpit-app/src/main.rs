@@ -4,12 +4,15 @@
 
 use eframe::egui;
 
+use cce_core::canonical::Canonicalize;
 use cce_core::replay::RunDescriptor;
 use cce_core::signature::sha256;
 use cockpit_core::engine::{EnginePort, MotorEngine};
 use cockpit_core::kanzel::{DegradedKanzel, KanzelPort, LocalKanzel};
 use cockpit_core::state::{CockpitCore, CockpitState, Confirmation};
-use cockpit_core::views::{gate_report_view, residue_view};
+use cockpit_core::views::{
+    gate_report_view, ledger_view, manifest_view, residue_view, segment_list_view, verdict_view,
+};
 
 struct CockpitApp {
     core: CockpitCore<MotorEngine>,
@@ -184,20 +187,92 @@ impl eframe::App for CockpitApp {
                 ui.label(format!("Zustand: {:?}", self.core.state));
             }
             Tab::Pruef => {
-                ui.heading("Pruef-Flaeche");
-                for item in gate_report_view(&self.core.engine.gate_reports()) {
-                    ui.label(format!(
-                        "{}: {}  [{}]",
-                        item.label, item.value, item.source_ref
-                    ));
+                // GUI-Feindesign LC-R5: fuenf Pflichtansichten, read-only,
+                // ohne Ausfuehrung/Netz/Schreibpfad — bezogen auf DIESEN
+                // Arbeitskoerper (Dokument-Domaene-Lauf), s. views.rs.
+                ui.heading("Pruef-Flaeche — fuenf Pflichtansichten (LC-R5)");
+                let gate_reports = self.core.engine.gate_reports();
+
+                ui.label(egui::RichText::new("1. Manifest").strong());
+                match &self.core.confirmed_crystal {
+                    Some(crystal) => {
+                        let pl = cce_materialize::catalog::by_id("D01")
+                            .map(|e| e.level.as_str())
+                            .unwrap_or("PL?");
+                        let class_hex = crystal.canonical_class().0.to_hex();
+                        for item in manifest_view("document/D01", pl, &class_hex, ".md") {
+                            ui.label(format!(
+                                "{}: {}  [{}]",
+                                item.label, item.value, item.source_ref
+                            ));
+                        }
+                    }
+                    None => {
+                        ui.label("Manifest: noch kein bestaetigter Crystal (Naht 1 ausstehend)");
+                    }
                 }
                 ui.separator();
+
+                ui.label(egui::RichText::new("2. Segmentliste mit Digest-Status").strong());
+                match &self.core.confirmed_crystal {
+                    Some(crystal) => {
+                        let byte_digest_hex = self
+                            .core
+                            .engine
+                            .artifact()
+                            .map(|a| a.byte_digest().to_hex());
+                        for item in segment_list_view(crystal, byte_digest_hex.as_deref()) {
+                            ui.label(format!(
+                                "{}: {}  [{}]",
+                                item.label, item.value, item.source_ref
+                            ));
+                        }
+                    }
+                    None => {
+                        ui.label("Segmentliste: noch kein bestaetigter Crystal");
+                    }
+                }
+                ui.separator();
+
+                ui.label(egui::RichText::new("3. Residuen + Verdikt").strong());
+                let verdict = verdict_view(&gate_reports);
+                ui.label(format!(
+                    "{}: {}  [{}]",
+                    verdict.label, verdict.value, verdict.source_ref
+                ));
                 for item in residue_view(&self.core.engine.residues()) {
                     ui.label(format!(
                         "{}: {}  [{}]",
                         item.label, item.value, item.source_ref
                     ));
                 }
+                ui.separator();
+
+                ui.label(egui::RichText::new("4. Gate-Reports").strong());
+                for item in gate_report_view(&gate_reports) {
+                    ui.label(format!(
+                        "{}: {}  [{}]",
+                        item.label, item.value, item.source_ref
+                    ));
+                }
+                ui.separator();
+
+                ui.label(egui::RichText::new("5. Ledger/PhaseBlocks").strong());
+                match self.core.engine.ledger() {
+                    Some(ledger) => {
+                        for item in ledger_view(ledger) {
+                            ui.label(format!(
+                                "{}: {}  [{}]",
+                                item.label, item.value, item.source_ref
+                            ));
+                        }
+                    }
+                    None => {
+                        ui.label("Ledger: noch kein Lauf (Naht 2 ausstehend)");
+                    }
+                }
+                ui.separator();
+
                 if let Some(class) = self.core.replay_class_hex() {
                     if ui.button("identisch wiederholen (Replay)").clicked() {
                         // Replay reproduziert dieselbe Klasse (COCK-INV-5).

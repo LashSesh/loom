@@ -1,8 +1,8 @@
 # Vollausbau-Status (eine Seite, Klartext)
 
 Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
-(Belegpflicht UX) nachgeliefert und abgeschlossen**. CI: GRUEN.
-`feature_maturity_overclaim`: leer.
+(Belegpflicht UX) UND Block 2 (Kanzel↔Modell + GUI-Feindesign)
+abgeschlossen**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -32,8 +32,8 @@ Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
 | Track | Stand |
 |---|---|
 | A Domänen | **W1–W16 fertig: 213/213 auf PL3** (alle 16 Familien) |
-| B Erlebbarkeit | **Block 1 nachgeliefert:** echter wgpu-Klick-Durchlauf (6 Nähte, debug-instrumentiert, `reports/ux/reise_protokoll_v2.md`) + #26 Datei-Export jetzt ECHT über den GUI-Button verifiziert (byte-identisch zum Headless-Pfad); Font-Atlas-Befund zweifach bestätigt host-gebunden (glow+wgpu), Backend zurückgestellt; GUI-Feindesign offen (→ Block 2) |
-| C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; Kanzel-Verdrahtung offen (→ Block 2); GGUF/LLM offen (host-gebunden) |
+| B Erlebbarkeit | **Block 1 nachgeliefert:** echter wgpu-Klick-Durchlauf (6 Nähte, debug-instrumentiert, `reports/ux/reise_protokoll_v2.md`) + #26 Datei-Export jetzt ECHT über den GUI-Button verifiziert (byte-identisch zum Headless-Pfad); Font-Atlas-Befund zweifach bestätigt host-gebunden (glow+wgpu), Backend zurückgestellt. **GUI-Feindesign (LC-R5) fertig:** alle 5 Pflichtansichten (Manifest/Segmentliste+Digest/Residuen+Verdikt/Gate-Reports/Ledger) im bestehenden Pruef-Tab verdrahtet, Zeuge grün |
+| C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün. **Kanzel-Verdrahtung fertig:** LocalKanzel ruft real durch das unveränderte InferenceGateway (LocalExtractiveModel), Annahmen-Text modellgeformt + Provider-/Evidence-Beleg, DegradedKanzel unberührt, COCK-INV-1..8 unverändert grün; GGUF/LLM offen (host-gebunden) |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON→CSU-Extraktor offen (→ Block 3) |
 | E Skalen | P8 **fertig**: SCALE-2 Dokumentenmappe (Red(2)-Kerntest, MSC 1→2, Adapter 8/8, PL2); SCALE-3 offen |
 | F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated; Registry-Vollform offen |
@@ -49,8 +49,18 @@ Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
    verborgen): Glyphen-Rendering host-gebunden (R-Agent-6), xdotool-
    Zeichenumkehr-Artefakt der Testkette (R-Agent-7) — siehe
    reports/residuen.md.
-2. **Block 2 — Kanzel↔LocalExtractiveModel + GUI-Feindesign: NÄCHSTER SCHRITT.**
-3. **Block 3 — JSON→CSU-Extraktor Wikimedia + erstes Welt-Crystal: DANACH.**
+2. **Block 2 — Kanzel↔LocalExtractiveModel + GUI-Feindesign: ABGESCHLOSSEN.**
+   Kanzel-Formung laeuft real durch `run_inference` (LocalExtractiveModel,
+   egress_lock=None da kein Egress noetig); Annahmen-Interpretation traegt
+   Provider-Herkunft (`local-extractive:kernmodell`) + Gateway-Evidence-ID
+   als Beleg, Crystal-Referenzstruktur unveraendert. GUI-Feindesign: die
+   fuenf LC-R5-Pflichtansichten (Manifest/Segmentliste+Digest-Status/
+   Residuen+Verdikt/Gate-Reports/Ledger-PhaseBlocks) rendern jetzt im
+   Pruef-Tab aus echten Motor-/Ledger-Fakten. Zeugen: `kanzel_model_witness.rs`
+   (3 Tests) + `lc_r5_inspection_views.rs` (3 Tests), alle 13 COCK-INV-Tests
+   unveraendert gruen (keine Testdatei-Aenderung noetig), voller
+   Workspace-Testlauf gruen, clippy sauber.
+3. **Block 3 — JSON→CSU-Extraktor Wikimedia + erstes Welt-Crystal: NÄCHSTER SCHRITT.**
 
 Track A bleibt vollständig (213/213 PL3). Restliche Track-Reste (alle
 sichtbar im Register): zstd-Transportprofil, .docx-Export,
