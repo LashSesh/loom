@@ -118,7 +118,7 @@ fn ref_2_wikimedia_official_api_with_attribution() {
         "official_api",
         &[(
             "api://wikimedia/page/{title}",
-            b"titel: Kristall\nauszug: Festkoerper" as &[u8],
+            br#"{"query":{"pages":{"1":{"pageid":1,"ns":0,"title":"Kristall","extract":"Festkoerper"}}}}"# as &[u8],
         )],
         Some("Wikimedia-Beitraegerinnen und -Beitraeger, CC BY-SA 4.0"),
     );
@@ -446,7 +446,8 @@ fn prod_inv_16_attribution_must_travel() {
         "official_api",
         &[(
             "api://wikimedia/page/{title}",
-            b"titel: K\nauszug: F" as &[u8],
+            br#"{"query":{"pages":{"2":{"pageid":2,"ns":0,"title":"K","extract":"F"}}}}"#
+                as &[u8],
         )],
         None, // Attribution WEGGELASSEN
     );
