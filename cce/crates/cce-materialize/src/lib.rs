@@ -17,6 +17,7 @@ pub mod family_g_domains;
 pub mod family_i_domains;
 pub mod family_j_domains;
 pub mod family_k_domains;
+pub mod family_l_domains;
 pub mod family_n_domains;
 pub mod scale2_folder;
 
