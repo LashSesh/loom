@@ -9,6 +9,7 @@ publish = false
 [dependencies]
 loom-canon = { path = "../loom-canon" }
 loom-format = { path = "../loom-format" }
+loom-cites = { path = "../loom-cites" }
 loom-codec = { path = "../loom-codec" }
 loom-verify = { path = "../loom-verify" }
 loom-mount = { path = "../loom-mount" }
@@ -41,3 +42,7 @@ path = "src/bin/welt_kristall_gen.rs"
 [[bin]]
 name = "scale2-folder-gen"
 path = "src/bin/scale2_folder_gen.rs"
+
+[[bin]]
+name = "citing-memo-gen"
+path = "src/bin/citing_memo_gen.rs"

@@ -113,6 +113,21 @@ pub fn manifest_declare_hash_profiles(manifest: Cv, profiles: &[&str]) -> Cv {
     Cv::Map(entries)
 }
 
+/// S-E2a I.4: erweitert ein MANIFEST-Cv additiv um `external_citations`
+/// — MUSS exakt der (dedupliziert-sortierten) Menge der tatsaechlichen
+/// `target_core_root`s im CL_SUBSTRATE entsprechen, sonst weist
+/// loom-verify mit `manifest_citation_mismatch` zurueck (N-CIT-5).
+pub fn manifest_declare_external_citations(manifest: Cv, roots_hex: &[String]) -> Cv {
+    let Cv::Map(mut entries) = manifest else {
+        panic!("manifest_cv liefert immer eine Map")
+    };
+    entries.push((
+        Cv::Text("external_citations".to_string()),
+        Cv::Array(roots_hex.iter().map(|r| Cv::Text(r.clone())).collect()),
+    ));
+    Cv::Map(entries)
+}
+
 fn residue_segment(entries: &[(&str, &str)]) -> Cv {
     Cv::map(vec![(
         "residues",
@@ -942,5 +957,154 @@ pub fn build_scale2_folder_full() -> Sealed {
         seg(KIND_CAS_BLOB, &Cv::Bytes(sealed_b.bytes.clone())),
     ];
     segs.extend(workcell_segments());
+    seal_canonical("workcell", &["workcell"], &segs).unwrap()
+}
+
+// ---------- Etappe X2/E2 (S-E2a Teil I): die cites-Naht ----------
+//
+// Das erste Memo, das sich real — ueber Workbody-Grenzen hinweg — auf
+// einen ANDEREN zertifizierten Container stuetzt: den echten
+// Welt-Kristall (Block 3). Zwei cites-Eintraege in EINEM Memo decken
+// beide Karten-Zeugen ab: R-CIT-1 (unit `d1`, `supports`, kein
+// target_unit_ref) und R-CIT-2 (unit `d2`, `derives`, target_unit_ref
+// auf die Definitionseinheit `d1` DES Welt-Kristalls — Namensgleichheit
+// mit der lokalen Einheit `d1` hier ist Zufall zweier unabhaengiger
+// Domaenen, keine Verwechslung: das Feld referenziert IMMER
+// `target_core_root` + `target_unit_ref` gemeinsam).
+
+/// Das zitierende Memo (rein lokale Struktur — die Naht nach aussen
+/// lebt im CL_SUBSTRATE, nicht in `DocUnit.seams`, s. I.4).
+pub fn citing_memo_welt_kristall() -> cce_materialize::document::DocCrystal {
+    use cce_materialize::document::{DocUnit, UnitType};
+    cce_materialize::document::DocCrystal {
+        title: "Kurzmemo: Kristallstruktur, gestuetzt auf den Welt-Kristall".to_string(),
+        units: vec![
+            DocUnit::new("s1", UnitType::Section, "Bezug"),
+            DocUnit::new(
+                "d1",
+                UnitType::Definition,
+                "Diese Kurzeinschaetzung stuetzt sich auf die im Welt-Kristall belegte Definition.",
+            )
+            .with_seam("refers", "s1"),
+            DocUnit::new(
+                "d2",
+                UnitType::Definition,
+                "Diese Ableitung bezieht sich gezielt auf die Definitionseinheit des Welt-Kristalls.",
+            )
+            .with_seam("refers", "s1"),
+        ],
+        covers: vec!["Kristallstruktur".to_string()],
+        required_sections: vec!["Bezug".to_string()],
+        no_score_fields: true,
+        ordering: "neutral".to_string(),
+    }
+}
+
+/// Baut UND versiegelt das zitierende Memo gegen einen bereits
+/// versiegelten Ziel-Container (typischerweise der echte Welt-Kristall).
+/// `target_unit_ref` fuer R-CIT-2 muss eine Einheit sein, die im Ziel
+/// TATSAECHLICH existiert (hier: "d1", s. `kristall_memo_from_wikimedia`).
+pub fn seal_citing_memo_welt_kristall(target_core_root_hex: &str) -> Sealed {
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_runner::runner::Run;
+    use loom_cites::{cites_field, external_citations_hex, CiteEntry, CiteKind};
+
+    let crystal = citing_memo_welt_kristall();
+    let rd = RunDescriptor::new(sha256(b"citing-memo-welt-kristall"), "document", 7);
+    let mut run = Run::submit(crystal.clone(), rd).expect("Motor-Submit");
+    run.run_to_end(None).expect("Motor-Lauf");
+    let artifact = run
+        .artifact
+        .as_ref()
+        .expect("Crystal muss real materialisieren (Gates gruen)");
+    let content_class = crystal.canonical_class().0;
+    let byte_digest = artifact.byte_digest();
+
+    let cites = vec![
+        // R-CIT-1: einfacher Stuetzungsanspruch, kein target_unit_ref.
+        CiteEntry {
+            unit_id: "d1".to_string(),
+            target_core_root_hex: target_core_root_hex.to_string(),
+            target_unit_ref: None,
+            cite_kind: CiteKind::Supports,
+        },
+        // R-CIT-2: Ableitung MIT target_unit_ref auf die Definitionseinheit
+        // "d1" des Welt-Kristalls (nicht zu verwechseln mit der lokalen "d2").
+        CiteEntry {
+            unit_id: "d2".to_string(),
+            target_core_root_hex: target_core_root_hex.to_string(),
+            target_unit_ref: Some("d1".to_string()),
+            cite_kind: CiteKind::Derives,
+        },
+    ];
+    let external_citations = external_citations_hex(&cites);
+
+    let doc_meta = Cv::map(vec![
+        ("title", Cv::Text(crystal.title.clone())),
+        ("units", Cv::Uint(crystal.units.len() as u64)),
+        ("class", Cv::Text(content_class.to_hex())),
+    ]);
+    let artifact_cv = Cv::map(vec![
+        ("artifact_id", Cv::Text("artifact:citing-memo-md".into())),
+        (
+            "two_digest",
+            Cv::map(vec![
+                ("content_class", Cv::Text(content_class.to_hex())),
+                ("byte_digest", Cv::Text(byte_digest.to_hex())),
+            ]),
+        ),
+    ]);
+    let cl = Cv::map(vec![
+        (
+            "cubes",
+            Cv::Array(vec![Cv::Text("cube:citing-memo".into())]),
+        ),
+        ("constraints", Cv::Array(vec![])),
+        ("cites", cites_field(&cites)),
+    ]);
+    let mut m = manifest_cv(
+        "Kurzmemo: Kristallstruktur, gestuetzt auf den Welt-Kristall (X2/E2)",
+        "workcell",
+        "PL2",
+        false, // kein LEDGER-Segment hier -> keine Abschluss-Behauptung
+        0,
+        &[],
+        &["read_segment", "project_workcell", "export_artifact"],
+        "cc0",
+    );
+    m = manifest_declare_external_citations(m, &external_citations);
+
+    let phc = loom_project::phc_segment(&[cce_phc::projection_calc::LocalProjection {
+        cell_id: "w:citing-memo".to_string(),
+        payload: cce_core::value::CanonValue::Text("citing memo projektion".to_string()),
+        allowed_ops: vec!["draft".to_string()],
+        gate_chain: vec!["G1".to_string()],
+        export_formats: vec!["markdown".to_string()],
+        domain_mode: "document".to_string(),
+    }]);
+    let gates = loom_gate::gate_reports_segment(&[
+        cce_core::gate::GateReport::pass("G1", "scope ok"),
+        cce_core::gate::GateReport::pass("G2", "boundary ok"),
+    ]);
+    let runtime = Cv::map(vec![
+        ("allowed_ops", Cv::Array(vec![Cv::Text("draft".into())])),
+        (
+            "capability_locks",
+            Cv::Array(vec![Cv::Text("project_workcell".into())]),
+        ),
+    ]);
+
+    let segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_DOC, &doc_meta),
+        seg(KIND_ARTIFACT, &artifact_cv),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(artifact.bytes.clone())),
+        seg(KIND_CL_SUBSTRATE, &cl),
+        seg(KIND_PHC, &phc),
+        seg(KIND_RUNTIME_PROFILE, &runtime),
+        seg(KIND_GATE_REPORTS, &gates),
+    ];
     seal_canonical("workcell", &["workcell"], &segs).unwrap()
 }
