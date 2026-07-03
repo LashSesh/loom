@@ -44,6 +44,8 @@ loom-codec = { path = "../loom/loom-codec" }
 loom-cites = { path = "../loom/loom-cites" }
 cockpit-core = { path = "../cockpit/cockpit-core" }
 cce-runner = { path = "../crates/cce-runner" }
+cce-bridge = { path = "../crates/cce-bridge" }
+loom-replay = { path = "../loom/loom-replay" }
 
 # Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
 [[test]]

@@ -67,15 +67,33 @@ impl<'a> BridgeGateContext<'a> {
     }
 }
 
+/// PROD-INV-21 (S-E5 §5): "keine Promotion außer durch BridgeGate mit
+/// ProvenanceSet" ist hier STRUKTURELL erzwungen, nicht nur konventionell
+/// — die Felder sind PRIVAT und die einzigen Konstruktoren
+/// (`allow`/`hold`/`reject`) sind privat und nur von `bridge_gate()`
+/// erreichbar. Kein Aufrufer (auch nicht `workbody::seal_norm`) kann
+/// sich ein `Allow`-Verdikt ohne einen echten Gate-Durchlauf verschaffen.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BridgeGateReport {
-    pub verdict: BridgeVerdict,
+    verdict: BridgeVerdict,
     /// Name der Stufe, die zuerst nicht bestanden hat (`None` bei `Allow`).
-    pub failed_stage: Option<&'static str>,
-    pub residue: Option<&'static str>,
+    failed_stage: Option<&'static str>,
+    residue: Option<&'static str>,
 }
 
 impl BridgeGateReport {
+    pub fn verdict(&self) -> BridgeVerdict {
+        self.verdict
+    }
+
+    pub fn failed_stage(&self) -> Option<&'static str> {
+        self.failed_stage
+    }
+
+    pub fn residue(&self) -> Option<&'static str> {
+        self.residue
+    }
+
     fn allow() -> Self {
         Self {
             verdict: BridgeVerdict::Allow,
@@ -194,7 +212,7 @@ mod tests {
         let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
         let ctx = BridgeGateContext::new(&domains, &[]);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Allow);
+        assert_eq!(report.verdict(), BridgeVerdict::Allow);
     }
 
     /// N-NRM-1: kappa < kappa_min ⇒ Hold.
@@ -205,9 +223,9 @@ mod tests {
         let domains = vec!["dom:a".to_string()];
         let ctx = BridgeGateContext::new(&domains, &[]);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Hold);
-        assert_eq!(report.failed_stage, Some("ProvenanceGate"));
-        assert_eq!(report.residue, Some(residue::INSUFFICIENT_PROVENANCE));
+        assert_eq!(report.verdict(), BridgeVerdict::Hold);
+        assert_eq!(report.failed_stage(), Some("ProvenanceGate"));
+        assert_eq!(report.residue(), Some(residue::INSUFFICIENT_PROVENANCE));
     }
 
     /// N-NRM-4: Gegenbeispiele vorhanden, aber keine HITL-Bestaetigung
@@ -223,8 +241,8 @@ mod tests {
         let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
         let ctx = BridgeGateContext::new(&domains, &[]);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Reject);
-        assert_eq!(report.failed_stage, Some("CounterexampleGate"));
+        assert_eq!(report.verdict(), BridgeVerdict::Reject);
+        assert_eq!(report.failed_stage(), Some("CounterexampleGate"));
     }
 
     #[test]
@@ -245,7 +263,7 @@ mod tests {
         }];
         let ctx = BridgeGateContext::new(&domains, &decisions);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Allow);
+        assert_eq!(report.verdict(), BridgeVerdict::Allow);
     }
 
     /// N-NRM-5: Widerspruch zu aktiver Norm gleichen Scopes ⇒ beide Hold.
@@ -267,8 +285,8 @@ mod tests {
         let mut ctx = BridgeGateContext::new(&domains, &[]);
         ctx.existing_active_norms = &existing;
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Hold);
-        assert_eq!(report.failed_stage, Some("ConflictGate"));
+        assert_eq!(report.verdict(), BridgeVerdict::Hold);
+        assert_eq!(report.failed_stage(), Some("ConflictGate"));
     }
 
     /// N-NRM-3: ein Pattern, das ein Gate/eine Invariante lockern will,
@@ -280,8 +298,8 @@ mod tests {
         let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
         let ctx = BridgeGateContext::new(&domains, &[]);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Reject);
-        assert_eq!(report.failed_stage, Some("ScopeGate"));
+        assert_eq!(report.verdict(), BridgeVerdict::Reject);
+        assert_eq!(report.failed_stage(), Some("ScopeGate"));
     }
 
     /// N-NRM-8: eine unabhaengige Reproduktion, die vom Original abweicht
@@ -295,8 +313,8 @@ mod tests {
         let mut ctx = BridgeGateContext::new(&domains, &[]);
         ctx.replay_reproduction = Some(&reproduced);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Reject);
-        assert_eq!(report.failed_stage, Some("DistillationReplayGate"));
+        assert_eq!(report.verdict(), BridgeVerdict::Reject);
+        assert_eq!(report.failed_stage(), Some("DistillationReplayGate"));
     }
 
     #[test]
@@ -307,6 +325,6 @@ mod tests {
         let mut ctx = BridgeGateContext::new(&domains, &[]);
         ctx.replay_reproduction = Some(&reproduced);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Allow);
+        assert_eq!(report.verdict(), BridgeVerdict::Allow);
     }
 }

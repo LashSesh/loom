@@ -123,7 +123,7 @@ fn norm_evidence_cv(
     report: &BridgeGateReport,
     hitl_decisions: &[HitlDecision],
 ) -> Cv {
-    let verdict_str = match report.verdict {
+    let verdict_str = match report.verdict() {
         BridgeVerdict::Allow => "allow",
         BridgeVerdict::Hold => "hold",
         BridgeVerdict::Reject => "reject",
@@ -210,8 +210,8 @@ pub fn seal_norm(
     report: &BridgeGateReport,
     hitl_decisions: &[HitlDecision],
 ) -> Result<(BridgeNorm, Sealed), WorkbodyError> {
-    if report.verdict != BridgeVerdict::Allow {
-        return Err(WorkbodyError::NotAllowed(report.verdict));
+    if report.verdict() != BridgeVerdict::Allow {
+        return Err(WorkbodyError::NotAllowed(report.verdict()));
     }
     let norm_id = candidate.canonical_class().0.to_hex();
     let norm = BridgeNorm {
@@ -283,7 +283,7 @@ mod tests {
         let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
         let ctx = BridgeGateContext::new(&domains, &[]);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Allow);
+        assert_eq!(report.verdict(), BridgeVerdict::Allow);
 
         let (norm, sealed) = seal_norm(&candidate, &report, &[]).expect("Norm-Siegelung gelingt");
         assert_eq!(norm.status, NormStatus::Active);
@@ -306,7 +306,7 @@ mod tests {
         let domains = vec!["dom:a".to_string()];
         let ctx = BridgeGateContext::new(&domains, &[]);
         let report = bridge_gate(&candidate, &ctx);
-        assert_eq!(report.verdict, BridgeVerdict::Hold);
+        assert_eq!(report.verdict(), BridgeVerdict::Hold);
         match seal_norm(&candidate, &report, &[]) {
             Err(err) => assert_eq!(err, WorkbodyError::NotAllowed(BridgeVerdict::Hold)),
             Ok(_) => panic!("Hold-Verdikt darf niemals einen Norm-Workbody erzeugen"),
