@@ -125,3 +125,44 @@ additive Mehrfachsignaturen mit Rollenfeld (Autor/Prüfer/ReviewGate),
 Ersatz für echte menschliche Prüfung — das bleibt außerhalb der
 Möglichkeiten dieses Agenten und wird hier ausdrücklich nicht
 behauptet.
+
+---
+
+## Nachträge Etappe X2 (Ring E2, S-E2a Teil I)
+
+R-Agent-9: Blueprint-Zelle für SCALE-3 (R-CIT-3) ist ein struktureller
+Platzhalter
+Fundstelle: reports/E2_bericht.md (Einheit 4, SCALE-3 „Projektraum")
+Frage/Konflikt: R-CIT-3 verlangt eine Projekt-Zelle vom Typ
+„Blueprint-Kristall". Die REALE, aus dem Eigenkorpus zertifizierte
+Blueprint-Kette liefert erst Ring E3 (HBM produktiv) — der laut
+Bau-Reihenfolge in Dokument 14 NACH E2 kommt. Fuer den SCALE-3-Zeugen
+wurde daher das strukturell gleichwertige R3-Muster (echte HBM-Facetten
+ueber cce-hbm, hbm-Profil-Container) als Zellen-Platzhalter
+wiederverwendet.
+Vorläufige Behandlung: offen benannt (nicht als E3-Ergebnis
+ausgegeben); die SCALE-3-Struktur/MSC(1→2→3)/Schliessungspruefung ist
+davon unabhaengig vollstaendig und real — nur die MATERIELLE Reife der
+Blueprint-Zelle folgt in Ring E3.
+Blockiert: nichts (E3 ist der naechste geplante Schritt).
+
+R-Agent-10: I.5 (Replay-Inputs) additiv umgesetzt, aber ohne
+End-to-End-Replay-Lauf
+Fundstelle: reports/E2_bericht.md (Residuen)
+Frage/Konflikt: `RunDescriptor::input_digests` +
+`replay_manifest_segment_with_inputs` + `check_replay_inputs` sind
+gebaut und unit-getestet, aber Dokument 14 §I.7 fordert dafuer keinen
+eigenen Zeugen — ein vollstaendiger zweiter Motor-Lauf gegen dieselbe
+RD-Klasse (echter Replay-Beweis mit Input-Digests) wurde daher nicht
+gebaut, um keinen ungeforderten Umfang zu erfinden.
+Vorläufige Behandlung: sichtbar gefuehrt, nicht verborgen; die
+Mechanik ist bereit fuer den ersten echten Anwendungsfall, sobald einer
+gefordert wird.
+Blockiert: nichts.
+
+---
+
+## Geschlossene Residuen (Etappe X2)
+
+Keine — Etappe X2/Ring E2 schliesst keine vorher gefuehrten Residuen,
+sondern eroeffnet zwei neue (R-Agent-9, R-Agent-10, s. oben).
