@@ -1,0 +1,10 @@
+artifact_format: .md
+content_class: f31cde17bc1667df22de87ddab209f2a9274388ce50e7320328e501f63261a7c
+byte_digest: 7385bb739f9fb79853d61c3609461eb4aa888132a54a3c823459f982ff67b47e
+gates:
+  - G3-Type = gruen (Paket typkorrekt, V0–V9 gruen)
+  - G1-Scope = gruen (Projektion im Scope)
+  - G2-Boundary = gruen (Nullanker markiert, Naht gebunden)
+  - G6-Export = gruen (Materialisierung nach Gate/Evidence)
+  - G4-Residue = gruen (Reanalyse vollstaendig)
+  - G7-Reanalysis = gruen (q(Obs(A)) = q(C))
