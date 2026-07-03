@@ -1108,3 +1108,88 @@ pub fn seal_citing_memo_welt_kristall(target_core_root_hex: &str) -> Sealed {
     ];
     seal_canonical("workcell", &["workcell"], &segs).unwrap()
 }
+
+// ---------- Etappe X2/E2 (I.6): SCALE-3 „Projektraum" ----------
+//
+// Zellen: 2 SCALE-2-Mappen + 1 Quellen-Workbody (Welt-Kristall) + 1
+// Blueprint-Kristall. Mappe B buendelt das zitierende Memo als eines
+// ihrer Kinder — die SCALE-3-"cites"-Naht Mappe-B->Quelle ist damit
+// eine ECHTE, ueberpruefbare Tatsache (nicht nur ein Label): das
+// gebuendelte Kind zitiert den Welt-Kristall wirklich, CitationGate
+// darauf reproduziert das.
+
+/// Mappe B: buendelt das zitierende Memo (statt eines neutralen
+/// Kurzhinweises wie in Mappe A) — Grundlage der SCALE-3-cites-Naht.
+pub fn build_scale2_folder_b(welt_root_hex: &str) -> Sealed {
+    use cce_materialize::scale2_folder::{folder_seams_valid, DocFolder};
+
+    let citing_crystal = citing_memo_welt_kristall();
+    let memo_b = scale2_second_memo();
+
+    let folder = DocFolder::from_memos(
+        "Projektmappe B (mit Zitat)",
+        &[("citing", &citing_crystal), ("memo_b", &memo_b)],
+        &[("citing", "precedes", "memo_b")],
+    );
+    assert!(folder_seams_valid(&folder), "Mappe-B-Naehte konsistent");
+
+    let sealed_citing = seal_citing_memo_welt_kristall(welt_root_hex);
+    let sealed_b = seal_document_workbody(&memo_b, "artifact:scale2b-memo-b", "scale2b-child-b");
+
+    let folder_meta = Cv::map(vec![
+        ("title", Cv::Text(folder.title.clone())),
+        ("scale", Cv::Uint(2)),
+        ("class", Cv::Text(folder.canonical_class().0.to_hex())),
+        (
+            "entries",
+            Cv::Array(vec![
+                Cv::map(vec![
+                    ("id", Cv::Text("citing".into())),
+                    (
+                        "content_class",
+                        Cv::Text(citing_crystal.canonical_class().0.to_hex()),
+                    ),
+                    ("child_core_root", Cv::Text(hex34(&sealed_citing.core_root))),
+                ]),
+                Cv::map(vec![
+                    ("id", Cv::Text("memo_b".into())),
+                    (
+                        "content_class",
+                        Cv::Text(memo_b.canonical_class().0.to_hex()),
+                    ),
+                    ("child_core_root", Cv::Text(hex34(&sealed_b.core_root))),
+                ]),
+            ]),
+        ),
+    ]);
+
+    let m = manifest_cv(
+        "SCALE-2 Dokumentenmappe B — mit Zitat auf den Welt-Kristall (X2/E2)",
+        "workcell",
+        "PL2",
+        false, // kein LEDGER-Segment hier -> keine Abschluss-Behauptung
+        0,
+        &[],
+        &["read_segment", "project_workcell"],
+        "cc0",
+    );
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_DOC, &folder_meta),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(sealed_citing.bytes.clone())),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(sealed_b.bytes.clone())),
+    ];
+    segs.extend(workcell_segments());
+    seal_canonical("workcell", &["workcell"], &segs).unwrap()
+}
+
+/// Der Blueprint-Kristall-Platzhalter fuer SCALE-3 (X2/E2): strukturell
+/// derselbe "hbm"-Profil-Aufbau wie R3 (echte Facetten ueber den
+/// Motor-Port cce-hbm, kein erfundener Text). Die ECHTE, aus dem
+/// Eigenkorpus zertifizierte Blueprint-Kette liefert erst Etappe X2/E3
+/// (Karte §2/E3) — hier zaehlt nur die STRUKTURELLE Zellen-Eigenschaft
+/// "ist ein Blueprint-Kristall", nicht die materielle Reife.
+pub fn build_blueprint_reference_cube() -> Sealed {
+    build_r3()
+}
