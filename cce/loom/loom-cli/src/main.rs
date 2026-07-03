@@ -1,6 +1,7 @@
 //! loom — Mindest-CLI (LOOM-Standard Teil 10.4), motorfreier Kernpfad:
-//! inspect · verify · ls. (run/replay/export laufen ueber die
-//! SDK-Ports; pack/seal ist Workbench-Sache — loom-codec-API.)
+//! inspect · verify · ls · extract · extract-children. (run/replay/export
+//! laufen ueber die SDK-Ports; pack/seal ist Workbench-Sache —
+//! loom-codec-API.)
 
 fn main() {
     let mut args = std::env::args().skip(1);
@@ -13,7 +14,9 @@ fn main() {
     }
     let path = args.next().unwrap_or_default();
     if path.is_empty() {
-        eprintln!("verwendung: loom <inspect|verify|ls|sign|verify-sig|keygen> <datei.loom>");
+        eprintln!(
+            "verwendung: loom <inspect|verify|ls|extract|extract-children|sign|verify-sig|keygen> <datei.loom> [ziel]"
+        );
         std::process::exit(2);
     }
     let bytes = match std::fs::read(&path) {
@@ -50,6 +53,65 @@ fn main() {
                 loom_verify::Verdict::Valid | loom_verify::Verdict::ValidWithResidues
             ) {
                 std::process::exit(1);
+            }
+        }
+        "extract" => {
+            let out = args.next().unwrap_or_default();
+            if out.is_empty() {
+                eprintln!("verwendung: loom extract <datei.loom> <ziel-pfad>");
+                std::process::exit(2);
+            }
+            let handle = match loom_mount::open(&bytes) {
+                Ok(h) => h,
+                Err(e) => {
+                    eprintln!("reject: {e:?}");
+                    std::process::exit(1);
+                }
+            };
+            match loom_mount::extract_artifact(&handle) {
+                Ok(artifact_bytes) => {
+                    std::fs::write(&out, &artifact_bytes).expect("Ziel schreiben");
+                    println!("extrahiert: {out} ({} Bytes)", artifact_bytes.len());
+                }
+                Err(e) => {
+                    eprintln!("extract-fehler: {e:?}");
+                    std::process::exit(1);
+                }
+            }
+        }
+        "extract-children" => {
+            let out_dir = args.next().unwrap_or_default();
+            if out_dir.is_empty() {
+                eprintln!("verwendung: loom extract-children <mappe.loom> <ziel-verzeichnis>");
+                std::process::exit(2);
+            }
+            let handle = match loom_mount::open(&bytes) {
+                Ok(h) => h,
+                Err(e) => {
+                    eprintln!("reject: {e:?}");
+                    std::process::exit(1);
+                }
+            };
+            match loom_mount::all_cas_blobs(&handle) {
+                Ok(blobs) => {
+                    std::fs::create_dir_all(&out_dir).expect("Zielverzeichnis anlegen");
+                    for (i, child_bytes) in blobs.iter().enumerate() {
+                        let child_path =
+                            std::path::Path::new(&out_dir).join(format!("child-{i}.loom"));
+                        std::fs::write(&child_path, child_bytes).expect("Kind schreiben");
+                        let verdict = loom_verify::verify(child_bytes).verdict;
+                        println!(
+                            "extrahiert: {} ({} Bytes) · verdikt {:?}",
+                            child_path.display(),
+                            child_bytes.len(),
+                            verdict
+                        );
+                    }
+                }
+                Err(e) => {
+                    eprintln!("extract-fehler: {e:?}");
+                    std::process::exit(1);
+                }
             }
         }
         other => {

@@ -7,10 +7,10 @@ use cce_core::canonical::Canonicalize;
 use loom_canon::Cv;
 use loom_codec::{seal_canonical, Sealed, Segment};
 use loom_format::{
-    KIND_ARTIFACT, KIND_CANDIDATE_OUTPUTS, KIND_CANON_DESC, KIND_CL_SUBSTRATE, KIND_CSA_NSB,
-    KIND_DOC, KIND_EVIDENCE, KIND_GATE_REPORTS, KIND_HBM, KIND_INFERENCE_PROFILE, KIND_LEDGER,
-    KIND_MANIFEST, KIND_PHC, KIND_PROVIDER_MANIFEST, KIND_REPLAY_MANIFEST, KIND_RESIDUE,
-    KIND_RUNTIME_PROFILE, KIND_TOOL_PROFILE,
+    KIND_ARTIFACT, KIND_CANDIDATE_OUTPUTS, KIND_CANON_DESC, KIND_CAS_BLOB, KIND_CL_SUBSTRATE,
+    KIND_CSA_NSB, KIND_DOC, KIND_EVIDENCE, KIND_GATE_REPORTS, KIND_HBM, KIND_INFERENCE_PROFILE,
+    KIND_LEDGER, KIND_MANIFEST, KIND_PHC, KIND_PROVIDER_MANIFEST, KIND_REPLAY_MANIFEST,
+    KIND_RESIDUE, KIND_RUNTIME_PROFILE, KIND_TOOL_PROFILE,
 };
 
 /// MANIFEST mit allen 13 Pflichtfeldern (Teil 3.5).
@@ -703,6 +703,12 @@ pub fn build_welt_kristall_wikimedia() -> Sealed {
         seg(KIND_HBM, &hbm_content_kristall()),
         seg(KIND_DOC, &doc_meta),
         seg(KIND_ARTIFACT, &artifact_cv),
+        // X1a (Oekosystem-Karte §2/E1): der Container traegt die
+        // materialisierten Bytes SELBST (nicht nur ihren Digest) — CAS_BLOB
+        // ist per Definition content-adressiert (Frame-Multihash), das
+        // ARTIFACT-Segment darueber verweist per byte_digest darauf
+        // (loom_mount::extract_artifact prueft beide Werte gegeneinander).
+        seg(KIND_CAS_BLOB, &Cv::Bytes(artifact.bytes.clone())),
     ];
     // Profil "full" verlangt zusaetzlich CL_SUBSTRATE/PHC/RUNTIME_PROFILE/
     // GATE_REPORTS (wie R7) — dieselben Workcell-Segmente, kein neuer Pfad.
