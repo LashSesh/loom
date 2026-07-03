@@ -526,3 +526,224 @@ pub const REFERENCE_BUILDERS: [ReferenceBuilder; 8] = [
     ("R7", build_r7),
     ("R8", build_r8),
 ];
+
+// ---------- Vollausbau Block 3: erstes Welt-Crystal (Wikimedia) ----------
+//
+// Anders als R1-R8 (illustrative Golden Files mit Platzhalterwerten wie
+// "sha256:artifact-bytes"): hier sind Quellen-CSU, Attribution, Crystal-
+// Klasse und Artefakt-Digest ECHT berechnet — kein Platzhalter. Die
+// eingefrorene, echte Wikimedia-Antwort (conformance/fixtures/
+// wikimedia_kristall.json) laeuft durch den echten JSON->CSU-Extraktor
+// (WikimediaAdapter, nexus-decode::decode_json) UND durch den echten
+// Motor (cce-runner) — dieselbe Kette, die auch der Cockpit-Produktpfad
+// nutzt, nur ohne GUI.
+
+/// Der Locator, unter dem die eingefrorene Fixture "abgerufen" gilt —
+/// exportiert, damit ein unabhaengiger Nachrechner (Zeuge) exakt denselben
+/// CSU/Cite-Fussabdruck erzeugt (die Attribution bindet den Locator ein).
+pub const WELT_KRISTALL_LOCATOR: &str = "https://de.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=Kristall&format=json&redirects=1";
+
+/// Baut die reale DocCrystal, deren Quellenzelle (Einheit `d1`) der ECHTE
+/// Wikimedia-Auszug ist — keine erfundene Beispielzelle. `extract_text`
+/// ist bereits zeilenkollabiert (parse_markdown ist zeilenbasiert, s.
+/// document/parse.rs; ein eingebettetes '\n' wuerde beim Reanalyze
+/// verloren gehen — das waere ein echter Bug, kein akzeptables Detail).
+pub fn kristall_memo_from_wikimedia(
+    extract_text: &str,
+    attribution: &str,
+) -> cce_materialize::document::DocCrystal {
+    use cce_materialize::document::{DocCrystal, DocUnit, UnitType};
+    DocCrystal {
+        title: "Kristall — Quellenbeleg aus Wikimedia".to_string(),
+        units: vec![
+            DocUnit::new(
+                "s1",
+                UnitType::Section,
+                "Quelle: Wikipedia-Artikel \u{201e}Kristall\u{201c} (CC BY-SA 4.0)",
+            ),
+            DocUnit::new("d1", UnitType::Definition, extract_text).with_seam("refers", "s1"),
+            DocUnit::new("a1", UnitType::Support, attribution).with_seam("supports", "d1"),
+        ],
+        covers: vec!["Kristall".to_string()],
+        required_sections: vec!["Quelle".to_string()],
+        no_score_fields: true,
+        ordering: "neutral".to_string(),
+    }
+}
+
+/// Der Milestone-Builder: JSON->CSU (echter Adapter) -> DocCrystal ->
+/// echter Motor-Lauf (cce-runner) -> versiegeltes .loom mit ECHTEN
+/// Digests + ECHTER CSA-Evidence (Attribution transportiert, PROD-INV-16).
+pub fn build_welt_kristall_wikimedia() -> Sealed {
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_core::value::CanonValue;
+    use cce_runner::runner::Run;
+    use nexus_adapter::port::SourceAdapter;
+    use nexus_adapter_wikimedia::WikimediaAdapter;
+    use nexus_core::objects::RawObservation;
+    use nexus_evidence::build_pack;
+
+    let fixture = include_bytes!("../../../conformance/fixtures/wikimedia_kristall.json");
+    let raw = RawObservation {
+        locator: WELT_KRISTALL_LOCATOR.to_string(),
+        bytes: fixture.to_vec(),
+        fetched_via: "snapshot-frozen".to_string(),
+        snapshot_id: "snap-wikimedia-frozen".to_string(),
+    };
+
+    // -- Echter Adapterpfad: extract -> normalize -> validate -> cite --
+    let adapter = WikimediaAdapter;
+    let records = adapter
+        .extract(&raw)
+        .expect("echte, eingefrorene Wikimedia-JSON-Antwort muss extrahieren");
+    let csu = &adapter.normalize(&records[0])[0];
+    assert!(
+        adapter.validate(csu).is_pass(),
+        "CSU aus der echten Fixture muss wohlgeformt sein"
+    );
+    let attribution = adapter.cite(csu).remove(0);
+    let extract_text = match csu.payload.get("extract") {
+        Some(CanonValue::Text(t)) => t.replace('\n', " "),
+        other => panic!("extract fehlt/kein Text in der echten CSU: {other:?}"),
+    };
+
+    // -- Echte DocCrystal + echter Motor-Lauf (kein Platzhalter-Digest) --
+    let crystal = kristall_memo_from_wikimedia(&extract_text, &attribution);
+    let rd = RunDescriptor::new(sha256(b"welt-crystal-wikimedia"), "document", 7);
+    let mut run = Run::submit(crystal.clone(), rd.clone()).expect("Motor-Submit");
+    run.run_to_end(None).expect("Motor-Lauf");
+    let artifact = run
+        .artifact
+        .as_ref()
+        .expect("Crystal muss real materialisieren (Gates gruen)");
+    let content_class = crystal.canonical_class().0;
+    let byte_digest = artifact.byte_digest();
+
+    // -- Echte CSA-Evidence (nicht csa_content()-Platzhalter) --
+    let ep = build_pack(
+        csu,
+        &raw,
+        &["decode_json", "extract", "normalize"],
+        Some(&attribution),
+    );
+    let nsb = Cv::map(vec![
+        ("bundle_id", Cv::Text("nsb:welt-kristall-wikimedia".into())),
+        ("source_horizon", Cv::Text("hs:official_api".into())),
+        ("csu_uids", Cv::Array(vec![Cv::Text(csu.uid.clone())])),
+        ("evidence_for", Cv::Array(vec![Cv::Text(csu.uid.clone())])),
+    ]);
+    let evidence = Cv::map(vec![(
+        "packs",
+        Cv::Array(vec![Cv::map(vec![
+            ("evidence_id", Cv::Text(ep.evidence_id.clone())),
+            ("record_id", Cv::Text(ep.record_id.clone())),
+            ("locator", Cv::Text(ep.locator.clone())),
+            ("license", Cv::Text(ep.license.clone())),
+            (
+                "attribution",
+                Cv::Text(ep.attribution.clone().unwrap_or_default()),
+            ),
+            ("raw_hash", Cv::Text(ep.raw_hash.to_hex())),
+        ])]),
+    )]);
+    let doc_meta = Cv::map(vec![
+        ("title", Cv::Text(crystal.title.clone())),
+        ("units", Cv::Uint(crystal.units.len() as u64)),
+        (
+            "covers",
+            Cv::Array(crystal.covers.iter().map(|c| Cv::Text(c.clone())).collect()),
+        ),
+        ("class", Cv::Text(content_class.to_hex())),
+    ]);
+    let artifact_cv = Cv::map(vec![
+        (
+            "artifact_id",
+            Cv::Text("artifact:kristall-wikimedia-md".into()),
+        ),
+        (
+            "two_digest",
+            Cv::map(vec![
+                ("content_class", Cv::Text(content_class.to_hex())),
+                ("byte_digest", Cv::Text(byte_digest.to_hex())),
+            ]),
+        ),
+    ]);
+    let m = manifest_cv(
+        "Kristall — Quellenbeleg aus Wikimedia (Vollausbau Block 3)",
+        "full",
+        "PL2",
+        true,
+        0,
+        &[],
+        &[
+            "read_segment",
+            "project_workcell",
+            "export_artifact",
+            "source_acquisition",
+            "inspect_evidence",
+        ],
+        nexus_adapter_wikimedia::WIKIMEDIA_LICENSE,
+    );
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_LEDGER, &ledger_segment(true)),
+        seg(KIND_RESIDUE, &residue_segment(&[])),
+        seg(KIND_EVIDENCE, &evidence),
+        seg(
+            KIND_REPLAY_MANIFEST,
+            &loom_replay::replay_manifest_segment(
+                &rd.crystal_digest.to_hex(),
+                rd.seed,
+                &content_class.to_hex(),
+            ),
+        ),
+        seg(KIND_CSA_NSB, &nsb),
+        seg(KIND_HBM, &hbm_content_kristall()),
+        seg(KIND_DOC, &doc_meta),
+        seg(KIND_ARTIFACT, &artifact_cv),
+    ];
+    // Profil "full" verlangt zusaetzlich CL_SUBSTRATE/PHC/RUNTIME_PROFILE/
+    // GATE_REPORTS (wie R7) — dieselben Workcell-Segmente, kein neuer Pfad.
+    segs.extend(workcell_segments());
+    seal_canonical("full", &["full"], &segs).unwrap()
+}
+
+/// HBM-Facetten (S1-A2-Vokabular) ECHT aus dem Wikimedia-Auszug abgeleitet
+/// — anders als `hbm_content()` (R3-Platzhalter, andere Domaene) sind das
+/// die tatsaechlichen, im Artikel „Kristall" belegten Fachbegriffe.
+fn hbm_content_kristall() -> Cv {
+    let facets = cce_hbm::facet::extract_facets(
+        "hbm:welt-kristall-wikimedia",
+        &[
+            "entity: Kristall — Festkoerper mit regelmaessig angeordneten Bausteinen",
+            "constraint: Fernordnung durch Translationssymmetrie (Kristallstruktur)",
+        ],
+    );
+    Cv::map(vec![
+        (
+            "facets",
+            Cv::Array(
+                facets
+                    .iter()
+                    .map(|f| {
+                        Cv::map(vec![
+                            ("facet_type", Cv::Text(f.facet_type.clone())),
+                            ("scope", Cv::Text(f.scope.clone())),
+                        ])
+                    })
+                    .collect(),
+            ),
+        ),
+        ("skeleton", Cv::Text("jt:chordal".into())),
+        (
+            "candidates",
+            Cv::Array(vec![Cv::Text("cand:kristall-wikimedia-1".into())]),
+        ),
+        (
+            "crystals",
+            Cv::Array(vec![Cv::Text("crystal:welt-kristall-wikimedia".into())]),
+        ),
+    ])
+}

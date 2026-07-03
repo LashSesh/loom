@@ -21,8 +21,19 @@ cce-core = { path = "../../crates/cce-core" }
 cce-phc = { path = "../../crates/cce-phc" }
 cce-materialize = { path = "../../crates/cce-materialize" }
 cce-hbm = { path = "../../crates/cce-hbm" }
+cce-runner = { path = "../../crates/cce-runner" }
 nexus-core = { path = "../../nexus/nexus-core" }
+# Block 3 (Vollausbau-Folgeauftrag): das erste Welt-Crystal braucht den
+# echten CSA-Adapterpfad (JSON->CSU->EvidencePack), keine neuen externen
+# Kisten — alles first-party Pfad-Abhaengigkeiten wie oben.
+nexus-adapter = { path = "../../nexus/nexus-adapter" }
+nexus-adapter-wikimedia = { path = "../../nexus/adapters/wikimedia" }
+nexus-evidence = { path = "../../nexus/nexus-evidence" }
 
 [[bin]]
 name = "golden-gen"
 path = "src/bin/golden_gen.rs"
+
+[[bin]]
+name = "welt-kristall-gen"
+path = "src/bin/welt_kristall_gen.rs"

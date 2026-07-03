@@ -6,6 +6,8 @@
 //! sie entstehen nur aus Motor-Artefakten.
 
 use cce_core::gate::GateReport;
+use cce_core::ledger::Ledger;
+use cce_materialize::document::DocCrystal;
 
 /// Ein renderbares Element mit Wurzel-Rueckfuehrung.
 #[derive(Debug, Clone)]
@@ -258,4 +260,115 @@ pub fn candidate_output_view(
         });
     }
     items
+}
+
+// ---------- LC-R5: Minimal-GUI-Inspektionspfad (5 Pflichtansichten) ----------
+//
+// spec/40_format/LOOM_CONTAINER_STANDARD_V1.md §Minimal-GUI-Inspektionspfad:
+// "(1) Manifest (Klasse, PL, Claims, Profile), (2) Segmentliste mit
+// Digest-Status, (3) Residuen + Verdikt, (4) Gate-Reports, (5)
+// Ledger/PhaseBlocks — ohne Ausfuehrung, ohne Netz, ohne Schreibpfad."
+// Kategorien 3/4 sind bereits residue_view/gate_report_view; hier die
+// restlichen drei, bezogen auf DIESEN Arbeitskoerper (Dokument-Domaene-
+// Lauf), nicht auf eine generische fremde .loom-Datei — das Cockpit ist
+// kein universeller .loom-Viewer, sondern liest die eigenen Motor-Fakten
+// in derselben Fuenf-Kategorien-Form.
+
+/// Kategorie 1 — Manifest: Klasse/PL/Claims/Profile DIESES Laufs.
+pub fn manifest_view(
+    domain_id: &str,
+    product_level: &str,
+    content_class_hex: &str,
+    format: &str,
+) -> Vec<ViewItem> {
+    vec![
+        ViewItem {
+            label: "Klasse".into(),
+            value: format!("{domain_id} · content_class {content_class_hex}"),
+            source_ref: format!("manifest:class:{domain_id}"),
+        },
+        ViewItem {
+            label: "PL".into(),
+            value: product_level.into(),
+            source_ref: format!("catalog:{domain_id}:level"),
+        },
+        ViewItem {
+            label: "Claims".into(),
+            value: "materialize(document) · kein Egress im Kernpfad".into(),
+            source_ref: "manifest:claims".into(),
+        },
+        ViewItem {
+            label: "Profile".into(),
+            value: format!("format {format} · digest sha2-256 (Zwei-Digest-Modell S7)"),
+            source_ref: "manifest:profile".into(),
+        },
+    ]
+}
+
+/// Kategorie 2 — Segmentliste mit Digest-Status: die DocUnits des
+/// bestaetigten Crystals als Segment-Analog (id/typ/naht-anzahl), plus
+/// das Digest-Paar des Artefakts (byte_digest bindet die Datei,
+/// content_class die Bedeutung — S7).
+pub fn segment_list_view(crystal: &DocCrystal, byte_digest_hex: Option<&str>) -> Vec<ViewItem> {
+    let mut items: Vec<ViewItem> = crystal
+        .units
+        .iter()
+        .map(|u| ViewItem {
+            label: format!("Segment {}", u.id),
+            value: format!("{} · {} Naht/Naehte", u.unit_type.as_str(), u.seams.len()),
+            source_ref: format!("crystal:unit:{}", u.id),
+        })
+        .collect();
+    items.push(ViewItem {
+        label: "Digest-Status".into(),
+        value: match byte_digest_hex {
+            Some(h) => format!("byte_digest {h}"),
+            None => "noch kein Artefakt-Digest (vor Naht 4)".into(),
+        },
+        source_ref: "artifact:byte_digest".into(),
+    });
+    items
+}
+
+/// Kategorie 5 — Ledger/PhaseBlocks: jede Kettenposition (Art + Hash)
+/// plus Kettenstatus (INV-12) — read-only, kein Replay-/Schreibpfad.
+pub fn ledger_view(ledger: &Ledger) -> Vec<ViewItem> {
+    let mut items: Vec<ViewItem> = ledger
+        .events()
+        .iter()
+        .map(|e| ViewItem {
+            label: format!("PhaseBlock #{} {}", e.seq, e.kind.as_str()),
+            value: format!("entry_hash {}", e.entry_hash.to_hex()),
+            source_ref: format!("ledger:seq:{}", e.seq),
+        })
+        .collect();
+    items.push(ViewItem {
+        label: "Kettenstatus".into(),
+        value: if ledger.verify().is_ok() {
+            "gruen (Hash-Kette geprueft, INV-12)".into()
+        } else {
+            "gebrochen — Manipulation erkannt".into()
+        },
+        source_ref: "ledger:chain".into(),
+    });
+    items
+}
+
+/// Verdikt-Zeile fuer Kategorie 3 (Residuen + VERDIKT): eine einzelne,
+/// wurzel-rueckfuehrbare Zusammenfassung ueber alle Gate-Reports —
+/// ergaenzt residue_view, ersetzt gate_report_view nicht.
+pub fn verdict_view(gate_reports: &[GateReport]) -> ViewItem {
+    let all_green = gate_reports.iter().all(|g| g.is_pass());
+    ViewItem {
+        label: "Verdikt".into(),
+        value: if gate_reports.is_empty() {
+            "noch kein Lauf".to_string()
+        } else if all_green {
+            format!("Valid ({} Gates gruen)", gate_reports.len())
+        } else {
+            let holds = gate_reports.iter().filter(|g| !g.is_pass()).count();
+            format!("Hold ({holds} von {} Gates rot)", gate_reports.len())
+        },
+        source_ref: "verdict:from_gate_reports".into(),
+    }
 }

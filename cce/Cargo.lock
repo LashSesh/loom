@@ -1760,6 +1760,7 @@ dependencies = [
  "cce-hbm",
  "cce-materialize",
  "cce-phc",
+ "cce-runner",
  "loom-canon",
  "loom-codec",
  "loom-export",
@@ -1770,7 +1771,10 @@ dependencies = [
  "loom-replay",
  "loom-runner",
  "loom-verify",
+ "nexus-adapter",
+ "nexus-adapter-wikimedia",
  "nexus-core",
+ "nexus-evidence",
 ]
 
 [[package]]

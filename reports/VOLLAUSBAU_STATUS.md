@@ -1,6 +1,9 @@
 # Vollausbau-Status (eine Seite, Klartext)
 
-Stand: nach Welle **W16 — Track A VOLLSTAENDIG (213/213 PL3)**. CI: GRUEN. `feature_maturity_overclaim`: leer.
+Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
+(Belegpflicht UX), Block 2 (Kanzel↔Modell + GUI-Feindesign) UND Block 3
+(JSON→CSU-Extraktor + erstes Welt-Crystal) abgeschlossen**. CI: GRUEN.
+`feature_maturity_overclaim`: leer.
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -30,18 +33,51 @@ Stand: nach Welle **W16 — Track A VOLLSTAENDIG (213/213 PL3)**. CI: GRUEN. `fe
 | Track | Stand |
 |---|---|
 | A Domänen | **W1–W16 fertig: 213/213 auf PL3** (alle 16 Familien) |
-| B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
-| C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
-| D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
+| B Erlebbarkeit | **Block 1 nachgeliefert:** echter wgpu-Klick-Durchlauf (6 Nähte, debug-instrumentiert, `reports/ux/reise_protokoll_v2.md`) + #26 Datei-Export jetzt ECHT über den GUI-Button verifiziert (byte-identisch zum Headless-Pfad); Font-Atlas-Befund zweifach bestätigt host-gebunden (glow+wgpu), Backend zurückgestellt. **GUI-Feindesign (LC-R5) fertig:** alle 5 Pflichtansichten (Manifest/Segmentliste+Digest/Residuen+Verdikt/Gate-Reports/Ledger) im bestehenden Pruef-Tab verdrahtet, Zeuge grün |
+| C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün. **Kanzel-Verdrahtung fertig:** LocalKanzel ruft real durch das unveränderte InferenceGateway (LocalExtractiveModel), Annahmen-Text modellgeformt + Provider-/Evidence-Beleg, DegradedKanzel unberührt, COCK-INV-1..8 unverändert grün; GGUF/LLM offen (host-gebunden) |
+| D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün. **JSON→CSU-Extraktor fertig:** echter JSON-Decoder (nexus-decode, keine externe Kiste), WikimediaAdapter liest die echte MediaWiki-Antwort, erstes Welt-Crystal `library/seed/kristall_wikimedia_workbody.loom` zertifiziert (`loom verify` ⇒ Valid, 0 Residuen), Attribution real transportiert |
 | E Skalen | P8 **fertig**: SCALE-2 Dokumentenmappe (Red(2)-Kerntest, MSC 1→2, Adapter 8/8, PL2); SCALE-3 offen |
 | F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated; Registry-Vollform offen |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 
-## Nächster Schritt
+## Block-Auftrag (aktuell)
 
-Track A ist vollständig (213/213 PL3). Offene Track-Reste (alle sichtbar
-im Register): zstd-Transportprofil, .docx-Export, blake3-Zweitprofil,
-GUI-Feindesign, SCALE-3-Entwurf, sowie die PL3→PL4-Reifepfade (Nutzungs-/
-Review-Evidenz, domänenspezifische Voll-Engines). Track G (macOS/Windows-
-Pakete) bleibt gesperrt bis Build-Hosts existieren. Für Prioritäten
-zwischen den verbleibenden Track-Resten stehe ich bereit.
+1. **Block 1 — Belegpflicht UX: ABGESCHLOSSEN.** Echter Klick-Durchlauf
+   unter wgpu (matchbox-WM fuer Fokus, COCKPIT_DEBUG_RECTS=1 fuer
+   verifizierbare Koordinaten/Zustaende, da Glyphen host-bedingt nicht
+   rendern), reise_protokoll_v2.md, echte per Button exportierte
+   `.md`+`.cert`. Zwei ehrliche Nebenbefunde offen gemeldet (nicht
+   verborgen): Glyphen-Rendering host-gebunden (R-Agent-6), xdotool-
+   Zeichenumkehr-Artefakt der Testkette (R-Agent-7) — siehe
+   reports/residuen.md.
+2. **Block 2 — Kanzel↔LocalExtractiveModel + GUI-Feindesign: ABGESCHLOSSEN.**
+   Kanzel-Formung laeuft real durch `run_inference` (LocalExtractiveModel,
+   egress_lock=None da kein Egress noetig); Annahmen-Interpretation traegt
+   Provider-Herkunft (`local-extractive:kernmodell`) + Gateway-Evidence-ID
+   als Beleg, Crystal-Referenzstruktur unveraendert. GUI-Feindesign: die
+   fuenf LC-R5-Pflichtansichten (Manifest/Segmentliste+Digest-Status/
+   Residuen+Verdikt/Gate-Reports/Ledger-PhaseBlocks) rendern jetzt im
+   Pruef-Tab aus echten Motor-/Ledger-Fakten. Zeugen: `kanzel_model_witness.rs`
+   (3 Tests) + `lc_r5_inspection_views.rs` (3 Tests), alle 13 COCK-INV-Tests
+   unveraendert gruen (keine Testdatei-Aenderung noetig), voller
+   Workspace-Testlauf gruen, clippy sauber.
+3. **Block 3 — JSON→CSU-Extraktor Wikimedia + erstes Welt-Crystal: ABGESCHLOSSEN.**
+   `nexus-decode::decode_json` (selbst gefuehrter Parser, keine externe
+   Kiste — dieselbe Disziplin wie beim Ed25519-Pfad), `WikimediaAdapter`
+   liest jetzt die echte MediaWiki-JSON-Antwort statt des alten
+   kv-Zeilen-Platzhalters. Milestone: `library/seed/kristall_wikimedia_workbody.loom`
+   — Quellenzelle + Attribution sind der ECHTE, eingefrorene Wikipedia-
+   Auszug „Kristall" (CC BY-SA 4.0), materialisiert ueber den echten
+   Motor (cce-runner), `loom verify` ⇒ Valid/0 Residuen, deterministisch.
+   Inspect-Beleg: `reports/welt_crystal_wikimedia.md`. Zeugen: 6 (nexus-decode)
+   + 3 (nexus-adapter-wikimedia) + 4 (loom-conformance) neu, 19 CSA-Katalog-
+   Zeugen weiterhin gruen (2 auf realistische JSON-Bytes umgestellt).
+   Alle CSA-Gates/disallowed_actions unveraendert.
+
+Damit sind alle drei angeordneten Bloecke abgeschlossen. Track A bleibt
+vollständig (213/213 PL3). Restliche Track-Reste (alle sichtbar im
+Register, naechste Ermessens-Schritte): .docx-Export, zstd-Transportprofil,
+blake3-Zweitprofil, SCALE-2-Vollmaterialisierung, SCALE-3-Entwurf,
+PL3→PL4-Reifepfade. Host-gebunden gesammelt und bewusst nicht weiter
+umgangen: GGUF-/LLM-Anbindung, OS-Keyring-Live-Test, macOS/Windows-Pakete
+(Track G) — je einen Build-/Desktop-/GPU-Host, bis dahin gesperrt.
