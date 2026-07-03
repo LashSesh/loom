@@ -5,9 +5,15 @@
 fn main() {
     let mut args = std::env::args().skip(1);
     let cmd = args.next().unwrap_or_default();
+    // Signatur-Subcommands (P6(c)) haben eigene Arity — vor dem generischen
+    // Datei-Lesen behandeln.
+    if cmd == "keygen" || cmd == "sign" || cmd == "verify-sig" {
+        dispatch_sign(&cmd);
+        return;
+    }
     let path = args.next().unwrap_or_default();
     if path.is_empty() {
-        eprintln!("verwendung: loom <inspect|verify|ls> <datei.loom>");
+        eprintln!("verwendung: loom <inspect|verify|ls|sign|verify-sig|keygen> <datei.loom>");
         std::process::exit(2);
     }
     let bytes = match std::fs::read(&path) {
@@ -51,4 +57,74 @@ fn main() {
             std::process::exit(2);
         }
     }
+}
+
+fn dispatch_sign(cmd: &str) {
+    match cmd {
+        "keygen" => {
+            let mut it = std::env::args().skip(2);
+            let seed_hex = it.next().unwrap_or_default();
+            let out = it.next().unwrap_or_default();
+            match hex32(&seed_hex) {
+                Some(seed) if !out.is_empty() => {
+                    std::fs::write(&out, seed).expect("keyfile schreiben");
+                    println!("seed geschrieben: {out} (32 Byte)");
+                }
+                _ => {
+                    eprintln!("verwendung: loom keygen <seed-hex-64-zeichen> <out-keyfile>");
+                    std::process::exit(2);
+                }
+            }
+        }
+        "sign" => {
+            let mut it = std::env::args().skip(2);
+            let file = it.next().unwrap_or_default();
+            let key = it.next().unwrap_or_default();
+            let out = it.next().unwrap_or_default();
+            let bytes = std::fs::read(&file).expect("datei lesen");
+            let seed_raw = std::fs::read(&key).expect("keyfile lesen");
+            let seed: [u8; 32] = seed_raw
+                .as_slice()
+                .try_into()
+                .expect("seed muss 32 Byte sein");
+            match loom_cli::sign::sign(&bytes, &seed) {
+                Ok(signed) => {
+                    std::fs::write(&out, &signed).expect("signierte datei schreiben");
+                    println!(
+                        "signiert: {out} (SIGNATURE 0x0050 beigelegt, core_root unveraendert)"
+                    );
+                }
+                Err(e) => {
+                    eprintln!("sign-fehler: {e:?}");
+                    std::process::exit(1);
+                }
+            }
+        }
+        "verify-sig" => {
+            let file = std::env::args().nth(2).unwrap_or_default();
+            let bytes = std::fs::read(&file).expect("datei lesen");
+            match loom_cli::sign::verify_sig(&bytes) {
+                Ok(vk) => {
+                    let hex: String = vk.to_bytes().iter().map(|b| format!("{b:02x}")).collect();
+                    println!("signatur gueltig · public_key {hex}");
+                }
+                Err(e) => {
+                    eprintln!("signatur UNGUELTIG: {e:?}");
+                    std::process::exit(1);
+                }
+            }
+        }
+        _ => unreachable!(),
+    }
+}
+
+fn hex32(s: &str) -> Option<[u8; 32]> {
+    if s.len() != 64 {
+        return None;
+    }
+    let mut out = [0u8; 32];
+    for (i, b) in out.iter_mut().enumerate() {
+        *b = u8::from_str_radix(&s[i * 2..i * 2 + 2], 16).ok()?;
+    }
+    Some(out)
 }

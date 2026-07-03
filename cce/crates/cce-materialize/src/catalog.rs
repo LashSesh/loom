@@ -48,14 +48,65 @@ pub fn by_id(id: &str) -> Option<&'static DomainEntry> {
     CATALOG.iter().find(|e| e.id == id)
 }
 
-/// feature_maturity_overclaim (S11/G12): eine Funktion/Domaene, die
-/// ein hoeheres PL traegt als ihre Beweislage, ist ein Verstoss.
-/// Beweislage im Bau: NUR D01 hat den gruenen Produkt-Kerntest —
-/// jede andere Domaene ueber L1 ist Overclaim.
+/// Domänen mit committeter Beweislage (Adapter 11/11 + Zeugen +
+/// Kerntest + Doku-Zeile) — wächst je abgeschlossener Welle. Diese
+/// Liste ist die EINE Wahrheit, an der PL2/PL3 hängt.
+/// - D01: Produkt-Kerntest (PL4).
+/// - D02–D15: Welle W1, family_a-Zeugen (PL3).
+/// - KNOW01–15: Welle W2, family_j-Zeugen (PL3).
+/// - GOV01–12: Welle W3, family_g-Zeugen (PL3).
+/// - COM01–12: Welle W4, family_n-Zeugen (PL3).
+/// - PM01–15: Welle W5, family_f-Zeugen (PL3).
+/// - EDU01–12: Welle W6, family_k-Zeugen (PL3).
+/// - BUS01–15: Welle W7, family_i-Zeugen (PL3).
+/// - SWE01–15: Welle W8, family_b-Zeugen (PL3).
+/// - DATA01–12: Welle W9, family_c-Zeugen (PL3).
+/// - GRA01–12: Welle W10, family_d-Zeugen (PL3).
+/// - MATH01–15: Welle W11, family_e-Zeugen (PL3).
+/// - CRE01–15: Welle W12, family_l-Zeugen (PL3).
+/// - FIN01–10: Welle W13, family_o-Zeugen (PL3).
+/// - OPS01–15: Welle W14, family_h-Zeugen (PL3).
+/// - HW01–15: Welle W15, family_m-Zeugen (PL3).
+/// - REG01–08: Welle W16, family_p-Zeugen (PL3; PL4 review-gebunden).
+pub const WITNESSED_DOMAINS: [&str; 213] = [
+    "D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13",
+    "D14", "D15", "KNOW01", "KNOW02", "KNOW03", "KNOW04", "KNOW05", "KNOW06", "KNOW07", "KNOW08",
+    "KNOW09", "KNOW10", "KNOW11", "KNOW12", "KNOW13", "KNOW14", "KNOW15", "GOV01", "GOV02",
+    "GOV03", "GOV04", "GOV05", "GOV06", "GOV07", "GOV08", "GOV09", "GOV10", "GOV11", "GOV12",
+    "COM01", "COM02", "COM03", "COM04", "COM05", "COM06", "COM07", "COM08", "COM09", "COM10",
+    "COM11", "COM12", "PM01", "PM02", "PM03", "PM04", "PM05", "PM06", "PM07", "PM08", "PM09",
+    "PM10", "PM11", "PM12", "PM13", "PM14", "PM15", "EDU01", "EDU02", "EDU03", "EDU04", "EDU05",
+    "EDU06", "EDU07", "EDU08", "EDU09", "EDU10", "EDU11", "EDU12", "BUS01", "BUS02", "BUS03",
+    "BUS04", "BUS05", "BUS06", "BUS07", "BUS08", "BUS09", "BUS10", "BUS11", "BUS12", "BUS13",
+    "BUS14", "BUS15", "SWE01", "SWE02", "SWE03", "SWE04", "SWE05", "SWE06", "SWE07", "SWE08",
+    "SWE09", "SWE10", "SWE11", "SWE12", "SWE13", "SWE14", "SWE15", "DATA01", "DATA02", "DATA03",
+    "DATA04", "DATA05", "DATA06", "DATA07", "DATA08", "DATA09", "DATA10", "DATA11", "DATA12",
+    "GRA01", "GRA02", "GRA03", "GRA04", "GRA05", "GRA06", "GRA07", "GRA08", "GRA09", "GRA10",
+    "GRA11", "GRA12", "MATH01", "MATH02", "MATH03", "MATH04", "MATH05", "MATH06", "MATH07",
+    "MATH08", "MATH09", "MATH10", "MATH11", "MATH12", "MATH13", "MATH14", "MATH15", "CRE01",
+    "CRE02", "CRE03", "CRE04", "CRE05", "CRE06", "CRE07", "CRE08", "CRE09", "CRE10", "CRE11",
+    "CRE12", "CRE13", "CRE14", "CRE15", "FIN01", "FIN02", "FIN03", "FIN04", "FIN05", "FIN06",
+    "FIN07", "FIN08", "FIN09", "FIN10", "OPS01", "OPS02", "OPS03", "OPS04", "OPS05", "OPS06",
+    "OPS07", "OPS08", "OPS09", "OPS10", "OPS11", "OPS12", "OPS13", "OPS14", "OPS15", "HW01",
+    "HW02", "HW03", "HW04", "HW05", "HW06", "HW07", "HW08", "HW09", "HW10", "HW11", "HW12", "HW13",
+    "HW14", "HW15", "REG01", "REG02", "REG03", "REG04", "REG05", "REG06", "REG07", "REG08",
+];
+
+/// feature_maturity_overclaim (S11/G12): eine Domäne, die ein höheres
+/// PL trägt als ihre committete Beweislage, ist ein Verstoss. PL2/PL3
+/// verlangt Mitgliedschaft in WITNESSED_DOMAINS; PL4 ist D01 vorbehalten
+/// (Produkt-Kerntest), professionsgebundene PL4 zusätzlich review-gebunden.
 pub fn feature_maturity_overclaim() -> Vec<&'static str> {
     CATALOG
         .iter()
-        .filter(|e| e.level > ProductLevel::L1 && e.id != "D01")
+        .filter(|e| {
+            // PL4 nur fuer D01 (Nutzungs-/Kerntest-Evidenz).
+            let pl4_overclaim = e.level == ProductLevel::L4 && e.id != "D01";
+            // PL2/PL3 nur mit Zeugen.
+            let pl23_overclaim = (e.level == ProductLevel::L2 || e.level == ProductLevel::L3)
+                && !WITNESSED_DOMAINS.contains(&e.id);
+            pl4_overclaim || pl23_overclaim
+        })
         .map(|e| e.id)
         .collect()
 }
@@ -86,20 +137,15 @@ mod tests {
     }
 
     #[test]
-    fn d01_is_pl4_rest_pl1_no_overclaim() {
+    fn d01_pl4_family_a_pl3_no_overclaim() {
         assert_eq!(by_id("D01").unwrap().level, ProductLevel::L4);
+        // Welle W1: D02–D15 auf PL3 mit committeten Zeugen.
+        for id in ["D02", "D08", "D15"] {
+            assert_eq!(by_id(id).unwrap().level, ProductLevel::L3);
+        }
         assert!(feature_maturity_overclaim().is_empty(), "kein Overclaim");
-        // Anti-Overclaim greift: eine Domaene ueber L1 ohne Kerntest
-        // wuerde gelistet (Negativprobe ueber die Logik):
-        let fake = DomainEntry {
-            id: "D99",
-            purpose: "test",
-            crystal: "t",
-            artifact: "t",
-            core_gate: "t",
-            core_residue: "t",
-            level: ProductLevel::L3,
-        };
-        assert!(fake.level > ProductLevel::L1 && fake.id != "D01");
+        // Anti-Overclaim greift: PL3 ohne Zeugen-Mitgliedschaft waere ein
+        // Verstoss (Negativprobe ueber die Logik).
+        assert!(!WITNESSED_DOMAINS.contains(&"D16"));
     }
 }

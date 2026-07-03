@@ -183,3 +183,36 @@ fn doku_lesarten_vollstaendig_und_unter_claim_schranke() {
     assert!(text.contains("kein Funktionsversprechen"));
     assert!(text.contains("Claim-Schranke"));
 }
+
+// ---------- #26 Datei-Export (Track B) ----------
+
+#[test]
+fn artefakt_datei_export_und_reimport_klassenidentisch() {
+    use cockpit_core::journey::{reimport, take_artifact, ReimportVerdict};
+    let mut core = CockpitCore::new(MotorEngine::default());
+    core.enter_wish("memo export").unwrap();
+    let (crystal, _) = LocalKanzel.form_wish("memo").unwrap();
+    core.crystal_formed(crystal).unwrap();
+    core.confirm_crystal(confirmation("c")).unwrap();
+    core.start_run(rd(), confirmation("s")).unwrap();
+    let cert = take_artifact(&mut core, confirmation("e")).unwrap();
+
+    // In eine echte Datei schreiben (std::fs), Seitendatei .cert entsteht.
+    let dir = std::env::temp_dir().join("cce-export-test");
+    std::fs::create_dir_all(&dir).unwrap();
+    let path = dir.join("memo.md");
+    cert.write_to(&path).unwrap();
+    let written = std::fs::read(&path).unwrap();
+    assert_eq!(written, cert.bytes, "Datei traegt exakt die Motor-Bytes");
+    assert!(
+        path.with_extension("md.cert").exists(),
+        "Zertifikats-Seitendatei"
+    );
+
+    // Re-Import der GESCHRIEBENEN Datei ist klassenidentisch (Naht 5).
+    match reimport(&cert, &written) {
+        ReimportVerdict::SameClass { .. } => {}
+        other => panic!("Export→Re-Import muss klassenidentisch sein, war {other:?}"),
+    }
+    let _ = std::fs::remove_dir_all(&dir);
+}

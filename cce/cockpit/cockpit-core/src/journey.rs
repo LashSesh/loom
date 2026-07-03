@@ -29,6 +29,38 @@ pub enum JourneyError {
     ConfirmationRequired,
 }
 
+impl CertifiedArtifact {
+    /// Datei-Export (#26): schreibt die materialisierten Artefakt-Bytes
+    /// domaenen-nativ auf Platte und legt eine Zertifikats-Seitendatei
+    /// (`.cert`) mit beiden Digests + Gate-Bilanz daneben. Nur std::fs —
+    /// keine neue Abhaengigkeit; die Bytes sind exakt die vom Motor
+    /// materialisierten (kein Umformen).
+    pub fn write_to(&self, path: &std::path::Path) -> std::io::Result<()> {
+        std::fs::write(path, &self.bytes)?;
+        let cert = format!(
+            "artifact_format: {}\ncontent_class: {}\nbyte_digest: {}\ngates:\n{}\n",
+            self.format,
+            self.content_class.to_hex(),
+            self.byte_digest.to_hex(),
+            self.gate_reports
+                .iter()
+                .map(|g| format!(
+                    "  - {} = {} ({})",
+                    g.gate_id,
+                    if g.is_pass() { "gruen" } else { "rot" },
+                    g.reason
+                ))
+                .collect::<Vec<_>>()
+                .join("\n"),
+        );
+        let cert_path = path.with_extension(format!(
+            "{}.cert",
+            path.extension().and_then(|e| e.to_str()).unwrap_or("out")
+        ));
+        std::fs::write(cert_path, cert)
+    }
+}
+
 /// Naht 4: Entnehmen. Nur aus ARTEFAKT_VERFUEGBAR, nur mit
 /// Bestaetigung; das Zertifikat traegt beide Digests + die Gate-Fakten.
 pub fn take_artifact<E: EnginePort>(

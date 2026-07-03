@@ -486,3 +486,65 @@ fn replay_fixed_snapshot_same_ids_hashes_ledger_paths() {
     assert_eq!(head1.to_hex(), head2.to_hex());
     assert!(replay_gate(head1, head2).allows());
 }
+
+// ---------- P5 (Track D): Wikimedia live, Snapshot-fixiert ----------
+
+/// ref_2b_live_snapshot_frozen: die EINMAL live geholte, eingefrorene
+/// Wikimedia-Antwort (conformance/fixtures/wikimedia_kristall.json)
+/// fliesst deterministisch durch den UNVERAENDERTEN versiegelten Pfad
+/// (approve_fetch → fetch) — gleiche Bytes, gleicher Digest, ohne Netz.
+/// Beweist: „ref_2 live = Fixture-Klasse" auf der Fetch-Ebene; die
+/// disallowed_actions und Gates sind unberuehrt.
+#[test]
+fn ref_2b_live_snapshot_frozen() {
+    let fixture = include_bytes!("../fixtures/wikimedia_kristall.json");
+    let endpoint = "https://de.wikipedia.org/w/api.php?action=query&prop=extracts&exintro=1&explaintext=1&titles=Kristall&format=json&redirects=1";
+
+    let hs = SourceHorizon::example_local();
+    let task = TaskSpec::new("wikimedia-frozen", "scope:docs");
+    let manifest = AdapterManifest::complete("wikimedia-api", "official_api", "cc-by-sa-4.0");
+    let d = decl("official_api");
+    let plan = FetchPlan {
+        plan_id: "plan:wikimedia:frozen".to_string(),
+        adapter_id: "wikimedia-api".to_string(),
+        operations: vec![PlannedOp {
+            method: "get".to_string(),
+            endpoint_template: endpoint.to_string(),
+            expected_status: 200,
+            cost_requests: 1,
+        }],
+        gates: vec!["rate_budget_gate".to_string()],
+        cache_etag: None,
+        cache_cursor: None,
+        backoff_policy: "exponential".to_string(),
+    };
+    // VERSIEGELT: erst alle Policy-Gates, dann Abruf gegen die Fixture.
+    let approved = approve_fetch(&hs, &task, &manifest, &d, plan).expect("Policy gruen");
+    let mut transport = SnapshotTransport {
+        snapshot_id: "snap-wikimedia-frozen".to_string(),
+        ..Default::default()
+    };
+    transport
+        .responses
+        .insert(endpoint.to_string(), (fixture.to_vec(), None));
+
+    let mut cache = FetchCache::default();
+    let a = fetch(&approved, &transport, &mut cache, 8).expect("Fetch 1");
+    let mut cache2 = FetchCache::default();
+    let b = fetch(&approved, &transport, &mut cache2, 8).expect("Fetch 2");
+    // Deterministisch: gleiche Bytes, gleicher Content-Digest.
+    assert_eq!(a.len(), 1);
+    assert_eq!(
+        a[0].bytes, b[0].bytes,
+        "Snapshot-Replay nicht deterministisch"
+    );
+    assert_eq!(a[0].digest().to_hex(), b[0].digest().to_hex());
+    // Die eingefrorene Klasse ist exakt die live geholten Bytes.
+    assert_eq!(a[0].bytes, fixture.to_vec());
+    // Es ist eine echte Wikimedia-Antwort (offizielle API).
+    let text = String::from_utf8_lossy(&a[0].bytes);
+    assert!(text.contains("\"title\":\"Kristall\""));
+    // disallowed_actions unberuehrt: der RunDescriptor traegt die volle Liste.
+    let rd = SourceRunDescriptor::new("run-wikimedia", "frozen", 7);
+    assert!(rd.disallowed_complete());
+}

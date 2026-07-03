@@ -103,3 +103,42 @@ pub fn fetch(
     }
     Ok(out)
 }
+
+/// Realer HTTP-Transport (P5, Track D) — NUR unter Feature `http`.
+/// GET + ETag (Differenzabruf), Proxy-bewusst (HTTPS_PROXY). Er ist
+/// eine gewoehnliche `Transport`-Implementierung und wird AUSSCHLIESSLICH
+/// ueber `fetch(&ApprovedFetchPlan, …)` benutzt — der versiegelte Pfad
+/// bleibt unveraendert (kein Socket vor dem PolicyGate).
+#[cfg(feature = "http")]
+pub struct HttpTransport {
+    pub user_agent: String,
+}
+
+#[cfg(feature = "http")]
+impl HttpTransport {
+    pub fn new(user_agent: &str) -> Self {
+        Self {
+            user_agent: user_agent.to_string(),
+        }
+    }
+}
+
+#[cfg(feature = "http")]
+impl Transport for HttpTransport {
+    fn get(&self, endpoint: &str) -> Result<(Vec<u8>, Option<String>), String> {
+        let resp = ureq::get(endpoint)
+            .header("User-Agent", &self.user_agent)
+            .call()
+            .map_err(|e| format!("HTTP-Fehler: {e}"))?;
+        let etag = resp
+            .headers()
+            .get("etag")
+            .and_then(|v| v.to_str().ok())
+            .map(|s| s.to_string());
+        let body = resp
+            .into_body()
+            .read_to_vec()
+            .map_err(|e| format!("Body-Fehler: {e}"))?;
+        Ok((body, etag))
+    }
+}

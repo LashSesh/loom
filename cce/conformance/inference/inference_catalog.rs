@@ -641,3 +641,77 @@ fn refusal_is_regular_visible_state_and_rate_holds() {
     assert!(model_budget_gate(&req, &m).allows());
     assert!(!human_confirmation_gate(None).allows());
 }
+
+// ---------- P4 (Track C): echtes Lokalmodell ----------
+
+#[test]
+fn r_inf_2b_real_local_model_recorded_replay_class_identical() {
+    use cce_inference::providers::local_extractive::LocalExtractiveModel;
+    let provider = LocalExtractiveModel::new("kernmodell");
+    // Manifest vollstaendig (C.4) und Klasse LocalModel (kein Egress).
+    assert!(provider.manifest().validate().is_ok());
+    assert_eq!(
+        provider.manifest().provider_class,
+        cce_inference::manifest::ProviderClass::LocalModel
+    );
+
+    let mut req = InferenceRequest::example("r2b");
+    req.context = vec![cce_inference::request::ContextSlice {
+        name: "projektion".to_string(),
+        content: "Serverausfall gefaehrdet den Go-Live. Redundanz senkt das Ausfallrisiko. \
+                  Datenverlust droht bei Migration."
+            .to_string(),
+    }];
+
+    // Durch das UNVERAENDERTE Gateway: alle Egress-Vorgates + Aufzeichnung.
+    let mut recorder = InferenceRecorder::default();
+    let (cand, ev) = match run_inference(
+        &provider,
+        &req,
+        &boundary(),
+        "no_pii",
+        None,
+        0,
+        "draft",
+        &mut recorder,
+    ) {
+        GatewayOutcome::Candidate(boxed) => *boxed,
+        other => panic!("erwartet Kandidat, war {other:?}"),
+    };
+    // Das echte Modell hat den Kontext verarbeitet (nicht-leerer Entwurf).
+    assert!(cand.content.contains("ENTWURF (extraktiv"));
+    assert!(cand.evidence_ref.is_some());
+
+    // recorded-Replay ist klassenidentisch: eingespielte Aufzeichnung ==
+    // Response-Digest der Evidence.
+    let replayed = replay_response(&recorder, "r2b").expect("Aufzeichnung");
+    assert_eq!(replayed.digest().to_hex(), ev.response_digest.to_hex());
+    // Live-Re-Inferenz stimmt ueberein (deterministisches Modell).
+    let live = provider.infer(&req);
+    assert!(check_live_reinference(&replayed, &live).is_ok());
+}
+
+#[test]
+fn offline_core_unbroken_with_real_local_model_present() {
+    // Der Offline-Nachweis bleibt gueltig: DisabledProvider degradiert
+    // weiterhin sichtbar; das echte Lokalmodell fuegt KEINEN Egress hinzu
+    // (Klasse LocalModel braucht keinen Lock, needs_egress=false).
+    use cce_inference::manifest::ProviderClass;
+    assert!(!ProviderClass::LocalModel.needs_egress());
+    let provider = DisabledProvider;
+    let req = InferenceRequest::example("offline2");
+    let mut rec = InferenceRecorder::default();
+    match run_inference(
+        &provider,
+        &req,
+        &boundary(),
+        "no_pii",
+        None,
+        0,
+        "none",
+        &mut rec,
+    ) {
+        GatewayOutcome::Failed { residue, .. } => assert!(residue.content.contains("degradiert")),
+        other => panic!("Disabled muss degradiert antworten, war {other:?}"),
+    }
+}

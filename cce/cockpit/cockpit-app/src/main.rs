@@ -158,8 +158,67 @@ impl eframe::App for CockpitApp {
     }
 }
 
+/// Headless Datei-Export (#26): faehrt die Referenzreise (Drei-Risiken-
+/// Memo) ueber cockpit-core OHNE GUI und schreibt das materialisierte
+/// Artefakt + Zertifikat. Derselbe Zustandsmaschinen-Pfad wie im
+/// Cockpit — nur ohne Fenster (fuer Umgebungen ohne Display/GPU).
+fn export_headless(path: &std::path::Path) -> Result<(), String> {
+    use cockpit_core::journey::take_artifact;
+    let mut core = CockpitCore::new(MotorEngine::default());
+    core.enter_wish("Drei-Risiken-Memo, je Gegenmassnahme, ohne Bewertungszahlen")
+        .map_err(|e| format!("{e:?}"))?;
+    let (crystal, _interp) = LocalKanzel
+        .form_wish("drei risiken memo")
+        .ok_or("Kanzel degradiert")?;
+    core.crystal_formed(crystal).map_err(|e| format!("{e:?}"))?;
+    let conf = |a: &str| {
+        Some(Confirmation {
+            operator: "operator:cli".into(),
+            action: a.into(),
+            statement: "headless export bestaetigt".into(),
+        })
+    };
+    core.confirm_crystal(conf("confirm_crystal"))
+        .map_err(|e| format!("{e:?}"))?;
+    core.start_run(
+        RunDescriptor::new(sha256(b"headless-export"), "document", 7),
+        conf("start_run"),
+    )
+    .map_err(|e| format!("{e:?}"))?;
+    if core.state != CockpitState::ArtefaktVerfuegbar {
+        return Err(format!("kein Artefakt: Zustand {:?}", core.state));
+    }
+    let cert = take_artifact(&mut core, conf("export")).map_err(|e| format!("{e:?}"))?;
+    cert.write_to(path)
+        .map_err(|e| format!("Schreibfehler: {e}"))?;
+    println!(
+        "geschrieben: {} ({} Bytes) · content_class {} · byte_digest {}",
+        path.display(),
+        cert.bytes.len(),
+        cert.content_class.to_hex(),
+        cert.byte_digest.to_hex()
+    );
+    Ok(())
+}
+
 fn main() -> eframe::Result {
-    let options = eframe::NativeOptions::default();
+    // Headless-Export-Modus: `cce-cockpit --export <pfad>` (kein Fenster).
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() >= 3 && args[1] == "--export" {
+        match export_headless(std::path::Path::new(&args[2])) {
+            Ok(()) => return Ok(()),
+            Err(e) => {
+                eprintln!("export fehlgeschlagen: {e}");
+                std::process::exit(1);
+            }
+        }
+    }
+    let mut options = eframe::NativeOptions::default();
+    // Default bleibt glow; COCKPIT_RENDERER=wgpu waehlt den Vulkan-Pfad
+    // (WO-2-Test auf Software-Vulkan). Kein Verhaltenswechsel ohne die Var.
+    if std::env::var("COCKPIT_RENDERER").as_deref() == Ok("wgpu") {
+        options.renderer = eframe::Renderer::Wgpu;
+    }
     eframe::run_native(
         "CCE Cockpit",
         options,

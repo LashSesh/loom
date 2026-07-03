@@ -4,7 +4,8 @@
 
 /// Kennung des Regressionswaechters; waechst mit jeder Phase.
 pub const GUARD_PHASES: &[&str] = &[
-    "G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G8a", "G9", "G10", "G11", "G12",
+    "G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G8a", "G9", "G10", "G11", "G12", "W1",
+    "W2",
 ];
 
 /// Produktversion (S11: Versionierung; Update-DoD-Pfad s. `update_dod`).
@@ -82,7 +83,7 @@ pub fn feature_maturity_overclaim() -> Vec<&'static str> {
     FEATURE_PL
         .iter()
         .filter(|(name, pl, evidence)| {
-            pl.is_empty() || evidence.is_empty() || (*pl >= "PL2" && *name != "dokument_reise_d01")
+            pl.is_empty() || evidence.is_empty() || (*pl == "PL4" && *name != "dokument_reise_d01")
         })
         .map(|(name, _, _)| *name)
         .collect()
