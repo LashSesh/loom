@@ -65,7 +65,10 @@ pub fn by_id(id: &str) -> Option<&'static DomainEntry> {
 /// - MATH01–15: Welle W11, family_e-Zeugen (PL3).
 /// - CRE01–15: Welle W12, family_l-Zeugen (PL3).
 /// - FIN01–10: Welle W13, family_o-Zeugen (PL3).
-pub const WITNESSED_DOMAINS: [&str; 175] = [
+/// - OPS01–15: Welle W14, family_h-Zeugen (PL3).
+/// - HW01–15: Welle W15, family_m-Zeugen (PL3).
+/// - REG01–08: Welle W16, family_p-Zeugen (PL3; PL4 review-gebunden).
+pub const WITNESSED_DOMAINS: [&str; 213] = [
     "D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13",
     "D14", "D15", "KNOW01", "KNOW02", "KNOW03", "KNOW04", "KNOW05", "KNOW06", "KNOW07", "KNOW08",
     "KNOW09", "KNOW10", "KNOW11", "KNOW12", "KNOW13", "KNOW14", "KNOW15", "GOV01", "GOV02",
@@ -83,7 +86,10 @@ pub const WITNESSED_DOMAINS: [&str; 175] = [
     "MATH08", "MATH09", "MATH10", "MATH11", "MATH12", "MATH13", "MATH14", "MATH15", "CRE01",
     "CRE02", "CRE03", "CRE04", "CRE05", "CRE06", "CRE07", "CRE08", "CRE09", "CRE10", "CRE11",
     "CRE12", "CRE13", "CRE14", "CRE15", "FIN01", "FIN02", "FIN03", "FIN04", "FIN05", "FIN06",
-    "FIN07", "FIN08", "FIN09", "FIN10",
+    "FIN07", "FIN08", "FIN09", "FIN10", "OPS01", "OPS02", "OPS03", "OPS04", "OPS05", "OPS06",
+    "OPS07", "OPS08", "OPS09", "OPS10", "OPS11", "OPS12", "OPS13", "OPS14", "OPS15", "HW01",
+    "HW02", "HW03", "HW04", "HW05", "HW06", "HW07", "HW08", "HW09", "HW10", "HW11", "HW12", "HW13",
+    "HW14", "HW15", "REG01", "REG02", "REG03", "REG04", "REG05", "REG06", "REG07", "REG08",
 ];
 
 /// feature_maturity_overclaim (S11/G12): eine Domäne, die ein höheres
