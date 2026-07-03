@@ -32,7 +32,7 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 |---|---|
 | A Domänen | W1+W2 fertig (Familien A, J, PL3); W3 als Nächstes |
 | B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
-| C Intelligenz | P4 (echtes Lokalmodell) freigegeben — **als Nächstes nach W2** |
+| C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
 | E Skalen | P8 (SCALE-2) — geplant nach W4 |
 | F Härtung | P6(a/b) fertig; P6(c) Ed25519+Keyring freigegeben — geplant nach W3 |
@@ -40,5 +40,5 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 
 ## Nächster Schritt
 
-Interleaving-Einheit **C/P4** (echtes Lokalmodell), danach Welle **W3 =
-Familie G (Governance, GOV01–12)**.
+Welle **W3 = Familie G (Governance/Compliance/Audit, GOV01–12)**; danach
+Interleaving-Einheit **F/P6(c)** (Ed25519 + OS-Keyring).
