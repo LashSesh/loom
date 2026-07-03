@@ -1,7 +1,7 @@
 //! Die sieben Dokument-Gates (S1.4) — boolesch, begruendet, fail-closed.
 //! Jedes Rot benennt sein Residuum (S1.5-Vokabular).
 
-use super::{DocArtifact, DocCrystal, DocumentAdapter, UnitType};
+use super::{DocArtifact, DocCrystal, DocUnit, DocumentAdapter, UnitType};
 use crate::adapter::DomainAdapter;
 use cce_core::gate::GateReport;
 
@@ -78,7 +78,10 @@ pub fn no_score(c: &DocCrystal) -> GateReport {
     }
 }
 
-/// DocG-Structure: keine verwaiste Einheit; geforderte Abschnitte vorhanden.
+/// DocG-Structure: keine verwaiste Einheit; geforderte Abschnitte
+/// vorhanden. CE-1 (S-E4a II.3): VERSCHAERFT, nicht ersetzt — zusaetzlich
+/// Aritaets-Gleichheit aller Tabellenzeilen (`ragged_table`) und
+/// dekodierbare Zelltypen (`invalid_cell_type`).
 pub fn structure(c: &DocCrystal) -> GateReport {
     let orphans: Vec<&str> = c
         .units
@@ -103,6 +106,39 @@ pub fn structure(c: &DocCrystal) -> GateReport {
                 .any(|u| u.unit_type == UnitType::Section && u.text.contains(s.as_str()))
         })
         .collect();
+
+    let table_units: Vec<&DocUnit> = c
+        .units
+        .iter()
+        .filter(|u| u.unit_type == UnitType::Table)
+        .collect();
+    let undecodable: Vec<&str> = table_units
+        .iter()
+        .filter(|u| u.as_table().is_none())
+        .map(|u| u.id.as_str())
+        .collect();
+    if !undecodable.is_empty() {
+        return GateReport::hold(
+            "DocG-Structure",
+            &format!("invalid_cell_type: {undecodable:?} unlesbare Tabellen-Kodierung"),
+        );
+    }
+    let ragged: Vec<&str> = table_units
+        .iter()
+        .filter(|u| {
+            let t = u.as_table().expect("oben bereits als dekodierbar geprueft");
+            let k = t.header.len();
+            t.rows.iter().any(|r| r.len() != k)
+        })
+        .map(|u| u.id.as_str())
+        .collect();
+    if !ragged.is_empty() {
+        return GateReport::hold(
+            "DocG-Structure",
+            &format!("ragged_table: {ragged:?} hat Zeilen mit abweichender Aritaet zur Kopfzeile"),
+        );
+    }
+
     if orphans.is_empty() && missing_sections.is_empty() {
         GateReport::pass("DocG-Structure", "wohlgeformt, keine verwaiste Einheit")
     } else {
