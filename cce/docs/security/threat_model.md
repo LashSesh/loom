@@ -102,3 +102,20 @@ auf 1.94.1 gepinnt; Golden Files machen Format-Drift sichtbar.
 - **Coverage-geleitetes Fuzzing** (#25-Rest): cargo-fuzz/libFuzzer
   (nightly) als Betriebsschritt; der deterministische Harness ist der
   CI-Kern, nicht der Ersatz.
+
+## 5. Die drei Leit-Szenarien mit Datei:Zeile (P6(b) aus Audit-Doc 10)
+
+| Szenario | Verhindernder Mechanismus | Datei:Zeile |
+|---|---|---|
+| **Angreifer öffnet fremde .loom** | Frame-Digest-Prüfung VOR Deserialisierung (Mismatch ⇒ Reject) | `loom/loom-format/src/lib.rs:198` |
+| | Bomben-Schranke stored≠uncompressed vor Allokation (N13) | `loom/loom-format/src/lib.rs:183` |
+| | Merkle-Root-Abgleich Tabelle↔Footer (N4) | `loom/loom-verify/src/lib.rs:124` |
+| **Bösartiges Provider-Manifest** | Autostart-Feld ⇒ N16-Reject („Deklaration ≠ Aktivierung") | `loom/loom-verify/src/lib.rs:434` |
+| | on_open/hidden_model_call ⇒ N15-Reject | `loom/loom-verify/src/lib.rs:444` |
+| | Laufzeitseite: unvollständiges Manifest ⇒ Provider bleibt passiv | `crates/cce-inference/src/manifest.rs:69` |
+| **Manipulierter Snapshot** | Replay-Gate: abweichende Ledger-Köpfe ⇒ replay_drift-REJECT | `nexus/nexus-ledger/src/lib.rs:30` |
+| | Hash-Ketten-Prüfung des Ledgers selbst | `crates/cce-core/src/ledger.rs:139` |
+
+(Zeilennummern Stand Commit dieser Datei; die zugehörigen Zeugen
+n4/n13/n15/n16, neg_5_replay_drift und n_inf_1 halten die Mechanismen
+unabhängig von Zeilendrift grün.)
