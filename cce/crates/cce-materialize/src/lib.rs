@@ -19,6 +19,7 @@ pub mod family_j_domains;
 pub mod family_k_domains;
 pub mod family_l_domains;
 pub mod family_n_domains;
+pub mod family_o_domains;
 pub mod scale2_folder;
 
 pub use adapter::{check_adapter_parity_typed, DomainAdapter, OpenAction};
