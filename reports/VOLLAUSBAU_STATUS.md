@@ -8,13 +8,13 @@ Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
 
 `cce-spec-repo/13_OEKOSYSTEM_EXPANSIONSKARTE.md` ist der Arbeitsplan
 ÜBER diesem Status/dem Masterplan (Ringe E1→E2→(E3∥E4)→E5). E1
-(`reports/X1_bericht.md`) und E2 (`reports/E2_bericht.md`) sind
-geschlossen. **E3 ist jetzt ebenfalls geschlossen** (HBM produktiv auf
-Eigenkorpus, keine neue Spec-Lieferung nötig laut Dokument 14; Details
-+ alle Exit-Zeugen in `reports/E3_bericht.md`). E4–E5 sind nicht
-begonnen (E4 — CE-1/loom-sdk/Klassen-Registry — ist laut
-Bau-Reihenfolge in Dokument 14 der naechste Schritt; S-E5 steht laut
-Karte §4 aus).
+(`reports/X1_bericht.md`), E2 (`reports/E2_bericht.md`), E3
+(`reports/E3_bericht.md`) UND jetzt **E4** (CE-1 Tabellen-Zellentyp +
+loom-sdk/wasm-Viewer + Klassen-Registry; Details + alle Exit-Zeugen in
+`reports/E4_bericht.md`) sind geschlossen. **Damit ist Etappe X2
+(Ringe E2→E3→E4) vollständig abgeschlossen.** Nur E5 bleibt offen —
+gesperrt bis S-E5 (Spec-Lieferung steht laut Karte §4 aus, „der
+Auftraggeber" liefert sie vorab).
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -132,15 +132,24 @@ Karte §4 aus).
    R-Agent-9 (Blueprint-Zelle war struktureller Platzhalter in E2).
    Details: `reports/E3_bericht.md`.
 
-Damit sind alle drei angeordneten Bloecke, Etappe X1 (Ring E1), Etappe
-X2/Ring E2 UND Ring E3 abgeschlossen. Track A bleibt vollständig
+7. **Etappe X2/Ring E4 — Erweiterbarkeit & SDK: ABGESCHLOSSEN.** CE-1
+   Tabellen-Zellentyp (die erste echte CoreExtension durch den
+   S14-Pfad, `reports/CE1_beweiszug.md`, DoD ERFÜLLT) → `loom-sdk`
+   (schmale, motorfreie Fassade open/inspect/verify/extract/replay) +
+   wasm32-Build des Viewers, Headless-Browser-Zeuge real gegen R1
+   (Valid) und eine beschädigte Kopie (Reject) ausgeführt → Klassen-
+   Registry (`.loom`-Katalog-Workbody, zweite `CitationResolver`-
+   Implementierung — löst dieselbe R-CIT-1/2-Szene aus Ring E2 genauso
+   grün auf wie der `SeedResolver`). Details: `reports/E4_bericht.md`.
+
+Damit sind alle drei angeordneten Bloecke UND **Etappe X2 (Ringe
+E2→E3→E4) vollständig** abgeschlossen. Track A bleibt vollständig
 (213/213 PL3). `.docx`-Export, zstd-Transportprofil, blake3-Zweitprofil,
-SCALE-2-Vollmaterialisierung, die `cites`-Naht/SCALE-3 UND HBM auf
-Eigenkorpus sind jetzt GESCHLOSSEN. Offen bleiben: PL3→PL4-Reifepfade
-sowie die Ringe E4–E5 der Ökosystem-Expansionskarte (E4 — CE-1 nach
-Teil II, dann loom-sdk/wasm-Viewer, dann Klassen-Registry — ist laut
-Bau-Reihenfolge in Dokument 14 der naechste Schritt; S-E5 steht laut
-Karte §4 noch aus). Host-gebunden gesammelt und bewusst nicht weiter
-umgangen: GGUF-/LLM-Anbindung, OS-Keyring-Live-Test, macOS/Windows-Pakete
-(Track G), GPU-Klickpfad mit gerenderten Glyphen — je einen
-Build-/Desktop-/GPU-Host, bis dahin gesperrt.
+SCALE-2-Vollmaterialisierung, die `cites`-Naht/SCALE-3, HBM auf
+Eigenkorpus, CE-1/loom-sdk/wasm-Viewer UND die Klassen-Registry sind
+jetzt GESCHLOSSEN. Offen bleiben: PL3→PL4-Reifepfade sowie Ring E5 der
+Ökosystem-Expansionskarte (L9b Normic Memory — gesperrt bis S-E5, Karte
+§4). Host-gebunden gesammelt und bewusst nicht weiter umgangen: GGUF-/
+LLM-Anbindung, OS-Keyring-Live-Test, macOS/Windows-Pakete (Track G),
+GPU-Klickpfad mit gerenderten Glyphen — je einen Build-/Desktop-/
+GPU-Host, bis dahin gesperrt.

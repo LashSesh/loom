@@ -183,3 +183,59 @@ real zur Verfuegung.
 R-Agent-10 (I.5 Replay-Inputs additiv umgesetzt, ohne End-to-End-
 Anwendungsfall, s. oben) bleibt unveraendert offen gefuehrt — Ring E3
 betraf HBM, nicht die cites-Replay-Mechanik.
+
+---
+
+## Nachträge Ring E4 (S-E4a Teil II + Dokument 14 E4b/E4c)
+
+R-Agent-11: `wasm-bindgen-cli`/`playwright` sind lokale Sandbox-
+Werkzeuge, nicht Teil des versionierten Rust-Workspace
+Fundstelle: reports/E4_bericht.md (Einheit b, loom-sdk/wasm-Viewer)
+Frage/Konflikt: der Headless-Browser-Zeuge ("wasm-Viewer verifiziert
+R1/N-Dateien") braucht `wasm-bindgen-cli` (per `cargo install`) und
+`playwright`+Chromium (per `npm install`, Browser-Binary bereits in
+der Sandbox vorhanden) — beides Werkzeuge ausserhalb des Cargo-
+Workspaces und von `ci/run_ci.sh`.
+Vorläufige Behandlung: real ausgefuehrt und das Ergebnis im Bericht
+dokumentiert (kein Mock); Build-Skript (`build_wasm.sh`) + Quelltext
+(`web/index.html`, `tests/browser_witness.js`) versioniert, Build-
+Ausgabe (`web/pkg/`) und Node-Abhaengigkeiten bewusst NICHT versioniert
+(.gitignore) — regenerierbar. Derselbe Umgang wie bei den UX-Klick-
+Durchlaeufen (Block 1): ein manuell ausgefuehrter, dokumentierter
+Nachweis statt eines automatisierten CI-Schritts.
+Blockiert: nichts (der Zeuge selbst ist real erbracht).
+
+R-Agent-12: Klassen-Registry fuehrt das Signaturen-Feld sichtbar, aber
+derzeit stets leer
+Fundstelle: reports/E4_bericht.md (Einheit c, Klassen-Registry)
+Frage/Konflikt: keiner der aktuell committeten Seed-Container traegt
+ein SIGNATURE-Segment (der Ed25519-Pfad, P6c/X1e, wurde bisher nur
+manuell ueber die CLI auf temporaeren Kopien vorgefuehrt). Die
+Registry haette fuer eine echte Rollenliste eine neue Kern-
+Abhaengigkeit auf `loom-cli` (ed25519-dalek/zstd/blake3) gebraucht —
+nur fuer ein stets leeres Feld.
+Vorläufige Behandlung: `signatures: Vec::new()` explizit und
+kommentiert, keine erfundene Kern-Abhaengigkeit. Sobald ein signierter
+Seed existiert, liest man die Rollen direkt aus dessen SIGNATURE-
+Frames (dieselbe Cv-Struktur wie `loom_cli::sign::verify_sig_all`).
+Blockiert: nichts.
+
+---
+
+## Geschlossene Residuen (Ring E4)
+
+Keine neuen Schliessungen — Ring E4 eroeffnet zwei neue Residuen
+(R-Agent-11, R-Agent-12, s. oben). R-Agent-9/10 aus den Vorringen
+bleiben wie dort gefuehrt.
+
+---
+
+## Etappe X2 (Ringe E2→E3→E4) — Gesamtabschluss
+
+Alle acht Zeugen aus Dokument 14 §I.7 (cites-Naht), alle vier HBM-
+Exit-Zeugen (Ring E3), und alle drei E4-Exit-Zeugen (CE-1, wasm-Viewer,
+Klassen-Registry) sind gruen und real erbracht — keine Behauptung ohne
+Gegenprobe. Sechs neue Residuen (R-Agent-9..12 minus die durch R-Agent-9
+geschlossene) sind sichtbar gefuehrt, keines blockiert den naechsten
+Schritt. Etappe X2 ist damit vollstaendig abgeschlossen; nur Ring E5
+(L9b Normic Memory) bleibt gesperrt bis zur Spec-Lieferung S-E5.
