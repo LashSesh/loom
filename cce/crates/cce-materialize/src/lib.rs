@@ -11,6 +11,7 @@ pub mod family_a_domains;
 pub mod family_b_domains;
 pub mod family_c_domains;
 pub mod family_d_domains;
+pub mod family_e_domains;
 pub mod family_f_domains;
 pub mod family_g_domains;
 pub mod family_i_domains;
