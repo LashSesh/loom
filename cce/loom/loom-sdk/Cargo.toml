@@ -1,0 +1,19 @@
+[package]
+name = "loom-sdk"
+version.workspace = true
+edition.workspace = true
+license = "SEE-REPO-ROOT"
+publish = false
+
+# S-E4a Teil E4b: schmale, stabile Fassade (open/inspect/verify/extract/
+# replay). READER-PRINZIP: haengt an KEINEM cce-*/nexus-*/cockpit-*-Crate
+# — nur loom-canon/format/codec/verify/mount/replay, keine externe Kiste.
+# ci/check_acyclic.py prueft das transitiv ab loom-viewer (das diese
+# Fassade nutzt).
+[dependencies]
+loom-canon = { path = "../loom-canon" }
+loom-format = { path = "../loom-format" }
+loom-codec = { path = "../loom-codec" }
+loom-verify = { path = "../loom-verify" }
+loom-mount = { path = "../loom-mount" }
+loom-replay = { path = "../loom-replay" }

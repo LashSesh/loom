@@ -1,1 +1,7 @@
 /target
+
+# E4b: wasm-bindgen-Build-Ausgabe (regeneriert via build_wasm.sh) und
+# das dafuer separate Node-Werkzeug (nicht Teil des Rust-Workspace).
+/loom/loom-viewer/web/pkg/
+/loom/loom-viewer/node_modules/
+/loom/loom-viewer/package-lock.json

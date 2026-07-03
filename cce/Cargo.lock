@@ -1913,7 +1913,6 @@ dependencies = [
 name = "loom-replay"
 version = "0.1.0"
 dependencies = [
- "cce-core",
  "loom-canon",
  "loom-codec",
  "loom-format",
@@ -1930,6 +1929,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "loom-sdk"
+version = "0.1.0"
+dependencies = [
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+ "loom-mount",
+ "loom-replay",
+ "loom-verify",
+]
+
+[[package]]
 name = "loom-verify"
 version = "0.1.0"
 dependencies = [
@@ -1942,11 +1953,8 @@ dependencies = [
 name = "loom-viewer"
 version = "0.1.0"
 dependencies = [
- "loom-canon",
- "loom-codec",
- "loom-format",
- "loom-mount",
- "loom-verify",
+ "loom-sdk",
+ "wasm-bindgen",
 ]
 
 [[package]]
