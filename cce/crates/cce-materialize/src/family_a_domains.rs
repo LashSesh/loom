@@ -9,22 +9,22 @@ use crate::family_a::{DocProfile, DomainRule};
 
 // ---- Cube-Baukasten (geteilt) --------------------------------------
 
-fn section(id: &str, text: &str) -> DocUnit {
+pub fn section(id: &str, text: &str) -> DocUnit {
     DocUnit::new(id, UnitType::Section, text)
 }
 /// Subjekt-Einheit (neutraler Typ ohne Stütz-Pflicht) mit optionaler
 /// Kern-Naht.
-fn subject(id: &str, text: &str, seam: Option<(&str, &str)>) -> DocUnit {
+pub fn subject(id: &str, text: &str, seam: Option<(&str, &str)>) -> DocUnit {
     let u = DocUnit::new(id, UnitType::Definition, text);
     match seam {
         Some((k, t)) => u.with_seam(k, t),
         None => u,
     }
 }
-fn object(id: &str, text: &str) -> DocUnit {
+pub fn object(id: &str, text: &str) -> DocUnit {
     DocUnit::new(id, UnitType::Support, text)
 }
-fn crystal(title: &str, section_name: &str, units: Vec<DocUnit>) -> DocCrystal {
+pub fn crystal(title: &str, section_name: &str, units: Vec<DocUnit>) -> DocCrystal {
     DocCrystal {
         title: title.to_string(),
         units,
@@ -37,7 +37,7 @@ fn crystal(title: &str, section_name: &str, units: Vec<DocUnit>) -> DocCrystal {
 
 /// Standard-Referenz für Relation-Domänen: 1 Section, 2 Subjekte mit
 /// Kern-Naht auf einen gemeinsamen Anker.
-fn relation_reference(
+pub fn relation_reference(
     title: &str,
     sec: &str,
     seam: &str,
@@ -59,7 +59,7 @@ fn relation_reference(
 
 /// Standard-Negative für Relation-Domänen: Subjekt ohne Kern-Naht
 /// (aber via Neben-Naht verbunden, damit NUR die Kern-Regel bricht).
-fn relation_negatives(sec: &str, seam: &str) -> Vec<(DocCrystal, &'static str)> {
+pub fn relation_negatives(sec: &str, seam: &str) -> Vec<(DocCrystal, &'static str)> {
     vec![
         // (1) Subjekt ohne Kern-Naht — via "notes" verbunden.
         (
@@ -113,6 +113,7 @@ macro_rules! relation_domain {
         }
     };
 }
+pub(crate) use relation_domain;
 
 relation_domain!(
     d02,

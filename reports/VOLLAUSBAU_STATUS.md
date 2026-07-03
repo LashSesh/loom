@@ -7,7 +7,7 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | Familie | Präfix | fertig/gesamt | PL-Verteilung |
 |---|---|---|---|
 | A Dokument/Text | D | **15/15** | D01 = PL4 · D02–D15 = PL3 |
-| J Wissen/Forschung | KNOW | 0/15 | PL1 (Registry-Slot) |
+| J Wissen/Forschung | KNOW | **15/15** | KNOW01–15 = PL3 |
 | G Governance | GOV | 0/12 | PL1 |
 | N Kommunikation | COM | 0/12 | PL1 |
 | F Projekt/Prozess | PM | 0/15 | PL1 |
@@ -23,16 +23,16 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | M Hardware/CAD | HW | 0/15 | PL1 |
 | P Regulated Advisory | REG | 0/8 | PL1 (PL4 review-gebunden) |
 
-**Summe fertig (≥PL3): 15/213.** Nächste Welle: **W2 = Familie J
-(Wissen/Forschung/Quellen, KNOW01–15).**
+**Summe fertig (≥PL3): 30/213.** Nächste Welle: **W3 = Familie G
+(Governance/Compliance/Audit, GOV01–12).**
 
 ## Parallele Tracks
 
 | Track | Stand |
 |---|---|
-| A Domänen | W1 fertig (Familie A, PL3); W2 als Nächstes |
+| A Domänen | W1+W2 fertig (Familien A, J, PL3); W3 als Nächstes |
 | B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
-| C Intelligenz | P4 (echtes Lokalmodell) freigegeben — geplant nach W2 |
+| C Intelligenz | P4 (echtes Lokalmodell) freigegeben — **als Nächstes nach W2** |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
 | E Skalen | P8 (SCALE-2) — geplant nach W4 |
 | F Härtung | P6(a/b) fertig; P6(c) Ed25519+Keyring freigegeben — geplant nach W3 |
@@ -40,5 +40,5 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 
 ## Nächster Schritt
 
-Welle **W2 = Familie J (Wissen/Forschung/Quellen, KNOW01–15)**; danach
-Interleaving-Einheit **C/P4** (echtes Lokalmodell).
+Interleaving-Einheit **C/P4** (echtes Lokalmodell), danach Welle **W3 =
+Familie G (Governance, GOV01–12)**.

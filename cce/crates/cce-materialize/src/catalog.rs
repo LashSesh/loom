@@ -53,9 +53,11 @@ pub fn by_id(id: &str) -> Option<&'static DomainEntry> {
 /// Liste ist die EINE Wahrheit, an der PL2/PL3 hängt.
 /// - D01: Produkt-Kerntest (PL4).
 /// - D02–D15: Welle W1, family_a-Zeugen (PL3).
-pub const WITNESSED_DOMAINS: [&str; 15] = [
+/// - KNOW01–15: Welle W2, family_j-Zeugen (PL3).
+pub const WITNESSED_DOMAINS: [&str; 30] = [
     "D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13",
-    "D14", "D15",
+    "D14", "D15", "KNOW01", "KNOW02", "KNOW03", "KNOW04", "KNOW05", "KNOW06", "KNOW07", "KNOW08",
+    "KNOW09", "KNOW10", "KNOW11", "KNOW12", "KNOW13", "KNOW14", "KNOW15",
 ];
 
 /// feature_maturity_overclaim (S11/G12): eine Domäne, die ein höheres
