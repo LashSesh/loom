@@ -15,3 +15,7 @@ cce-phc = { path = "../cce-phc" }
 cce-loom = { path = "../cce-loom" }
 cce-observe = { path = "../cce-observe" }
 cce-materialize = { path = "../cce-materialize" }
+# S-E5 §10(g): der Aktivierungs-Hook (norm_profile) — Abhaengigkeits-
+# richtung cce-runner -> cce-bridge (kein Zyklus: cce-bridge kennt
+# cce-runner nicht).
+cce-bridge = { path = "../cce-bridge" }

@@ -505,6 +505,7 @@ dependencies = [
 name = "cce-runner"
 version = "0.1.0"
 dependencies = [
+ "cce-bridge",
  "cce-core",
  "cce-crystal",
  "cce-kernel",

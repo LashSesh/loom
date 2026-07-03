@@ -68,6 +68,13 @@ pub struct Run {
     pub reanalyzed: Option<DocCrystal>,
     /// Ermessens-Gates, die auf diesem Lauf liegen (Name → Kontext).
     pub discretionary_gates: Vec<(String, String)>,
+    /// S-E5 §5/§10(g): die vom Aufrufer bereits AUFGELOESTEN Normen, die
+    /// laut `rd.norm_profile` aktiviert werden sollen. Die Aufloesung
+    /// selbst (norm_id -> BridgeNorm, ueber die Klassen-Registry) ist
+    /// Sache der Schicht oberhalb des Runners (dieselbe Trennung wie
+    /// SeedResolver/RegistryResolver vs. CitationGate) — der Runner
+    /// prueft nur noch die Aktivierungs-Voraussetzung, fail-closed.
+    pub activated_norms: Vec<cce_bridge::BridgeNorm>,
     decisions_replayed: usize,
     adapter: DocumentAdapter,
 }
@@ -87,6 +94,7 @@ impl Run {
             artifact: None,
             reanalyzed: None,
             discretionary_gates: Vec::new(),
+            activated_norms: Vec::new(),
             decisions_replayed: 0,
             adapter: DocumentAdapter,
         })
@@ -195,6 +203,12 @@ impl Run {
                     .push(GateReport::pass("G1-Scope", "Projektion im Scope"));
             }
             Stage::Loom => {
+                // S-E5 §5: norm_profile ist ein fail-closed Zusatz-Gate
+                // dieses Laufs, VOR dem Weben (wie die Ermessens-Gates).
+                self.apply_norm_profile();
+                if matches!(self.status, RunStatus::Rejected { .. }) {
+                    return Ok(());
+                }
                 // Ermessens-Gates dieses Laufs (falls konfiguriert) VOR dem Weben.
                 let pending: Vec<(String, String)> = self.discretionary_gates.clone();
                 for (gate, ctx) in pending {
@@ -266,6 +280,37 @@ impl Run {
         self.stage_index += 1;
         self.checkpoint();
         Ok(())
+    }
+
+    /// S-E5 §5/§10(g): der Aktivierungs-Hook. Jede in `rd.norm_profile`
+    /// gelistete `norm_id` MUSS unter `activated_norms` als `Active`
+    /// aufloesbar sein — sonst rejected der Lauf fail-closed
+    /// (`norm_not_activated`, N-NRM-6/PROD-INV-22). Ist `norm_profile`
+    /// leer, wirkt KEINE Norm, selbst wenn `activated_norms` befuellt
+    /// ist (A3: strikt opt-in).
+    fn apply_norm_profile(&mut self) {
+        if self.rd.norm_profile.is_empty() {
+            return;
+        }
+        let profile = cce_bridge::activation::NormProfile::new(self.rd.norm_profile.clone());
+        for norm_id in self.rd.norm_profile.clone() {
+            let resolved = self.activated_norms.iter().find(|n| n.norm_id == norm_id);
+            let outcome = match resolved {
+                Some(norm) => cce_bridge::activation::activate(norm, &profile),
+                None => Err(cce_bridge::activation::ActivationError::NotActivated),
+            };
+            match outcome {
+                Ok(marker) => {
+                    self.gates.push(GateReport::pass("G-Norm", &marker));
+                }
+                Err(e) => {
+                    self.status = RunStatus::Rejected {
+                        reason: format!("norm_profile[{norm_id}]: {}", e.residue()),
+                    };
+                    return;
+                }
+            }
+        }
     }
 
     fn reject(&mut self, reason: &str) -> RunError {
