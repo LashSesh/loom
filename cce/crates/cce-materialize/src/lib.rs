@@ -8,6 +8,7 @@ pub mod catalog;
 pub mod document;
 pub mod family_a;
 pub mod family_a_domains;
+pub mod family_b_domains;
 pub mod family_f_domains;
 pub mod family_g_domains;
 pub mod family_i_domains;
