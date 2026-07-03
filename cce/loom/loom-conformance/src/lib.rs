@@ -90,6 +90,29 @@ fn seg(kind: u16, v: &Cv) -> Segment {
     Segment::canonical(kind, v).expect("kanonisches Segment")
 }
 
+/// X1(c) (Oekosystem-Karte §2/E1): erweitert ein bereits gebautes
+/// MANIFEST-Cv additiv um die deklarierten Hash-Profile — rein
+/// informativ (kein Frame-/Segtab-Digest wechselt das Verfahren; die
+/// Frame-Digests bleiben immer sha2-256). Zweitprofile (z. B. blake3)
+/// werden von einem CLI-Blatt (loom-cli::hashprofile) berechnet und
+/// hier nur DEKLARIERT, damit ein Leser weiss, was zusaetzlich
+/// verfuegbar/nachrechenbar ist.
+pub fn manifest_declare_hash_profiles(manifest: Cv, profiles: &[&str]) -> Cv {
+    let Cv::Map(mut entries) = manifest else {
+        panic!("manifest_cv liefert immer eine Map")
+    };
+    entries.push((
+        Cv::Text("hash_profiles".to_string()),
+        Cv::Array(
+            profiles
+                .iter()
+                .map(|p| Cv::Text((*p).to_string()))
+                .collect(),
+        ),
+    ));
+    Cv::Map(entries)
+}
+
 fn residue_segment(entries: &[(&str, &str)]) -> Cv {
     Cv::map(vec![(
         "residues",

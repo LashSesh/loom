@@ -1,7 +1,7 @@
 //! loom — Mindest-CLI (LOOM-Standard Teil 10.4), motorfreier Kernpfad:
-//! inspect · verify · ls · extract · extract-children. (run/replay/export
-//! laufen ueber die SDK-Ports; pack/seal ist Workbench-Sache —
-//! loom-codec-API.)
+//! inspect · verify · ls · extract · extract-children · pack-zstd ·
+//! unpack-zstd · hash-profile. (run/replay/export laufen ueber die
+//! SDK-Ports; pack/seal ist Workbench-Sache — loom-codec-API.)
 
 fn main() {
     let mut args = std::env::args().skip(1);
@@ -12,10 +12,14 @@ fn main() {
         dispatch_sign(&cmd);
         return;
     }
+    if cmd == "pack-zstd" || cmd == "unpack-zstd" || cmd == "hash-profile" {
+        dispatch_transport(&cmd);
+        return;
+    }
     let path = args.next().unwrap_or_default();
     if path.is_empty() {
         eprintln!(
-            "verwendung: loom <inspect|verify|ls|extract|extract-children|sign|verify-sig|keygen> <datei.loom> [ziel]"
+            "verwendung: loom <inspect|verify|ls|extract|extract-children|pack-zstd|unpack-zstd|hash-profile|sign|verify-sig|keygen> <datei.loom> [ziel]"
         );
         std::process::exit(2);
     }
@@ -173,6 +177,63 @@ fn dispatch_sign(cmd: &str) {
                 Err(e) => {
                     eprintln!("signatur UNGUELTIG: {e:?}");
                     std::process::exit(1);
+                }
+            }
+        }
+        _ => unreachable!(),
+    }
+}
+
+fn dispatch_transport(cmd: &str) {
+    let mut it = std::env::args().skip(2);
+    match cmd {
+        "pack-zstd" => {
+            let (inp, out) = (it.next().unwrap_or_default(), it.next().unwrap_or_default());
+            if inp.is_empty() || out.is_empty() {
+                eprintln!("verwendung: loom pack-zstd <datei.loom> <ziel.loom.zst>");
+                std::process::exit(2);
+            }
+            let bytes = std::fs::read(&inp).expect("datei lesen");
+            let packed = loom_cli::transport::compress(&bytes);
+            std::fs::write(&out, &packed).expect("ziel schreiben");
+            println!(
+                "gepackt: {out} ({} -> {} Bytes, zstd-19)",
+                bytes.len(),
+                packed.len()
+            );
+        }
+        "unpack-zstd" => {
+            let (inp, out) = (it.next().unwrap_or_default(), it.next().unwrap_or_default());
+            if inp.is_empty() || out.is_empty() {
+                eprintln!("verwendung: loom unpack-zstd <datei.loom.zst> <ziel.loom>");
+                std::process::exit(2);
+            }
+            let bytes = std::fs::read(&inp).expect("datei lesen");
+            match loom_cli::transport::decompress(&bytes) {
+                Ok(unpacked) => {
+                    std::fs::write(&out, &unpacked).expect("ziel schreiben");
+                    println!("entpackt: {out} ({} Bytes)", unpacked.len());
+                }
+                Err(e) => {
+                    eprintln!("entpack-fehler: {e:?}");
+                    std::process::exit(1);
+                }
+            }
+        }
+        "hash-profile" => {
+            let (inp, profile) = (it.next().unwrap_or_default(), it.next().unwrap_or_default());
+            if inp.is_empty() {
+                eprintln!("verwendung: loom hash-profile <datei.loom> [blake3]");
+                std::process::exit(2);
+            }
+            let bytes = std::fs::read(&inp).expect("datei lesen");
+            match profile.as_str() {
+                "" | "blake3" => {
+                    println!("blake3:{}", loom_cli::hashprofile::blake3_hex(&bytes));
+                }
+                other => {
+                    eprintln!("unbekanntes hash-profile '{other}' (bekannt: blake3)");
+                    std::process::exit(2);
                 }
             }
         }
