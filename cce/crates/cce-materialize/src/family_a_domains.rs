@@ -561,6 +561,80 @@ macro_rules! chained_domain {
 }
 pub(crate) use chained_domain;
 
+/// Referenz fuer Azyklik-Domaenen: 2 Subjekte, die auf einen Anker
+/// zeigen (azyklisch).
+pub fn acyclic_reference(
+    title: &str,
+    sec: &str,
+    seam: &str,
+    s1: &str,
+    s2: &str,
+    anchor: &str,
+) -> DocCrystal {
+    crystal(
+        title,
+        sec,
+        vec![
+            section("s0", sec),
+            subject("a1", s1, Some((seam, "o1"))),
+            subject("a2", s2, Some((seam, "o1"))),
+            object("o1", anchor),
+        ],
+    )
+}
+
+/// Negative fuer Azyklik-Domaenen: (1) fehlende Naht, (2) Zyklus.
+pub fn acyclic_negatives(sec: &str, seam: &str) -> Vec<(DocCrystal, &'static str)> {
+    vec![
+        (
+            crystal(
+                "neg-missing",
+                sec,
+                vec![
+                    section("s0", sec),
+                    subject("a1", "ohne Naht", Some(("notes", "s0"))),
+                    object("o1", "Anker"),
+                ],
+            ),
+            "MISS",
+        ),
+        (
+            crystal(
+                "neg-cycle",
+                sec,
+                vec![
+                    section("s0", sec),
+                    subject("a1", "A", Some((seam, "a2"))),
+                    subject("a2", "B", Some((seam, "a1"))),
+                ],
+            ),
+            "MISS",
+        ),
+    ]
+}
+
+macro_rules! acyclic_domain {
+    ($fn:ident, $id:literal, $sec:literal, $seam:literal, $res:literal, $s1:literal, $s2:literal, $anchor:literal, $fmts:expr) => {
+        pub fn $fn() -> DocProfile {
+            DocProfile {
+                id: $id,
+                subject: UnitType::Definition,
+                rule: DomainRule::AcyclicRelation { seam: $seam },
+                core_residue: $res,
+                reference: || acyclic_reference($id, $sec, $seam, $s1, $s2, $anchor),
+                negatives: || {
+                    acyclic_negatives($sec, $seam)
+                        .into_iter()
+                        .map(|(c, _)| (c, $res))
+                        .collect()
+                },
+                export_formats: $fmts,
+            }
+        }
+    };
+}
+pub(crate) use acyclic_domain;
+
 /// Alle 14 Profile der Familie A (D02–D15).
 pub fn all_profiles() -> Vec<DocProfile> {
     vec![

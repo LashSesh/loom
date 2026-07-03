@@ -56,13 +56,15 @@ pub fn by_id(id: &str) -> Option<&'static DomainEntry> {
 /// - KNOW01–15: Welle W2, family_j-Zeugen (PL3).
 /// - GOV01–12: Welle W3, family_g-Zeugen (PL3).
 /// - COM01–12: Welle W4, family_n-Zeugen (PL3).
-pub const WITNESSED_DOMAINS: [&str; 54] = [
+/// - PM01–15: Welle W5, family_f-Zeugen (PL3).
+pub const WITNESSED_DOMAINS: [&str; 69] = [
     "D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13",
     "D14", "D15", "KNOW01", "KNOW02", "KNOW03", "KNOW04", "KNOW05", "KNOW06", "KNOW07", "KNOW08",
     "KNOW09", "KNOW10", "KNOW11", "KNOW12", "KNOW13", "KNOW14", "KNOW15", "GOV01", "GOV02",
     "GOV03", "GOV04", "GOV05", "GOV06", "GOV07", "GOV08", "GOV09", "GOV10", "GOV11", "GOV12",
     "COM01", "COM02", "COM03", "COM04", "COM05", "COM06", "COM07", "COM08", "COM09", "COM10",
-    "COM11", "COM12",
+    "COM11", "COM12", "PM01", "PM02", "PM03", "PM04", "PM05", "PM06", "PM07", "PM08", "PM09",
+    "PM10", "PM11", "PM12", "PM13", "PM14", "PM15",
 ];
 
 /// feature_maturity_overclaim (S11/G12): eine Domäne, die ein höheres

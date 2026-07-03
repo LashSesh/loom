@@ -10,7 +10,7 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | J Wissen/Forschung | KNOW | **15/15** | KNOW01–15 = PL3 |
 | G Governance | GOV | **12/12** | GOV01–12 = PL3 |
 | N Kommunikation | COM | **12/12** | COM01–12 = PL3 |
-| F Projekt/Prozess | PM | 0/15 | PL1 |
+| F Projekt/Prozess | PM | **15/15** | PM01–15 = PL3 |
 | K Bildung | EDU | 0/12 | PL1 |
 | I Produkt/Business | BUS | 0/15 | PL1 |
 | B Software Eng. | SWE | 0/15 | PL1 |
@@ -23,14 +23,14 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | M Hardware/CAD | HW | 0/15 | PL1 |
 | P Regulated Advisory | REG | 0/8 | PL1 (PL4 review-gebunden) |
 
-**Summe fertig (≥PL3): 54/213.** Nächste Welle: **W5 = Familie F
-(Projekt/Prozess/Workflow, PM01–15).**
+**Summe fertig (≥PL3): 69/213.** Nächste Welle: **W6 = Familie K
+(Bildung/Training, EDU01–12).**
 
 ## Parallele Tracks
 
 | Track | Stand |
 |---|---|
-| A Domänen | W1–W4 fertig (Familien A, J, G, N, PL3); W5 als Nächstes |
+| A Domänen | W1–W5 fertig (A, J, G, N, F, PL3); W6 als Nächstes |
 | B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
 | C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
@@ -40,5 +40,5 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 
 ## Nächster Schritt
 
-Welle **W5 = Familie F (Projekt/Prozess/Workflow, PM01–15)**; danach
-Interleaving-Einheit **F** (zstd-Transportprofil).
+Welle **W6 = Familie K (Bildung/Training, EDU01–12)**; danach weitere
+Wellen fortlaufend (A hat Vorrang, Track-Einheiten dazwischen).
