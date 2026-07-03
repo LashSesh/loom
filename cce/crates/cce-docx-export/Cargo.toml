@@ -1,0 +1,19 @@
+[package]
+name = "cce-docx-export"
+version.workspace = true
+edition.workspace = true
+license = "SEE-REPO-ROOT"
+publish = false
+
+# X1(d) (Oekosystem-Karte §2/E1): .docx-Export hinter demselben
+# materialize-Vertrag (DocWeave -> Bytes). Externe Kiste (zip) NUR
+# hier, in diesem Blatt-Crate — dieselbe Disziplin wie Ed25519/JSON/
+# zstd/blake3 (loom-cli). cce-materialize selbst bleibt unveraendert.
+[dependencies]
+cce-materialize = { path = "../cce-materialize" }
+cce-core = { path = "../cce-core" }
+cce-loom = { path = "../cce-loom" }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+[dev-dependencies]
+cce-phc = { path = "../cce-phc" }

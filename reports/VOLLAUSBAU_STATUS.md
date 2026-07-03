@@ -1,9 +1,16 @@
 # Vollausbau-Status (eine Seite, Klartext)
 
 Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
-(Belegpflicht UX), Block 2 (Kanzel↔Modell + GUI-Feindesign) UND Block 3
-(JSON→CSU-Extraktor + erstes Welt-Crystal) abgeschlossen**. CI: GRUEN.
+(Belegpflicht UX), Block 2 (Kanzel↔Modell + GUI-Feindesign), Block 3
+(JSON→CSU-Extraktor + erstes Welt-Crystal) UND Etappe X1 (Ring E1 der
+Ökosystem-Expansionskarte, VOLLSTAENDIG) abgeschlossen**. CI: GRUEN.
 `feature_maturity_overclaim`: leer.
+
+Ab jetzt gilt `cce-spec-repo/13_OEKOSYSTEM_EXPANSIONSKARTE.md` als
+Arbeitsplan ÜBER diesem Status/dem Masterplan (Ringe E1→E2→(E3∥E4)→E5).
+E1 ist geschlossen; Details + alle fünf Exit-Zeugen in
+`reports/X1_bericht.md`. E2–E5 sind nicht begonnen (Spec-Stücke stehen
+laut Karte §4 aus).
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -36,8 +43,8 @@ Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
 | B Erlebbarkeit | **Block 1 nachgeliefert:** echter wgpu-Klick-Durchlauf (6 Nähte, debug-instrumentiert, `reports/ux/reise_protokoll_v2.md`) + #26 Datei-Export jetzt ECHT über den GUI-Button verifiziert (byte-identisch zum Headless-Pfad); Font-Atlas-Befund zweifach bestätigt host-gebunden (glow+wgpu), Backend zurückgestellt. **GUI-Feindesign (LC-R5) fertig:** alle 5 Pflichtansichten (Manifest/Segmentliste+Digest/Residuen+Verdikt/Gate-Reports/Ledger) im bestehenden Pruef-Tab verdrahtet, Zeuge grün |
 | C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün. **Kanzel-Verdrahtung fertig:** LocalKanzel ruft real durch das unveränderte InferenceGateway (LocalExtractiveModel), Annahmen-Text modellgeformt + Provider-/Evidence-Beleg, DegradedKanzel unberührt, COCK-INV-1..8 unverändert grün; GGUF/LLM offen (host-gebunden) |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün. **JSON→CSU-Extraktor fertig:** echter JSON-Decoder (nexus-decode, keine externe Kiste), WikimediaAdapter liest die echte MediaWiki-Antwort, erstes Welt-Crystal `library/seed/kristall_wikimedia_workbody.loom` zertifiziert (`loom verify` ⇒ Valid, 0 Residuen), Attribution real transportiert |
-| E Skalen | P8 **fertig**: SCALE-2 Dokumentenmappe (Red(2)-Kerntest, MSC 1→2, Adapter 8/8, PL2); SCALE-3 offen |
-| F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated; Registry-Vollform offen |
+| E Skalen | P8 **fertig**: SCALE-2 Dokumentenmappe (Red(2)-Kerntest, MSC 1→2, Adapter 8/8, PL2). **X1(b) fertig:** Mappe buendelt beide Kind-Memos PHYSISCH (je ein CAS_BLOB), Extraktion liefert 2 unabhaengig valide Einzel-Workbodies. SCALE-3 offen (E2, nicht begonnen) |
+| F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated. **X1(e) fertig:** Signatur-Registry-Vollform — additive Mehrfachsignaturen (Autor/Pruefer/ReviewGate), `verify-sig --all` prueft die ganze Kette unabhaengig gruen/rot |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 
 ## Block-Auftrag (aktuell)
@@ -74,10 +81,30 @@ Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
    Zeugen weiterhin gruen (2 auf realistische JSON-Bytes umgestellt).
    Alle CSA-Gates/disallowed_actions unveraendert.
 
-Damit sind alle drei angeordneten Bloecke abgeschlossen. Track A bleibt
-vollständig (213/213 PL3). Restliche Track-Reste (alle sichtbar im
-Register, naechste Ermessens-Schritte): .docx-Export, zstd-Transportprofil,
-blake3-Zweitprofil, SCALE-2-Vollmaterialisierung, SCALE-3-Entwurf,
-PL3→PL4-Reifepfade. Host-gebunden gesammelt und bewusst nicht weiter
-umgangen: GGUF-/LLM-Anbindung, OS-Keyring-Live-Test, macOS/Windows-Pakete
-(Track G) — je einen Build-/Desktop-/GPU-Host, bis dahin gesperrt.
+4. **Etappe X1 — Ring E1 der Ökosystem-Expansionskarte: ABGESCHLOSSEN.**
+   Fünf Einheiten a→e, je mit eigenem Zeugen und Commit: (a) Artefakt-
+   Bytes im Container (CAS_BLOB) + `loom extract`/`extract-children`,
+   byte-identisch zu `materialize()`. (b) SCALE-2-Mappe bündelt zwei
+   echte Kind-Memos physisch, Extraktion liefert 2 unabhängig valide
+   Einzel-Workbodies. (c) zstd-Ganzdatei-Transport (klassenidentisch zu
+   stored, canonical-stored bleibt Golden-Referenz) + blake3-
+   Zweitprofil, beide nur im CLI-Blatt. (d) `.docx`-Export über ein
+   neues Blatt-Crate `cce-docx-export` hinter demselben
+   materialize-Vertrag wie `.md`, schließt S1.10-R1. (e) Signatur-
+   Registry-Vollform: additive Mehrfachsignaturen (Autor/Prüfer/
+   ReviewGate), `verify-sig --all` prüft die Kette unabhängig
+   grün/rot. Alle fünf Karten-Exit-Zeugen grün, alle Alt-Zeugen
+   unverändert (154 Testgruppen/418 Tests, 0 Fehlschläge), CI GRUEN,
+   kein neues Kern-Crate mit externen Abhängigkeiten. Details:
+   `reports/X1_bericht.md`.
+
+Damit sind alle drei angeordneten Bloecke UND Etappe X1 (Ring E1)
+abgeschlossen. Track A bleibt vollständig (213/213 PL3). `.docx`-Export,
+zstd-Transportprofil, blake3-Zweitprofil und SCALE-2-Vollmaterialisierung
+sind jetzt GESCHLOSSEN (X1). Offen bleiben: SCALE-3 (Ring E2, Spec-Notiz
+zur `cites`-Naht-Semantik steht aus), PL3→PL4-Reifepfade, sowie die
+Ringe E2–E5 der Ökosystem-Expansionskarte insgesamt (nicht begonnen,
+Spec-Stücke stehen laut Karte §4 aus). Host-gebunden gesammelt und
+bewusst nicht weiter umgangen: GGUF-/LLM-Anbindung, OS-Keyring-Live-Test,
+macOS/Windows-Pakete (Track G), GPU-Klickpfad mit gerenderten Glyphen —
+je einen Build-/Desktop-/GPU-Host, bis dahin gesperrt.

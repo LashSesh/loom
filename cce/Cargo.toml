@@ -12,6 +12,7 @@ members = [
     "crates/cce-merkaba",
     "crates/cce-materialize",
     "crates/cce-runner",
+    "crates/cce-docx-export",
     # Rebase-Unterbau (REBASE_KONSOLIDIERUNG §8.2)
     "crates/cce-kernel",
     "crates/cce-phaseblock",

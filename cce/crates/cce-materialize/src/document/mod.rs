@@ -451,8 +451,11 @@ impl DomainAdapter for DocumentAdapter {
     }
 
     fn export_formats(&self) -> Vec<&'static str> {
-        // .docx: sichtbares Residuum S1.10-R1 (Bibliothekswahl offen).
-        vec![".md"]
+        // .docx: S1.10-R1 geschlossen (X1d, Oekosystem-Karte §2/E1) —
+        // die Bibliothekswahl (zip, cce-docx-export-Blattcrate) ist
+        // getroffen; hinter demselben materialize-Vertrag (DocWeave),
+        // aber verlustig (format_loss, kein Reanalyse-Pfad wie .md).
+        vec![".md", ".docx"]
     }
 
     fn reference_cube(&self) -> DocCrystal {

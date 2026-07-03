@@ -7,6 +7,9 @@
 use loom_codec::Decoded;
 use loom_verify::{verify, verify_l0, Verdict, VerificationReport};
 
+pub mod extract;
+pub use extract::{all_cas_blobs, extract_artifact, ExtractError};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MountMode {
     Inspect,

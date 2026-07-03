@@ -17,6 +17,11 @@ ed25519-dalek = "2"
 # OS-Schluesselbund NUR unter opt-in-Feature `keyring` (headless-CI
 # hat keinen Backend; Standard ist der seed-/dateibasierte Pfad).
 keyring = { version = "3", optional = true }
+# X1(c) (Oekosystem-Karte §2/E1): zstd-Transportprofil + blake3-
+# Zweitprofil — dieselbe Disziplin wie Ed25519: externe Kisten NUR
+# hier im CLI-Blatt, kein Kern-/Codec-Crate aendert sich.
+zstd = "0.13"
+blake3 = "1"
 
 [features]
 keyring-os = ["dep:keyring"]
