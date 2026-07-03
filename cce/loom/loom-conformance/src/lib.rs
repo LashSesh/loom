@@ -1193,3 +1193,210 @@ pub fn build_scale2_folder_b(welt_root_hex: &str) -> Sealed {
 pub fn build_blueprint_reference_cube() -> Sealed {
     build_r3()
 }
+
+// ---------- Etappe X2/E3 (Karte §2/E3): HBM produktiv auf Eigenkorpus ----------
+//
+// Der Eigenkorpus ist gewoehnlicher Ingest (Dokument 14 §I Kopfsatz):
+// die 213 Familien-Referenzprofile (DocProfile.rule — die Naht-Regel
+// jeder Domaene) + ihre Katalog-Kern-Gates/-Residuen (CATALOG) werden
+// als `typ: inhalt`-Zeilen (loom_hbm-Facet-Vokabular) durch die
+// UNVERAENDERTE cce-hbm-Pipeline geschickt. Jede Content-Zeile traegt
+// die Domaenen-Kennung, damit KEINE zwei Facets denselben Scope tragen
+// (ExclusionGate: redundante Struktur waere sonst ein Hold).
+
+fn domain_rule_fact(id: &str, rule: &cce_materialize::family_a::DomainRule) -> String {
+    use cce_materialize::family_a::DomainRule;
+    match rule {
+        DomainRule::Relation { seam } => format!("invariant: {id}|regel=Relation|naht={seam}"),
+        DomainRule::AcyclicRelation { seam } => {
+            format!("invariant: {id}|regel=AcyclicRelation|naht={seam}")
+        }
+        DomainRule::ChainedRelation { seam } => {
+            format!("invariant: {id}|regel=ChainedRelation|naht={seam}")
+        }
+        DomainRule::UniqueSubjects => format!("invariant: {id}|regel=UniqueSubjects"),
+        DomainRule::OrderedSteps { seam } => {
+            format!("invariant: {id}|regel=OrderedSteps|naht={seam}")
+        }
+        DomainRule::StructuralPresence { markers } => format!(
+            "invariant: {id}|regel=StructuralPresence|marker={}",
+            markers.join(",")
+        ),
+    }
+}
+
+/// Alle 213 Familien-Referenzprofile (16 Familien-Module) als
+/// `(id, DomainRule)`-Paare — die tatsaechliche, im Code lebende
+/// Naht-Regel jeder Domaene (S1_DOMAENENKATALOG), keine erfundene
+/// Beispielzeile.
+fn all_domain_rules() -> Vec<(&'static str, cce_materialize::family_a::DomainRule)> {
+    macro_rules! collect {
+        ($($m:path),+ $(,)?) => {{
+            let mut v = Vec::new();
+            $(v.extend($m().into_iter().map(|p| (p.id, p.rule)));)+
+            v
+        }};
+    }
+    collect!(
+        cce_materialize::family_a_domains::all_profiles,
+        cce_materialize::family_b_domains::all_profiles,
+        cce_materialize::family_c_domains::all_profiles,
+        cce_materialize::family_d_domains::all_profiles,
+        cce_materialize::family_e_domains::all_profiles,
+        cce_materialize::family_f_domains::all_profiles,
+        cce_materialize::family_g_domains::all_profiles,
+        cce_materialize::family_h_domains::all_profiles,
+        cce_materialize::family_i_domains::all_profiles,
+        cce_materialize::family_j_domains::all_profiles,
+        cce_materialize::family_k_domains::all_profiles,
+        cce_materialize::family_l_domains::all_profiles,
+        cce_materialize::family_m_domains::all_profiles,
+        cce_materialize::family_n_domains::all_profiles,
+        cce_materialize::family_o_domains::all_profiles,
+        cce_materialize::family_p_domains::all_profiles,
+    )
+}
+
+/// Der reale Eigenkorpus: 213 `invariant`-Zeilen (Naht-Regel je Domaene,
+/// aus `all_domain_rules()`) + je 213 `gate`-/`constraint`-Zeilen aus dem
+/// Katalog (Kern-Gate/-Residuum je Domaene, `CATALOG`) — durchgehend
+/// domaenen-eindeutig, keine Platzhalter.
+pub fn eigenkorpus_ingest_lines() -> Vec<String> {
+    let mut lines: Vec<String> = all_domain_rules()
+        .iter()
+        .map(|(id, rule)| domain_rule_fact(id, rule))
+        .collect();
+    for e in cce_materialize::catalog::CATALOG.iter() {
+        lines.push(format!("gate: {}|{}", e.id, e.core_gate));
+        lines.push(format!("constraint: {}|{}", e.id, e.core_residue));
+    }
+    lines
+}
+
+/// Der HBM-Lauf ueber den Eigenkorpus: expansion_budget deckt die volle
+/// Vollprojektion C6 ab. theta_d=0 (statt =1 wie beim kleinen
+/// HBM-Katalog-Demo-Korpus): Score_D waechst quadratisch mit der
+/// Kosten-Strafe ueber die Facet-Anzahl (score.rs), bei ~600+ Facetten
+/// in C6 unterschreitet der Rohscore selbst den Schwellwert 1 real
+/// (kein Bug, dieselbe Formel) — θ_D bleibt reine VORAUSWAHL (nie
+/// Abnahme, s. score.rs-Kommentar), 0 laesst alle Kandidaten zu den
+/// Gates durch, OHNE die Gate-Entscheidung selbst zu veraendern.
+pub fn build_eigenkorpus_mining_input() -> cce_hbm::pipeline::MiningInput {
+    let lines = eigenkorpus_ingest_lines();
+    let budget = lines.len() + 8;
+    cce_hbm::pipeline::MiningInput {
+        corpus_id: "eigenkorpus:213-familien".to_string(),
+        lines,
+        weights: cce_hbm::score::ScoreWeights::default(),
+        theta_d: 0,
+        expansion_budget: budget,
+    }
+}
+
+/// Der Blueprint-Kristall aus realer Eigenarbeit: hbm-Profil-Container
+/// mit den ECHTEN Facetten/Kandidaten/zertifizierten Klassen des
+/// Eigenkorpus-Laufs (kein Platzhaltertext wie `build_r3`/
+/// `hbm_content_kristall`). Ersetzt den in X2/E2 strukturellen
+/// Blueprint-Platzhalter (R-Agent-9) durch eine materiell reale Zelle.
+pub fn build_blueprint_eigenkorpus() -> Sealed {
+    let input = build_eigenkorpus_mining_input();
+    // Dieselbe Facet-Extraktion, die run_pipeline intern zuerst ausfuehrt
+    // (Phase 0-1) — hier separat aufgerufen, weil PipelineOutcome nur die
+    // Facet-ANZAHL traegt, nicht die Liste selbst (Kern-API unveraendert).
+    let line_refs: Vec<&str> = input.lines.iter().map(String::as_str).collect();
+    let facets = cce_hbm::facet::extract_facets(&input.corpus_id, &line_refs);
+
+    let out =
+        cce_hbm::pipeline::run_pipeline(&input).expect("Gate_A darf am Eigenkorpus nie halten");
+    assert!(
+        !out.certified.is_empty(),
+        "Eigenkorpus muss mindestens einen Blueprint zertifizieren"
+    );
+    assert_eq!(
+        facets.len(),
+        out.facets,
+        "Facet-Anzahl muss uebereinstimmen"
+    );
+
+    let hbm_cv = Cv::map(vec![
+        (
+            "facets",
+            Cv::Array(
+                facets
+                    .iter()
+                    .map(|f| {
+                        Cv::map(vec![
+                            ("facet_type", Cv::Text(f.facet_type.clone())),
+                            ("scope", Cv::Text(f.scope.clone())),
+                        ])
+                    })
+                    .collect(),
+            ),
+        ),
+        (
+            "skeleton",
+            Cv::Text(match out.treewidth {
+                Some(w) => format!("jt:treewidth={w}"),
+                None => "jt:none".to_string(),
+            }),
+        ),
+        (
+            "candidates",
+            Cv::Array(
+                out.ranking
+                    .iter()
+                    .map(|(id, _)| Cv::Text(id.clone()))
+                    .collect(),
+            ),
+        ),
+        (
+            "crystals",
+            Cv::Array(
+                out.certified
+                    .iter()
+                    .map(|(id, _)| Cv::Text(id.clone()))
+                    .collect(),
+            ),
+        ),
+    ]);
+    let evidence = Cv::map(vec![(
+        "packs",
+        Cv::Array(vec![Cv::map(vec![
+            ("evidence_id", Cv::Text("ep:eigenkorpus-213-familien".into())),
+            ("record_id", Cv::Text(input.corpus_id.clone())),
+            (
+                "locator",
+                Cv::Text(
+                    "cce-materialize::catalog + family_*_domains::all_profiles (Eigencode, kein externer Fetch)"
+                        .to_string(),
+                ),
+            ),
+            ("license", Cv::Text("SEE-REPO-ROOT".into())),
+            (
+                "attribution",
+                Cv::Text("Eigenkorpus: 213 Domaenen-Referenzprofile + Katalog-Kern-Gates/-Residuen".into()),
+            ),
+        ])]),
+    )]);
+    let m = manifest_cv(
+        "Blueprint-Kristall aus Eigenkorpus (X2/E3, Naht-Regel-Struktur ueber 213 Familien)",
+        "hbm",
+        "PL1",
+        false,
+        0,
+        &[],
+        &["read_segment", "inspect_evidence"],
+        "SEE-REPO-ROOT",
+    );
+    seal_canonical(
+        "hbm",
+        &["hbm"],
+        &[
+            seg(KIND_MANIFEST, &m),
+            canon_desc_segment(),
+            seg(KIND_HBM, &hbm_cv),
+            seg(KIND_EVIDENCE, &evidence),
+        ],
+    )
+    .unwrap()
+}

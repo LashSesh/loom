@@ -33,6 +33,7 @@ nexus-adapter-git = { path = "../nexus/adapters/git_repository" }
 cce-inference = { path = "../crates/cce-inference" }
 cce-toolgateway = { path = "../crates/cce-toolgateway" }
 cce-phaseblock = { path = "../crates/cce-phaseblock" }
+cce-hbm = { path = "../crates/cce-hbm" }
 loom-conformance = { path = "../loom/loom-conformance" }
 loom-verify = { path = "../loom/loom-verify" }
 loom-mount = { path = "../loom/loom-mount" }

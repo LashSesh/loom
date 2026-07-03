@@ -54,3 +54,7 @@ path = "src/bin/scale2_folder_b_gen.rs"
 [[bin]]
 name = "blueprint-reference-gen"
 path = "src/bin/blueprint_reference_gen.rs"
+
+[[bin]]
+name = "blueprint-eigenkorpus-gen"
+path = "src/bin/blueprint_eigenkorpus_gen.rs"
