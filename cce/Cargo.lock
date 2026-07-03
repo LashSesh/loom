@@ -320,6 +320,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cce-bridge"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "loom-canon",
+ "loom-cites",
+ "loom-codec",
+ "loom-format",
+ "loom-replay",
+ "loom-verify",
+]
+
+[[package]]
 name = "cce-ccc"
 version = "0.1.0"
 dependencies = [

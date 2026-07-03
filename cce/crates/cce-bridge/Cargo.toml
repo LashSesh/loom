@@ -1,0 +1,20 @@
+[package]
+name = "cce-bridge"
+version.workspace = true
+edition.workspace = true
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+# S-E5 §10: benannte Ports. cce-core traegt RunDescriptor/HitlDecision/
+# Digest (kein Egress). loom-cites traegt den CitationResolver-Port
+# (SeedResolver + Klassen-Registry aus E4c). loom-canon/format/codec/
+# verify sind der .loom-Kern, den der Norm-Workbody selbst braucht (die
+# Norm IST ein .loom-Workbody, S-E5 "Speicherform").
+cce-core = { path = "../cce-core" }
+loom-cites = { path = "../../loom/loom-cites" }
+loom-canon = { path = "../../loom/loom-canon" }
+loom-format = { path = "../../loom/loom-format" }
+loom-codec = { path = "../../loom/loom-codec" }
+loom-verify = { path = "../../loom/loom-verify" }
+loom-replay = { path = "../../loom/loom-replay" }
