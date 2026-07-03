@@ -485,6 +485,82 @@ pub fn d15() -> DocProfile {
     }
 }
 
+/// Standard-Referenz fuer Ketten-Domaenen: 1 Section + 3 Subjekte,
+/// per `seam` lueckenlos verkettet (eine Wurzel).
+pub fn chain_reference(
+    title: &str,
+    sec: &str,
+    seam: &str,
+    s1: &str,
+    s2: &str,
+    s3: &str,
+) -> DocCrystal {
+    crystal(
+        title,
+        sec,
+        vec![
+            section("s0", sec),
+            subject("k1", s1, Some(("notes", "s0"))),
+            subject("k2", s2, Some((seam, "k1"))),
+            subject("k3", s3, Some((seam, "k2"))),
+        ],
+    )
+}
+
+/// Standard-Negative fuer Ketten-Domaenen: (1) zwei Wurzeln, (2) losgeloest.
+pub fn chain_negatives(sec: &str, seam: &str) -> Vec<(DocCrystal, &'static str)> {
+    vec![
+        (
+            crystal(
+                "neg-two-roots",
+                sec,
+                vec![
+                    section("s0", sec),
+                    subject("k1", "Stufe A", Some(("notes", "s0"))),
+                    subject("k2", "Stufe B", Some(("notes", "s0"))),
+                ],
+            ),
+            "CHAIN",
+        ),
+        (
+            crystal(
+                "neg-detached",
+                sec,
+                vec![
+                    section("s0", sec),
+                    subject("k1", "Stufe A", Some((seam, "k2"))),
+                    subject("k2", "Stufe B", Some(("notes", "s0"))),
+                    subject("k3", "losgeloeste Stufe", Some(("notes", "s0"))),
+                ],
+            ),
+            "CHAIN",
+        ),
+    ]
+}
+
+/// Makro fuer Ketten-Domaenen (ChainedRelation).
+macro_rules! chained_domain {
+    ($fn:ident, $id:literal, $sec:literal, $seam:literal, $res:literal, $s1:literal, $s2:literal, $s3:literal, $fmts:expr) => {
+        pub fn $fn() -> DocProfile {
+            DocProfile {
+                id: $id,
+                subject: UnitType::Definition,
+                rule: DomainRule::ChainedRelation { seam: $seam },
+                core_residue: $res,
+                reference: || chain_reference($id, $sec, $seam, $s1, $s2, $s3),
+                negatives: || {
+                    chain_negatives($sec, $seam)
+                        .into_iter()
+                        .map(|(c, _)| (c, $res))
+                        .collect()
+                },
+                export_formats: $fmts,
+            }
+        }
+    };
+}
+pub(crate) use chained_domain;
+
 /// Alle 14 Profile der Familie A (D02–D15).
 pub fn all_profiles() -> Vec<DocProfile> {
     vec![
