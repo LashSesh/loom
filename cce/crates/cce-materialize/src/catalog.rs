@@ -60,7 +60,8 @@ pub fn by_id(id: &str) -> Option<&'static DomainEntry> {
 /// - EDU01–12: Welle W6, family_k-Zeugen (PL3).
 /// - BUS01–15: Welle W7, family_i-Zeugen (PL3).
 /// - SWE01–15: Welle W8, family_b-Zeugen (PL3).
-pub const WITNESSED_DOMAINS: [&str; 111] = [
+/// - DATA01–12: Welle W9, family_c-Zeugen (PL3).
+pub const WITNESSED_DOMAINS: [&str; 123] = [
     "D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13",
     "D14", "D15", "KNOW01", "KNOW02", "KNOW03", "KNOW04", "KNOW05", "KNOW06", "KNOW07", "KNOW08",
     "KNOW09", "KNOW10", "KNOW11", "KNOW12", "KNOW13", "KNOW14", "KNOW15", "GOV01", "GOV02",
@@ -71,7 +72,8 @@ pub const WITNESSED_DOMAINS: [&str; 111] = [
     "EDU06", "EDU07", "EDU08", "EDU09", "EDU10", "EDU11", "EDU12", "BUS01", "BUS02", "BUS03",
     "BUS04", "BUS05", "BUS06", "BUS07", "BUS08", "BUS09", "BUS10", "BUS11", "BUS12", "BUS13",
     "BUS14", "BUS15", "SWE01", "SWE02", "SWE03", "SWE04", "SWE05", "SWE06", "SWE07", "SWE08",
-    "SWE09", "SWE10", "SWE11", "SWE12", "SWE13", "SWE14", "SWE15",
+    "SWE09", "SWE10", "SWE11", "SWE12", "SWE13", "SWE14", "SWE15", "DATA01", "DATA02", "DATA03",
+    "DATA04", "DATA05", "DATA06", "DATA07", "DATA08", "DATA09", "DATA10", "DATA11", "DATA12",
 ];
 
 /// feature_maturity_overclaim (S11/G12): eine Domäne, die ein höheres
