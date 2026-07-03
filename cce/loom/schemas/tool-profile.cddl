@@ -1,0 +1,11 @@
+; TOOL_PROFILE (0x0064) — deklarativ; L2-Reject bei "enabled": true
+; oder "implicit_grant": true (keine implizite Freigabe)
+tool-profile = { "tools": [* tool-decl], * tstr => any }
+tool-decl = {
+  "tool_id": tstr,
+  ? "tool_class": tstr,
+  ? "lock_ref": tstr,
+  ? "enabled": false,
+  ? "implicit_grant": false,
+  * tstr => any,
+}

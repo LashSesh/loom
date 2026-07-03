@@ -1,0 +1,12 @@
+; HEADER (Pseudo-Kind 0x0000) — LOOM-Standard Teil 2.3
+header = {
+  "canon_id": "loom-canon-1",
+  "canon_rules_digest": bytes .size 32,
+  "container_class": container-class,
+  "digest_alg": 0x12,                ; sha2-256 (genau EINE Familie je Container)
+  "format_profile": "LBC-1",
+  "min_reader_version": { "major": uint, "minor": uint },
+  "profiles_optional": [* container-class],
+  "profiles_required": [+ container-class],
+}
+container-class = "inspection" / "workcell" / "source" / "hbm" / "runtime" / "full"

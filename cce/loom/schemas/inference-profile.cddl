@@ -1,0 +1,7 @@
+; INFERENCE_PROFILE (0x0061) — L2: 0x0061 vorhanden ⇒ 0x0060 Pflicht;
+; jede provider_ref MUSS in PROVIDER_MANIFEST deklariert sein
+inference-profile = {
+  "provider_refs": [* tstr],
+  ? "mode_recommendation": tstr,
+  * tstr => any,
+}

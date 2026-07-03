@@ -1,0 +1,9 @@
+; CANDIDATE_OUTPUTS (0x0063) — L2: Evidence-Ref je Output; KEINER als
+; Commit markiert ("is_commit": true ⇒ Reject, C.7)
+candidate-outputs = { "outputs": [* candidate], * tstr => any }
+candidate = {
+  "candidate_id": tstr,
+  "evidence_ref": tstr,
+  ? "is_commit": false,               ; true ist L2-Reject
+  * tstr => any,
+}

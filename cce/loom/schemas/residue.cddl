@@ -1,0 +1,4 @@
+; RESIDUE (0x0014) — Pflicht, sobald irgendein Residuum existiert;
+; leer heisst "geschlossen (∅)", nie weggelassen
+residue-seg = { "residues": [* residue] }
+residue = { "kind": tstr, "detail": tstr, * tstr => any }

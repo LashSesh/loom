@@ -1,0 +1,8 @@
+; GATE_REPORTS (0x0015) — boolesch begruendet; Score-Felder sind N14
+gate-reports = { "reports": [* gate-report] }
+gate-report = {
+  "gate_id": tstr,
+  "verdict": bool,                     ; NIE eine Zahl (V1/N14)
+  "reason": tstr,
+}
+; verboten (L2-Reject): Keys "score" / "confidence" / "ranking"

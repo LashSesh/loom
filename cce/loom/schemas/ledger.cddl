@@ -1,0 +1,9 @@
+; LEDGER (0x0013) — Ledger = CommitProjection(H);
+; L2: jeder Commit braucht einen GateReport (N6)
+ledger = {
+  "commits": [* tstr],
+  "gate_reports_for": [* tstr],
+  ? "closure_proof": bool,            ; Voraussetzung fuer claims.closed
+  ? "hdag_projection": tstr,
+  * tstr => any,
+}

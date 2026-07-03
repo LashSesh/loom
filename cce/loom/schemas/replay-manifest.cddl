@@ -1,0 +1,8 @@
+; REPLAY_MANIFEST (0x0017) — N7: unvollstaendig ⇒ benannter Fehlpunkt
+replay-manifest = {
+  "rd_digest": tstr,
+  "seed": uint,
+  "commit_class": tstr,
+  ? "engine_version": tstr,
+  * tstr => any,
+}
