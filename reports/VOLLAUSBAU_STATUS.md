@@ -7,13 +7,14 @@ Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
 `feature_maturity_overclaim`: leer.
 
 `cce-spec-repo/13_OEKOSYSTEM_EXPANSIONSKARTE.md` ist der Arbeitsplan
-ÜBER diesem Status/dem Masterplan (Ringe E1→E2→(E3∥E4)→E5). E1 ist
-geschlossen (Details: `reports/X1_bericht.md`). **E2 ist jetzt ebenfalls
-geschlossen** (Spec-Lieferung S-E2a/S-E4a,
-`cce-spec-repo/14_CITES_UND_COREEXTENSION_SPEC.md`; Details + alle
-Exit-Zeugen in `reports/E2_bericht.md`). E3–E5 sind nicht begonnen
-(E3 ist der naechste Schritt laut Bau-Reihenfolge in Dokument 14;
-S-E5 steht laut Karte §4 aus).
+ÜBER diesem Status/dem Masterplan (Ringe E1→E2→(E3∥E4)→E5). E1
+(`reports/X1_bericht.md`) und E2 (`reports/E2_bericht.md`) sind
+geschlossen. **E3 ist jetzt ebenfalls geschlossen** (HBM produktiv auf
+Eigenkorpus, keine neue Spec-Lieferung nötig laut Dokument 14; Details
++ alle Exit-Zeugen in `reports/E3_bericht.md`). E4–E5 sind nicht
+begonnen (E4 — CE-1/loom-sdk/Klassen-Registry — ist laut
+Bau-Reihenfolge in Dokument 14 der naechste Schritt; S-E5 steht laut
+Karte §4 aus).
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -116,14 +117,30 @@ S-E5 steht laut Karte §4 aus).
    acht Zeugen aus Dokument 14 §I.7 (R-CIT-1..3, N-CIT-1..5) gruen.
    Details: `reports/E2_bericht.md`.
 
-Damit sind alle drei angeordneten Bloecke, Etappe X1 (Ring E1) UND
-Etappe X2/Ring E2 abgeschlossen. Track A bleibt vollständig (213/213
-PL3). `.docx`-Export, zstd-Transportprofil, blake3-Zweitprofil,
-SCALE-2-Vollmaterialisierung UND die `cites`-Naht/SCALE-3 sind jetzt
-GESCHLOSSEN. Offen bleiben: PL3→PL4-Reifepfade sowie die Ringe E3–E5
-der Ökosystem-Expansionskarte (E3 ist laut Bau-Reihenfolge in Dokument
-14 der naechste Schritt; E4 CE-1/loom-sdk/Klassen-Registry folgt danach;
-S-E5 steht laut Karte §4 noch aus). Host-gebunden gesammelt und bewusst
-nicht weiter umgangen: GGUF-/LLM-Anbindung, OS-Keyring-Live-Test,
-macOS/Windows-Pakete (Track G), GPU-Klickpfad mit gerenderten Glyphen —
-je einen Build-/Desktop-/GPU-Host, bis dahin gesperrt.
+6. **Etappe X2/Ring E3 — Selbstbezug: HBM produktiv: ABGESCHLOSSEN.**
+   Keine neue Spec-Lieferung noetig (Dokument 14: HBM ist bereits
+   vollspezifiziert). Die unveraenderte `cce-hbm`-Pipeline laeuft ueber
+   einen REALEN Eigenkorpus (213 Familien-Referenzprofile + Katalog-
+   Kern-Gates/-Residuen, projiziert in domaenen-eindeutige Facet-Zeilen)
+   und zertifiziert mindestens einen Blueprint-Kristall — die
+   „Vollprojektion" C6, die ALLE Facetten traegt (das im Karten-Beispiel
+   genannte „Struktur-Muster wiederkehrender Naht-Regeln ueber
+   Familien"), real materialisiert als
+   `library/seed/blueprint_eigenkorpus.loom`. Replay klassenidentisch
+   (zwei Laeufe, gleiche zertifizierte Klassen, gleicher Ledger-Head);
+   R-13-Klonungs-Lock unangetastet, Negativzeuge weiterhin rot. Schliesst
+   R-Agent-9 (Blueprint-Zelle war struktureller Platzhalter in E2).
+   Details: `reports/E3_bericht.md`.
+
+Damit sind alle drei angeordneten Bloecke, Etappe X1 (Ring E1), Etappe
+X2/Ring E2 UND Ring E3 abgeschlossen. Track A bleibt vollständig
+(213/213 PL3). `.docx`-Export, zstd-Transportprofil, blake3-Zweitprofil,
+SCALE-2-Vollmaterialisierung, die `cites`-Naht/SCALE-3 UND HBM auf
+Eigenkorpus sind jetzt GESCHLOSSEN. Offen bleiben: PL3→PL4-Reifepfade
+sowie die Ringe E4–E5 der Ökosystem-Expansionskarte (E4 — CE-1 nach
+Teil II, dann loom-sdk/wasm-Viewer, dann Klassen-Registry — ist laut
+Bau-Reihenfolge in Dokument 14 der naechste Schritt; S-E5 steht laut
+Karte §4 noch aus). Host-gebunden gesammelt und bewusst nicht weiter
+umgangen: GGUF-/LLM-Anbindung, OS-Keyring-Live-Test, macOS/Windows-Pakete
+(Track G), GPU-Klickpfad mit gerenderten Glyphen — je einen
+Build-/Desktop-/GPU-Host, bis dahin gesperrt.

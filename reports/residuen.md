@@ -162,7 +162,24 @@ Blockiert: nichts.
 
 ---
 
-## Geschlossene Residuen (Etappe X2)
+## Geschlossene Residuen (Etappe X2/Ring E2)
 
 Keine — Etappe X2/Ring E2 schliesst keine vorher gefuehrten Residuen,
 sondern eroeffnet zwei neue (R-Agent-9, R-Agent-10, s. oben).
+
+---
+
+## Geschlossene Residuen (Ring E3)
+
+R-Agent-9 (Blueprint-Zelle fuer SCALE-3 war ein struktureller
+Platzhalter, s. oben): GESCHLOSSEN durch Ring E3 — der reale,
+eigenkorpus-zertifizierte Blueprint-Kristall existiert jetzt
+(`library/seed/blueprint_eigenkorpus.loom`, Details:
+`reports/E3_bericht.md`). Der SCALE-3-Zeuge aus Ring E2 selbst wurde
+bewusst NICHT rueckwirkend umgeschrieben (Ring-Grenzen bleiben
+historisch stabil); der neue Blueprint steht fuer kuenftige Verwendung
+real zur Verfuegung.
+
+R-Agent-10 (I.5 Replay-Inputs additiv umgesetzt, ohne End-to-End-
+Anwendungsfall, s. oben) bleibt unveraendert offen gefuehrt — Ring E3
+betraf HBM, nicht die cites-Replay-Mechanik.
