@@ -86,3 +86,42 @@ künftige Beleg-Durchläufe NACH Block 2 (echte Kanzel-Inferenz liest den
 Wunschtext) — dort entweder echtes Keyboard-Layout/Display nutzen oder
 blockweises statt zeichenweises Einfügen.
 Blockiert: nichts (betrifft nur die Testkette, nicht das Produkt).
+
+---
+
+## Nachträge Etappe X1 (Ring E1, Ökosystem-Expansionskarte §2/E1)
+
+R-Agent-8: LibreOffice in dieser Sandbox generell konvertierungsunfähig
+Fundstelle: reports/X1_bericht.md (Einheit d, .docx-Export)
+Frage/Konflikt: `libreoffice --headless --convert-to` scheitert an JEDER
+Datei in diesem Container — auch an einem reinen `.txt`→`.pdf` und an
+einer unveränderten, extern erzeugten python-docx-Referenzdatei. Kein
+docx-spezifischer Fehler, sondern eine kaputte Headless-Office-
+Installation dieser Sandbox.
+Vorläufige Behandlung: als Umgebungsgrenze geführt, nicht weiter
+„umgangen" durch Backend-Wechsel; `python-docx` (unabhängiger,
+weitverbreiteter OOXML-Parser) als reale Gegenprobe für den
+docx-Roundtrip-Zeugen genutzt, ad hoc installiert, NICHT als
+Repo-Abhängigkeit übernommen.
+Blockiert: nichts (der Zeuge selbst — Inhalts-Roundtrip auf
+Textebene — ist über python-docx real erbracht).
+
+---
+
+## Geschlossene Residuen (Etappe X1)
+
+S1.10-R1 (docx-Bibliothekswahl offen, zuerst G03_bericht.md,
+wiederholt in VOLLAUSBAU_STATUS.md): GESCHLOSSEN durch Etappe X1(d) —
+neues Blatt-Crate `cce-docx-export`, Wahl getroffen (zip +
+handgeschriebenes Minimal-OOXML), Zeuge grün, Belege in
+reports/X1_bericht.md.
+
+Signatur-Registry-Vollform (Mehrfachsignaturen, ProfessionalReviewGate-
+Freigaben der Familie P — zuerst als Folgeschritt in
+reports/F_P6c_bericht.md geführt): GESCHLOSSEN durch Etappe X1(e) —
+additive Mehrfachsignaturen mit Rollenfeld (Autor/Prüfer/ReviewGate),
+`verify_sig_all` prüft die ganze Kette unabhängig grün/rot. Der
+`ROLE_REVIEW_GATE`-Slot ist eine strukturelle Signaturposition, KEIN
+Ersatz für echte menschliche Prüfung — das bleibt außerhalb der
+Möglichkeiten dieses Agenten und wird hier ausdrücklich nicht
+behauptet.
