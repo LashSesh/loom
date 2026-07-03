@@ -1519,3 +1519,118 @@ pub fn build_risikomatrix_workbody() -> Sealed {
     segs.extend(workcell_segments());
     seal_canonical("workcell", &["workcell"], &segs).unwrap()
 }
+
+// ---------- Etappe X2/E4c (Karte §2/E4c): Klassen-Registry ----------
+//
+// Ein Verzeichnis zertifizierter core_roots als eigener .loom-Katalog-
+// Workbody — Grundlage fuer E2-cites und jedes spaetere Teilen. Jeder
+// Eintrag wird aus dem ECHTEN, bereits versiegelten Container gelesen
+// (container_class/domain_refs aus dessen eigenem MANIFEST, Signaturen
+// ueber loom_cli::sign::verify_sig_all) — keine von Hand gepflegte,
+// driftanfaellige Zweitquelle.
+
+fn cv_get<'a>(map: &'a Cv, key: &str) -> Option<&'a Cv> {
+    if let Cv::Map(entries) = map {
+        entries.iter().find_map(|(k, v)| match k {
+            Cv::Text(s) if s == key => Some(v),
+            _ => None,
+        })
+    } else {
+        None
+    }
+}
+
+fn catalog_entry_from_sealed(sealed: &Sealed, path: &str) -> loom_cites::ClassRegistryEntry {
+    let dec = loom_codec::decode_sealed(&sealed.bytes).expect("dekodieren");
+    let manifest = dec
+        .frames
+        .iter()
+        .find_map(|(e, f)| {
+            if e.kind == KIND_MANIFEST {
+                loom_canon::decode(&f.payload).ok()
+            } else {
+                None
+            }
+        })
+        .expect("jeder versiegelte Container traegt ein MANIFEST");
+    let class = match cv_get(&manifest, "container_class") {
+        Some(Cv::Text(s)) => s.clone(),
+        _ => String::new(),
+    };
+    let domain = match cv_get(&manifest, "domain_refs") {
+        Some(Cv::Array(items)) => items
+            .first()
+            .and_then(|v| match v {
+                Cv::Text(s) => Some(s.clone()),
+                _ => None,
+            })
+            .unwrap_or_default(),
+        _ => String::new(),
+    };
+    // Keine der aktuell committeten Seed-Container traegt ein
+    // SIGNATURE-Segment (der Ed25519-Pfad, P6c/X1e, wurde bisher nur
+    // manuell ueber die CLI auf temporaeren Kopien vorgefuehrt, nie
+    // programmatisch in einen Seed eingebrannt) — daher hier ehrlich
+    // leer statt einer neuen Kern-Abhaengigkeit auf loom-cli (das
+    // ed25519-dalek/zstd/blake3 traegt) nur fuer ein derzeit stets
+    // leeres Feld. Sobald ein signierter Seed existiert, liest man die
+    // Rollen direkt aus dessen SIGNATURE-Frames (dieselbe Cv-Struktur
+    // wie in loom_cli::sign::verify_sig_all, hier ohne die Kiste).
+    let signatures: Vec<String> = Vec::new();
+    loom_cites::ClassRegistryEntry {
+        core_root_hex: hex34(&sealed.core_root),
+        class,
+        domain,
+        signatures,
+        path: path.to_string(),
+    }
+}
+
+/// Der Registry-Workbody: katalogisiert die real committeten Seed-
+/// Container. "inspection"-Profil (nur MANIFEST/CANON_DESC Pflicht) +
+/// additives KIND_DOC (dieselbe generische Kind-Wiederverwendung wie
+/// `folder_meta`/`doc_meta` andernorts — kein neues Segment-Kind).
+pub fn build_class_registry() -> Sealed {
+    let welt = build_welt_kristall_wikimedia();
+    let welt_root_hex = hex34(&welt.core_root);
+    let citing = seal_citing_memo_welt_kristall(&welt_root_hex);
+    let mappe_a = build_scale2_folder_full();
+    let mappe_b = build_scale2_folder_b(&welt_root_hex);
+    let blueprint_ref = build_blueprint_reference_cube();
+    let blueprint_eigen = build_blueprint_eigenkorpus();
+    let risikomatrix = build_risikomatrix_workbody();
+
+    let entries = vec![
+        catalog_entry_from_sealed(&welt, "library/seed/kristall_wikimedia_workbody.loom"),
+        catalog_entry_from_sealed(&citing, "library/seed/citing_memo_welt_kristall.loom"),
+        catalog_entry_from_sealed(&mappe_a, "library/seed/scale2_projektmappe_full.loom"),
+        catalog_entry_from_sealed(&mappe_b, "library/seed/scale2_projektmappe_b.loom"),
+        catalog_entry_from_sealed(&blueprint_ref, "library/seed/blueprint_reference_cube.loom"),
+        catalog_entry_from_sealed(&blueprint_eigen, "library/seed/blueprint_eigenkorpus.loom"),
+        catalog_entry_from_sealed(
+            &risikomatrix,
+            "library/seed/risikomatrix_memo_workbody.loom",
+        ),
+    ];
+    let doc = loom_cites::class_registry_field(&entries);
+    let m = manifest_cv(
+        "Klassen-Registry (X2/E4c) — zertifizierte core_roots",
+        "inspection",
+        "PL1",
+        false,
+        0,
+        &[],
+        &["read_segment"],
+        "SEE-REPO-ROOT",
+    );
+    seal_canonical(
+        "inspection",
+        &["inspection"],
+        &[
+            seg(KIND_MANIFEST, &m),
+            canon_desc_segment(),
+            seg(KIND_DOC, &doc),
+        ],
+    )
+    .unwrap()
+}

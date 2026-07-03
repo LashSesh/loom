@@ -177,6 +177,11 @@ pub use resolver::SeedResolver;
 mod gate;
 pub use gate::{citation_gate, CitationGateReport, CitationOutcome, CitationVerdict};
 
+pub mod registry;
+pub use registry::{
+    class_registry_field, parse_class_registry, ClassRegistryEntry, RegistryResolver,
+};
+
 #[cfg(test)]
 mod tests {
     use super::*;
