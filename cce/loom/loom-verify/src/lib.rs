@@ -422,6 +422,37 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
         }
     }
 
+    // ---- L2 (S-E2a I.4, N-CIT-5): MANIFEST.external_citations ≡ die
+    // tatsaechlichen cites-Ziele im CL_SUBSTRATE. Rein hermetisch (nur
+    // Bytes dieses EINEN Containers) — die eigentliche Aufloesung
+    // externer Ziele braucht einen Resolver und lebt in loom-cites.
+    {
+        let mut actual_roots: BTreeSet<String> = BTreeSet::new();
+        if let Some(cls) = by_kind.get(&KIND_CL_SUBSTRATE) {
+            for cl in cls {
+                if let Some(Cv::Array(cites)) = get(cl, "cites") {
+                    for c in cites {
+                        if let Some(Cv::Text(root)) = get(c, "target_core_root") {
+                            actual_roots.insert(root.clone());
+                        }
+                    }
+                }
+            }
+        }
+        let declared_roots: BTreeSet<String> = match get(&manifest, "external_citations") {
+            Some(Cv::Array(items)) => items.iter().filter_map(as_text).map(String::from).collect(),
+            _ => BTreeSet::new(),
+        };
+        if declared_roots != actual_roots {
+            reject = true;
+            diagnoses.push(diag(
+                "L2",
+                "manifest_citation_mismatch",
+                "MANIFEST.external_citations stimmt nicht mit den tatsaechlichen cites-Zielen im CL_SUBSTRATE ueberein (N-CIT-5)",
+            ));
+        }
+    }
+
     // ---- L2 Overlay 05 Teil E: Inference-/Tool-Kinds ----
     // 0x0060: kein Autostart-/Aktivierungsfeld zulaessig (N16/N15).
     if let Some(pms) = by_kind.get(&KIND_PROVIDER_MANIFEST) {

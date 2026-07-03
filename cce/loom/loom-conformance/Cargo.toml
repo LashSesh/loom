@@ -9,6 +9,7 @@ publish = false
 [dependencies]
 loom-canon = { path = "../loom-canon" }
 loom-format = { path = "../loom-format" }
+loom-cites = { path = "../loom-cites" }
 loom-codec = { path = "../loom-codec" }
 loom-verify = { path = "../loom-verify" }
 loom-mount = { path = "../loom-mount" }
@@ -41,3 +42,27 @@ path = "src/bin/welt_kristall_gen.rs"
 [[bin]]
 name = "scale2-folder-gen"
 path = "src/bin/scale2_folder_gen.rs"
+
+[[bin]]
+name = "citing-memo-gen"
+path = "src/bin/citing_memo_gen.rs"
+
+[[bin]]
+name = "scale2-folder-b-gen"
+path = "src/bin/scale2_folder_b_gen.rs"
+
+[[bin]]
+name = "blueprint-reference-gen"
+path = "src/bin/blueprint_reference_gen.rs"
+
+[[bin]]
+name = "blueprint-eigenkorpus-gen"
+path = "src/bin/blueprint_eigenkorpus_gen.rs"
+
+[[bin]]
+name = "risikomatrix-gen"
+path = "src/bin/risikomatrix_gen.rs"
+
+[[bin]]
+name = "class-registry-gen"
+path = "src/bin/class_registry_gen.rs"

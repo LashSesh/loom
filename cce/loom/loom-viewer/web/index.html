@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8" />
+<title>loom-viewer (wasm32) — motorfreier Reader-Prinzip-Beweis</title>
+</head>
+<body>
+<h1>loom-viewer (wasm32)</h1>
+<p>Motorfrei: nur L0–L2 (LOOM Teil 6). Kein Netz, kein Motor, kein Egress.</p>
+<pre id="output">lädt…</pre>
+<script type="module">
+  import init, { render_views_wasm } from './pkg/loom_viewer.js';
+
+  let ready = false;
+  async function boot() {
+    await init();
+    ready = true;
+    window.__loomViewerReady = true;
+  }
+  const bootPromise = boot();
+
+  /**
+   * window.runViewer(base64) — vom Headless-Browser-Test aufgerufen
+   * (E4b-Zeuge): dekodiert Base64 -> Bytes, ruft die wasm-Fassade auf,
+   * schreibt das Ergebnis sichtbar in #output UND gibt es zurueck.
+   */
+  window.runViewer = async function (base64) {
+    await bootPromise;
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+    const text = render_views_wasm(bytes);
+    document.getElementById('output').textContent = text;
+    return text;
+  };
+</script>
+</body>
+</html>

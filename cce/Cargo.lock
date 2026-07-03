@@ -333,6 +333,7 @@ version = "0.1.0"
 dependencies = [
  "cce-core",
  "cce-crystal",
+ "cce-hbm",
  "cce-inference",
  "cce-library",
  "cce-loom",
@@ -346,6 +347,7 @@ dependencies = [
  "cce-toolgateway",
  "cockpit-core",
  "loom-canon",
+ "loom-cites",
  "loom-cli",
  "loom-codec",
  "loom-conformance",
@@ -1803,6 +1805,18 @@ name = "loom-canon"
 version = "0.1.0"
 
 [[package]]
+name = "loom-cites"
+version = "0.1.0"
+dependencies = [
+ "cce-materialize",
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+ "loom-mount",
+ "loom-verify",
+]
+
+[[package]]
 name = "loom-cli"
 version = "0.1.0"
 dependencies = [
@@ -1835,6 +1849,7 @@ dependencies = [
  "cce-phc",
  "cce-runner",
  "loom-canon",
+ "loom-cites",
  "loom-codec",
  "loom-export",
  "loom-format",
@@ -1898,7 +1913,6 @@ dependencies = [
 name = "loom-replay"
 version = "0.1.0"
 dependencies = [
- "cce-core",
  "loom-canon",
  "loom-codec",
  "loom-format",
@@ -1915,6 +1929,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "loom-sdk"
+version = "0.1.0"
+dependencies = [
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+ "loom-mount",
+ "loom-replay",
+ "loom-verify",
+]
+
+[[package]]
 name = "loom-verify"
 version = "0.1.0"
 dependencies = [
@@ -1927,11 +1953,8 @@ dependencies = [
 name = "loom-viewer"
 version = "0.1.0"
 dependencies = [
- "loom-canon",
- "loom-codec",
- "loom-format",
- "loom-mount",
- "loom-verify",
+ "loom-sdk",
+ "wasm-bindgen",
 ]
 
 [[package]]

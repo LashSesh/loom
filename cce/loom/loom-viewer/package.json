@@ -1,0 +1,11 @@
+{
+  "name": "loom-viewer-browser-witness",
+  "private": true,
+  "description": "E4b Headless-Browser-Zeuge fuer den wasm32-loom-viewer — nicht Teil des Rust-Workspace/CI, separates Node-Werkzeug.",
+  "scripts": {
+    "witness": "node tests/browser_witness.js"
+  },
+  "devDependencies": {
+    "playwright": "1.61.1"
+  }
+}

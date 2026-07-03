@@ -1,0 +1,18 @@
+[package]
+name = "loom-cites"
+version.workspace = true
+edition.workspace = true
+license = "SEE-REPO-ROOT"
+publish = false
+
+[dependencies]
+loom-canon = { path = "../loom-canon" }
+loom-format = { path = "../loom-format" }
+loom-codec = { path = "../loom-codec" }
+loom-verify = { path = "../loom-verify" }
+loom-mount = { path = "../loom-mount" }
+# cce-materialize: dieselbe Disziplin wie loom-conformance (loom-*
+# haengt an cce-* ueber Motor-Ports, nicht umgekehrt — INV-11). Wird
+# NUR fuer die Einheiten-Index-Rekonstruktion aus materialisierten
+# Artefakt-Bytes gebraucht (parse_markdown), keine externe Kiste.
+cce-materialize = { path = "../../crates/cce-materialize" }

@@ -9,4 +9,3 @@ publish = false
 loom-canon = { path = "../loom-canon" }
 loom-format = { path = "../loom-format" }
 loom-codec = { path = "../loom-codec" }
-cce-core = { path = "../../crates/cce-core" }

@@ -17,7 +17,11 @@ use cce_loom::weave::{weave, Weave};
 use cce_phc::package::{Cell, PhcPackage, Projection, Workcell};
 use cce_phc::projection_calc::LocalProjection;
 
-/// Einheitstypen (S1.10-R2: additiv erweiterbar).
+/// Einheitstypen (S1.10-R2: additiv erweiterbar). `Table` ist die erste
+/// echte CoreExtension durch den S14-Pfad (CE-1, S-E4a Teil II) — der
+/// TYPE_REGISTRY-Eintrag `unit:table` IST diese Match-Arm-Erweiterung
+/// (as_str/parse); ein separates Registry-Objekt existiert im Code
+/// nicht, `UnitType` traegt die Registrierung bereits vollstaendig.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnitType {
     Section,
@@ -27,6 +31,12 @@ pub enum UnitType {
     Countermeasure,
     Definition,
     Step,
+    /// CE-1 (S-E4a Teil II): strukturierte Tabellendaten (Header + Zeilen
+    /// typisierter Zellen). Der Inhalt lebt — wie bei jedem Einheitstyp —
+    /// im `text`-Feld, hier als kompakte, deterministische Kodierung
+    /// (`encode_table`/`decode_table`); das haelt cce-loom/cce-phc
+    /// UNVERAENDERT (kein neues Tor, keine neue Projektionsform).
+    Table,
 }
 
 impl UnitType {
@@ -39,6 +49,7 @@ impl UnitType {
             UnitType::Countermeasure => "countermeasure",
             UnitType::Definition => "definition",
             UnitType::Step => "step",
+            UnitType::Table => "table",
         }
     }
 
@@ -51,6 +62,7 @@ impl UnitType {
             "countermeasure" => UnitType::Countermeasure,
             "definition" => UnitType::Definition,
             "step" => UnitType::Step,
+            "table" => UnitType::Table,
             _ => return None,
         })
     }
@@ -59,6 +71,95 @@ impl UnitType {
     pub fn requires_support(self) -> bool {
         matches!(self, UnitType::Risk | UnitType::Claim)
     }
+}
+
+/// CE-1: eine Tabellenzelle. **Keine Floats** (K3, geerbt) — die
+/// Zelltyp-Menge selbst erzwingt das strukturell (kein `TableCell::Float`
+/// existiert); `DecFrac` traegt Dezimalbrueche exakt (num * 10^-scale).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum TableCell {
+    Text(String),
+    Int(i64),
+    DecFrac { num: i64, scale: u32 },
+}
+
+/// CE-1: `header: [Text;k]` (Spaltenarität k ≥ 1), `rows: [[Cell;k]]` in
+/// Dokumentreihenfolge — bedeutungstragend, wird nie sortiert (K1/K5).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Table {
+    pub header: Vec<String>,
+    pub rows: Vec<Vec<TableCell>>,
+}
+
+/// Interne Trennzeichen fuer die `DocUnit.text`-Kodierung einer Tabelle —
+/// C0-Kontrollzeichen, in echtem Zellinhalt praktisch nie vorkommend,
+/// UND kein Unicode-Whitespace (ueberlebt `normalize_text` unveraendert).
+const TABLE_CELL_SEP: char = '\u{1}';
+const TABLE_ROW_SEP: char = '\u{2}';
+
+fn encode_cell(c: &TableCell) -> String {
+    match c {
+        TableCell::Text(s) => format!("T{s}"),
+        TableCell::Int(n) => format!("I{n}"),
+        TableCell::DecFrac { num, scale } => format!("D{num}:{scale}"),
+    }
+}
+
+fn decode_cell(s: &str) -> Option<TableCell> {
+    let mut chars = s.chars();
+    let tag = chars.next()?;
+    let rest = chars.as_str();
+    match tag {
+        'T' => Some(TableCell::Text(rest.to_string())),
+        'I' => rest.parse::<i64>().ok().map(TableCell::Int),
+        'D' => {
+            let (num_s, scale_s) = rest.split_once(':')?;
+            Some(TableCell::DecFrac {
+                num: num_s.parse().ok()?,
+                scale: scale_s.parse().ok()?,
+            })
+        }
+        _ => None,
+    }
+}
+
+/// Kanonische, deterministische Kodierung einer Tabelle in einen
+/// einzelnen String — der Traeger fuer `DocUnit.text` (kein neues Feld
+/// am DocUnit, kein neuer Kanal in cce-loom/cce-phc).
+pub fn encode_table(header: &[String], rows: &[Vec<TableCell>]) -> String {
+    let mut parts = vec![header
+        .iter()
+        .map(|h| format!("T{h}"))
+        .collect::<Vec<_>>()
+        .join(&TABLE_CELL_SEP.to_string())];
+    for row in rows {
+        parts.push(
+            row.iter()
+                .map(encode_cell)
+                .collect::<Vec<_>>()
+                .join(&TABLE_CELL_SEP.to_string()),
+        );
+    }
+    parts.join(&TABLE_ROW_SEP.to_string())
+}
+
+/// Rueckrichtung von `encode_table` — `None` bei unlesbarer Kodierung
+/// (z. B. ein Zelltyp-Tag ausserhalb {T,I,D}: `invalid_cell_type`, s.
+/// `gates::structure`).
+pub fn decode_table(blob: &str) -> Option<Table> {
+    let mut rows_iter = blob.split(TABLE_ROW_SEP);
+    let header_row = rows_iter.next()?;
+    let header: Vec<String> = header_row
+        .split(TABLE_CELL_SEP)
+        .map(|c| c.strip_prefix('T').unwrap_or(c).to_string())
+        .collect();
+    let mut rows = Vec::new();
+    for row_str in rows_iter {
+        let cells: Option<Vec<TableCell>> =
+            row_str.split(TABLE_CELL_SEP).map(decode_cell).collect();
+        rows.push(cells?);
+    }
+    Some(Table { header, rows })
 }
 
 /// DocUnit: semantische Einheit mit tripolarer Faser-Rolle (S1.1).
@@ -84,6 +185,29 @@ impl DocUnit {
     pub fn with_seam(mut self, kind: &str, to: &str) -> Self {
         self.seams.push((kind.to_string(), to.to_string()));
         self
+    }
+
+    /// CE-1: eine Table-Einheit. `header`/`rows` werden deterministisch
+    /// in `text` kodiert (`encode_table`) — dieselbe Faser wie jede
+    /// andere Einheit, kein neues Feld, kein neuer Kanal.
+    pub fn new_table(id: &str, header: &[&str], rows: Vec<Vec<TableCell>>) -> Self {
+        let header_owned: Vec<String> = header.iter().map(|s| (*s).to_string()).collect();
+        Self {
+            id: id.to_string(),
+            unit_type: UnitType::Table,
+            text: encode_table(&header_owned, &rows),
+            seams: Vec::new(),
+        }
+    }
+
+    /// CE-1: dekodiert die Tabelle zurueck — `None` fuer Nicht-Table-
+    /// Einheiten UND fuer unlesbare Kodierung (fail-closed, s.
+    /// `gates::structure`s `invalid_cell_type`-Pruefung).
+    pub fn as_table(&self) -> Option<Table> {
+        if self.unit_type != UnitType::Table {
+            return None;
+        }
+        decode_table(&self.text)
     }
 }
 
@@ -464,5 +588,151 @@ impl DomainAdapter for DocumentAdapter {
 
     fn negative_cubes(&self) -> Vec<(DocCrystal, ResidueKind)> {
         assets::negative_cubes()
+    }
+}
+
+#[cfg(test)]
+mod ce1_table_tests {
+    use super::*;
+
+    #[test]
+    fn encode_decode_table_roundtrips() {
+        let header = ["Risiko", "Wahrscheinlichkeit", "Kosten"];
+        let rows = vec![
+            vec![
+                TableCell::Text("Serverausfall".to_string()),
+                TableCell::DecFrac { num: 15, scale: 1 },
+                TableCell::Int(5000),
+            ],
+            vec![
+                TableCell::Text("Datenverlust".to_string()),
+                TableCell::DecFrac { num: 5, scale: 1 },
+                TableCell::Int(12000),
+            ],
+        ];
+        let u = DocUnit::new_table("t1", &header, rows.clone());
+        assert_eq!(u.unit_type, UnitType::Table);
+        let back = u.as_table().expect("Tabelle muss dekodierbar sein");
+        assert_eq!(back.header, header.map(String::from).to_vec());
+        assert_eq!(back.rows, rows);
+    }
+
+    #[test]
+    fn as_table_is_none_for_non_table_units() {
+        let u = DocUnit::new("d1", UnitType::Definition, "kein Table");
+        assert_eq!(u.as_table(), None);
+    }
+
+    #[test]
+    fn decode_table_fails_closed_on_unknown_cell_tag() {
+        // Simuliert eine unlesbare Zell-Kodierung (z. B. ein hypothetischer
+        // Float-Tag "F" ausserhalb {T,I,D}) — muss None liefern, nicht
+        // raten oder abstuerzen.
+        let blob = "Ta\u{1}Tb\u{2}Fa\u{1}Ib".to_string();
+        assert_eq!(decode_table(&blob), None);
+    }
+
+    #[test]
+    fn unit_type_table_roundtrips_through_as_str_and_parse() {
+        assert_eq!(UnitType::Table.as_str(), "table");
+        assert_eq!(UnitType::parse("table"), Some(UnitType::Table));
+    }
+
+    /// R-TBL-1-Kern: voller Motorpfad (encode->project->loom->materialize
+    /// ->reanalyze) — die "docx-Roundtrip-Klasse"-Disziplin (X1d), hier
+    /// fuer die Pipe-Tabelle: derselbe Inhalt, dieselbe Klasse zurueck.
+    #[test]
+    fn table_unit_roundtrips_through_the_real_motor_pipeline() {
+        let mut table_unit = DocUnit::new_table(
+            "t1",
+            &["Risiko", "Kosten"],
+            vec![
+                vec![TableCell::Text("Ausfall".to_string()), TableCell::Int(100)],
+                vec![
+                    TableCell::Text("Verlust".to_string()),
+                    TableCell::DecFrac { num: 250, scale: 1 },
+                ],
+            ],
+        );
+        table_unit
+            .seams
+            .push(("refers".to_string(), "s1".to_string()));
+        let crystal = DocCrystal {
+            title: "Testtabelle".to_string(),
+            units: vec![
+                DocUnit::new("s1", UnitType::Section, "Uebersicht"),
+                table_unit,
+            ],
+            covers: vec!["Uebersicht".to_string()],
+            required_sections: vec!["Uebersicht".to_string()],
+            no_score_fields: true,
+            ordering: "neutral".to_string(),
+        };
+        let adapter = DocumentAdapter;
+        let pkg = adapter.encode(&crystal);
+        let proj =
+            cce_phc::projection_calc::project(&pkg, "proj:materialize").expect("projizieren");
+        let weave = adapter.loom(&proj).expect("weben");
+        let artifact = adapter.materialize(&weave);
+        let text = String::from_utf8(artifact.bytes.clone()).expect("UTF-8");
+        assert!(
+            text.contains("| Risiko | Kosten |"),
+            "Pipe-Tabelle muss im gerenderten Markdown stehen:\n{text}"
+        );
+        assert!(
+            text.contains("25.0"),
+            "DecFrac muss dezimal gerendert werden:\n{text}"
+        );
+        let back = adapter.reanalyze(&artifact).expect("Reanalyse");
+        assert!(adapter.equivalent(&back, &crystal), "Table-Roundtrip ≄ id");
+    }
+
+    #[test]
+    fn gates_structure_holds_on_ragged_table() {
+        let mut table_unit = DocUnit::new_table(
+            "t1",
+            &["a", "b", "c"],
+            vec![vec![TableCell::Text("x".to_string())]], // nur 1 statt 3 Zellen
+        );
+        table_unit
+            .seams
+            .push(("refers".to_string(), "s1".to_string()));
+        let crystal = DocCrystal {
+            title: "Ragged".to_string(),
+            units: vec![DocUnit::new("s1", UnitType::Section, "S"), table_unit],
+            covers: vec![],
+            required_sections: vec![],
+            no_score_fields: false,
+            ordering: "neutral".to_string(),
+        };
+        let report = crate::document::gates::structure(&crystal);
+        assert!(!report.is_pass());
+        assert!(report.reason.contains("ragged_table"), "{}", report.reason);
+    }
+
+    #[test]
+    fn gates_structure_holds_on_invalid_cell_type() {
+        // Direkt konstruierte, unlesbare Kodierung (simuliert einen
+        // hypothetischen Encoder, der einen unbekannten Zelltyp schreibt).
+        let mut table_unit = DocUnit::new("t1", UnitType::Table, "");
+        table_unit.text = "Ta\u{1}Tb\u{2}Fx\u{1}Iy".to_string();
+        table_unit
+            .seams
+            .push(("refers".to_string(), "s1".to_string()));
+        let crystal = DocCrystal {
+            title: "Invalid".to_string(),
+            units: vec![DocUnit::new("s1", UnitType::Section, "S"), table_unit],
+            covers: vec![],
+            required_sections: vec![],
+            no_score_fields: false,
+            ordering: "neutral".to_string(),
+        };
+        let report = crate::document::gates::structure(&crystal);
+        assert!(!report.is_pass());
+        assert!(
+            report.reason.contains("invalid_cell_type"),
+            "{}",
+            report.reason
+        );
     }
 }

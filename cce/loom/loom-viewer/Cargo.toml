@@ -5,15 +5,15 @@ edition = "2021"
 license = "SEE-REPO-ROOT"
 publish = false
 
-# READER-PRINZIP-NACHWEIS (G9-Ausgangs-Gate): dieses Target haengt an
-# KEINEM cce-*-Crate — nur loom-canon/format/codec/verify/mount.
-# ci/check_acyclic.py erzwingt das (Viewer-Regel).
+# READER-PRINZIP-NACHWEIS (G9-Ausgangs-Gate, E4b): dieses Target haengt
+# an KEINEM cce-*-Crate — nur an der loom-sdk-Fassade (die ihrerseits nur
+# loom-canon/format/codec/verify/mount/replay traegt). wasm-bindgen ist
+# eine reine JS-Interop-Kiste ohne Bezug zu cce-*/nexus-*/cockpit-* und
+# lebt dieselbe Disziplin wie ed25519-dalek/zip/zstd: NUR in diesem
+# Blatt-Crate. ci/check_acyclic.py erzwingt die Motorfreiheit transitiv.
 [dependencies]
-loom-canon = { path = "../loom-canon" }
-loom-format = { path = "../loom-format" }
-loom-codec = { path = "../loom-codec" }
-loom-verify = { path = "../loom-verify" }
-loom-mount = { path = "../loom-mount" }
+loom-sdk = { path = "../loom-sdk" }
+wasm-bindgen = "0.2"
 
 [[bin]]
 name = "loom-viewer"
@@ -22,3 +22,4 @@ path = "src/main.rs"
 [lib]
 name = "loom_viewer"
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]

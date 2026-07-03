@@ -14,6 +14,62 @@ pub fn replay_manifest_segment(rd_digest_hex: &str, seed: u64, commit_class_hex:
     ])
 }
 
+/// S-E2a I.5: additive Erweiterung von `replay_manifest_segment` um die
+/// zitierten `target_core_root`s (Replay-Inputs) — bestehende Aufrufer
+/// bleiben unveraendert, dieselbe Disziplin wie
+/// `manifest_declare_hash_profiles` (X1c).
+pub fn replay_manifest_segment_with_inputs(
+    rd_digest_hex: &str,
+    seed: u64,
+    commit_class_hex: &str,
+    input_digests_hex: &[&str],
+) -> Cv {
+    let Cv::Map(mut entries) = replay_manifest_segment(rd_digest_hex, seed, commit_class_hex)
+    else {
+        unreachable!("replay_manifest_segment liefert immer eine Map")
+    };
+    entries.push((
+        Cv::Text("input_digests".to_string()),
+        Cv::Array(
+            input_digests_hex
+                .iter()
+                .map(|d| Cv::Text((*d).to_string()))
+                .collect(),
+        ),
+    ));
+    Cv::Map(entries)
+}
+
+/// S-E2a I.5: prueft, dass ALLE erwarteten Ziel-Digests im deklarierten
+/// REPLAY_MANIFEST auftauchen — Replay verlangt dieselben Ziele (der
+/// Resolver darf ein anderer sein, die Klassen nicht). Rein additive
+/// Pruefung, aendert `check_replay` selbst nicht.
+pub fn check_replay_inputs(
+    manifest: &Cv,
+    expected_input_digests_hex: &[&str],
+) -> Result<(), Vec<String>> {
+    let declared: Vec<&str> = match get(manifest, "input_digests") {
+        Some(Cv::Array(items)) => items
+            .iter()
+            .filter_map(|v| match v {
+                Cv::Text(s) => Some(s.as_str()),
+                _ => None,
+            })
+            .collect(),
+        _ => vec![],
+    };
+    let missing: Vec<String> = expected_input_digests_hex
+        .iter()
+        .filter(|d| !declared.contains(d))
+        .map(|d| (*d).to_string())
+        .collect();
+    if missing.is_empty() {
+        Ok(())
+    } else {
+        Err(missing)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReplayVerdict {
     /// Reproduzierte Klasse == deklarierte Klasse.
@@ -63,5 +119,44 @@ pub fn check_replay(manifest: &Cv, reproduced_class_hex: &str) -> ReplayVerdict 
             declared: declared.clone(),
             reproduced: reproduced_class_hex.to_string(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn with_inputs_is_additive_and_old_form_unchanged() {
+        let old = replay_manifest_segment("sha256:rd", 7, "sha256:class");
+        assert!(get(&old, "input_digests").is_none());
+        let new = replay_manifest_segment_with_inputs(
+            "sha256:rd",
+            7,
+            "sha256:class",
+            &["sha256:target-a", "sha256:target-b"],
+        );
+        assert_eq!(get(&new, "rd_digest"), get(&old, "rd_digest"));
+        assert_eq!(get(&new, "seed"), get(&old, "seed"));
+        assert_eq!(get(&new, "commit_class"), get(&old, "commit_class"));
+        match get(&new, "input_digests") {
+            Some(Cv::Array(items)) => assert_eq!(items.len(), 2),
+            other => panic!("input_digests fehlt/falscher Typ: {other:?}"),
+        }
+    }
+
+    #[test]
+    fn check_replay_inputs_finds_missing_targets() {
+        let m = replay_manifest_segment_with_inputs(
+            "sha256:rd",
+            7,
+            "sha256:class",
+            &["sha256:target-a"],
+        );
+        assert_eq!(check_replay_inputs(&m, &["sha256:target-a"]), Ok(()));
+        assert_eq!(
+            check_replay_inputs(&m, &["sha256:target-a", "sha256:target-b"]),
+            Err(vec!["sha256:target-b".to_string()])
+        );
     }
 }
