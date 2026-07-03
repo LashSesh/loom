@@ -1803,6 +1803,18 @@ name = "loom-canon"
 version = "0.1.0"
 
 [[package]]
+name = "loom-cites"
+version = "0.1.0"
+dependencies = [
+ "cce-materialize",
+ "loom-canon",
+ "loom-codec",
+ "loom-format",
+ "loom-mount",
+ "loom-verify",
+]
+
+[[package]]
 name = "loom-cli"
 version = "0.1.0"
 dependencies = [

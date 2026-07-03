@@ -55,6 +55,7 @@ members = [
     "loom/loom-viewer",
     "loom/loom-runner",
     "loom/loom-cli",
+    "loom/loom-cites",
     "loom/loom-conformance",
     # Cockpit (S3)
     "cockpit/cockpit-core",
