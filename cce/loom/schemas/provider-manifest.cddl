@@ -1,0 +1,15 @@
+; PROVIDER_MANIFEST (0x0060, Overlay 05 Teil E) — Deklaration, NIE
+; Aktivierung. L2-Reject: Keys "autostart" / "activate_on_open" /
+; "auto_activate" je Provider (N16) und "on_open" /
+; "hidden_model_call" am Segment (N15).
+provider-manifest = {
+  "providers": [* provider-decl],
+  * tstr => any,                      ; ausser den verbotenen Keys oben
+}
+provider-decl = {
+  "provider_id": tstr,
+  ? "provider_class": tstr,
+  ? "model_id": tstr,
+  ? "replay_policy": "recorded" / "strict" / "weak",
+  * tstr => any,                      ; ausser den verbotenen Keys oben
+}

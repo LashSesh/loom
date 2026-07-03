@@ -1,0 +1,9 @@
+; CSA_NSB (0x0020) — einziger Weg externer Daten (Teil 8);
+; L2: jede csu_uid MUSS in evidence_for erscheinen (N5)
+csa-nsb = {
+  "bundle_id": tstr,
+  ? "source_horizon": tstr,
+  "csu_uids": [* tstr],
+  "evidence_for": [* tstr],
+  * tstr => any,
+}

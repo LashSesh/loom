@@ -1,0 +1,3 @@
+; INFERENCE_TRACE (0x0062) — L2: jede Response evidence-gebunden
+inference-trace = { "responses": [* traced-response], * tstr => any }
+traced-response = { "evidence_ref": tstr, * tstr => any }

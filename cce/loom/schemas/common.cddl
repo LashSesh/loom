@@ -1,0 +1,8 @@
+; Gemeinsame Grundtypen (LOOM-CANON-1)
+digest34 = bytes .size 34            ; Multihash 0x12 0x20 + 32B SHA-256
+hexdigest = tstr                     ; "sha256:<hex>" bzw. reine Hex-Form
+kind = uint .size 2
+; Zahlen: nur Integer oder Decimal-Fraction (Tag 4, Integer-Mantisse)
+decfrac = #6.4([exponent: int, mantissa: int])
+; Zeit ausschliesslich als Evidence-Feld, Tag 0
+evidence-time = #6.0(tstr)

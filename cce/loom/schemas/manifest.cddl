@@ -1,0 +1,16 @@
+; MANIFEST (0x0001) — Teil 3.5: alle 13 Pflichtfelder
+manifest = {
+  "capability_declarations": [* tstr],  ; deklarativ, nie Aktivierung
+  "claims": { ? "closed": bool, ? "certified": bool, * tstr => any },
+  "container_class": tstr,
+  "created": #6.0(tstr),                ; Evidence-Zeitfeld
+  "domain_refs": [* tstr],
+  "license_summary": tstr,
+  "origin": { "tool": tstr, "rd_digest": tstr, ? "parent_core_root": tstr },
+  "pl_level": tstr,                     ; PL0..PL4 (Anti-Overclaim)
+  "profiles_optional": [* tstr],
+  "profiles_required": [+ tstr],
+  "residue_summary": { "count": uint, "kinds": [* tstr] },  ; MUSS ≡ RESIDUE (N6)
+  "scale": uint,
+  "title": tstr,
+}

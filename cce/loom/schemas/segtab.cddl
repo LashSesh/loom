@@ -1,0 +1,12 @@
+; SEGTAB (0x0002) — Teil 3.2: EINTRAGSLOS (kein Selbsteintrag),
+; sortiert nach (kind, digest); enthaelt den Header-Pseudo-Eintrag.
+segtab = [* segtab-entry]
+segtab-entry = [
+  kind: uint,
+  digest: bytes .size 34,
+  uncompressed_len: uint,
+  offset: uint,                      ; Tabellen-Privileg — Referenzen NUR per digest
+  stored_len: uint,
+  seg_flags: uint,
+  deps: [* bytes .size 34],          ; azyklisch (N11)
+]
