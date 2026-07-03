@@ -1,6 +1,8 @@
 # Vollausbau-Status (eine Seite, Klartext)
 
-Stand: nach Welle **W16 — Track A VOLLSTAENDIG (213/213 PL3)**. CI: GRUEN. `feature_maturity_overclaim`: leer.
+Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
+(Belegpflicht UX) nachgeliefert und abgeschlossen**. CI: GRUEN.
+`feature_maturity_overclaim`: leer.
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -30,18 +32,27 @@ Stand: nach Welle **W16 — Track A VOLLSTAENDIG (213/213 PL3)**. CI: GRUEN. `fe
 | Track | Stand |
 |---|---|
 | A Domänen | **W1–W16 fertig: 213/213 auf PL3** (alle 16 Familien) |
-| B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
-| C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
-| D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
+| B Erlebbarkeit | **Block 1 nachgeliefert:** echter wgpu-Klick-Durchlauf (6 Nähte, debug-instrumentiert, `reports/ux/reise_protokoll_v2.md`) + #26 Datei-Export jetzt ECHT über den GUI-Button verifiziert (byte-identisch zum Headless-Pfad); Font-Atlas-Befund zweifach bestätigt host-gebunden (glow+wgpu), Backend zurückgestellt; GUI-Feindesign offen (→ Block 2) |
+| C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; Kanzel-Verdrahtung offen (→ Block 2); GGUF/LLM offen (host-gebunden) |
+| D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON→CSU-Extraktor offen (→ Block 3) |
 | E Skalen | P8 **fertig**: SCALE-2 Dokumentenmappe (Red(2)-Kerntest, MSC 1→2, Adapter 8/8, PL2); SCALE-3 offen |
 | F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated; Registry-Vollform offen |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 
-## Nächster Schritt
+## Block-Auftrag (aktuell)
 
-Track A ist vollständig (213/213 PL3). Offene Track-Reste (alle sichtbar
-im Register): zstd-Transportprofil, .docx-Export, blake3-Zweitprofil,
-GUI-Feindesign, SCALE-3-Entwurf, sowie die PL3→PL4-Reifepfade (Nutzungs-/
-Review-Evidenz, domänenspezifische Voll-Engines). Track G (macOS/Windows-
-Pakete) bleibt gesperrt bis Build-Hosts existieren. Für Prioritäten
-zwischen den verbleibenden Track-Resten stehe ich bereit.
+1. **Block 1 — Belegpflicht UX: ABGESCHLOSSEN.** Echter Klick-Durchlauf
+   unter wgpu (matchbox-WM fuer Fokus, COCKPIT_DEBUG_RECTS=1 fuer
+   verifizierbare Koordinaten/Zustaende, da Glyphen host-bedingt nicht
+   rendern), reise_protokoll_v2.md, echte per Button exportierte
+   `.md`+`.cert`. Zwei ehrliche Nebenbefunde offen gemeldet (nicht
+   verborgen): Glyphen-Rendering host-gebunden (R-Agent-6), xdotool-
+   Zeichenumkehr-Artefakt der Testkette (R-Agent-7) — siehe
+   reports/residuen.md.
+2. **Block 2 — Kanzel↔LocalExtractiveModel + GUI-Feindesign: NÄCHSTER SCHRITT.**
+3. **Block 3 — JSON→CSU-Extraktor Wikimedia + erstes Welt-Crystal: DANACH.**
+
+Track A bleibt vollständig (213/213 PL3). Restliche Track-Reste (alle
+sichtbar im Register): zstd-Transportprofil, .docx-Export,
+blake3-Zweitprofil, SCALE-3-Entwurf, PL3→PL4-Reifepfade. Track G
+(macOS/Windows-Pakete) bleibt gesperrt bis Build-Hosts existieren.

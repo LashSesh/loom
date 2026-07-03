@@ -55,3 +55,34 @@ ENDSTAND (G12-Gesamtabnahme): R-Agent-1..5 bleiben dokumentiert wie oben;
 keines blockiert. Das vollständige End-Residuenregister der Abnahme
 (inkl. 02_MASTER_DOD §3 + F.3-Ergänzungen + Betriebs-/Umgebungsgrenzen)
 steht in reports/ABSCHLUSSBERICHT.md §3/§4.
+
+---
+
+## Nachträge Vollausbau / Belegpflicht-UX (T1/WO-2 + Block 1)
+
+R-Agent-6: Font-Atlas rendert in dieser Container-Sandbox nicht — host-gebunden
+Fundstelle: reports/ux/reise_protokoll.md (glow/llvmpipe), reports/ux/reise_protokoll_v2.md (wgpu/lavapipe)
+Frage/Konflikt: Der egui-Font-Atlas rasterisiert unter BEIDEN getesteten
+Software-Renderern dieses Containers nicht (Labels/Buttons erhalten
+Nullbreite); Fenstergeometrie, Klicks und Zustandsübergänge sind davon
+unabhängig nachweislich echt und korrekt.
+Vorläufige Behandlung: zweifach unabhängig bestätigt (glow UND wgpu) ⇒
+als host-gebundene Umgebungsgrenze geführt, nicht weiter durch
+Backend-Wechsel „umgangen". Sichtbare Glyphen in Screenshots brauchen
+ein echtes Desktop-Display oder einen GPU-Passthrough-Host.
+Blockiert: nichts (Klick-Durchlauf bleibt über Debug-Instrumentierung
+verifizierbar, s. reise_protokoll_v2.md).
+
+R-Agent-7: Zeichen-Umkehrung bei synthetischer xdotool-Texteingabe
+Fundstelle: reports/ux/reise_protokoll_v2.md, klick_durchlauf_rohlog.txt
+Frage/Konflikt: `xdotool type` liefert den Wunschtext in dieser exakten
+Kette (Xvfb + matchbox-WM + XTest-Injektion + egui::TextEdit)
+zeichengenau umgekehrt an die App aus — ein Automatisierungs-/
+Test-Harness-Artefakt, kein Motor- oder cockpit-core-Fund.
+Vorläufige Behandlung: offen gemeldet, nicht verborgen; wirkt sich in
+diesem Durchlauf nicht auf das Ergebnis aus, da `LocalKanzel::form_wish`
+(Vor-Block-2-Stand) den Wunschtext ohnehin ignoriert. Relevant für
+künftige Beleg-Durchläufe NACH Block 2 (echte Kanzel-Inferenz liest den
+Wunschtext) — dort entweder echtes Keyboard-Layout/Display nutzen oder
+blockweises statt zeichenweises Einfügen.
+Blockiert: nichts (betrifft nur die Testkette, nicht das Produkt).

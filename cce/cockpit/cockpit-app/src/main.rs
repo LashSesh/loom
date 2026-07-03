@@ -17,6 +17,7 @@ struct CockpitApp {
     wish_input: String,
     tab: Tab,
     kanzel_text: String,
+    export_status: String,
 }
 
 #[derive(PartialEq)]
@@ -35,6 +36,7 @@ impl Default for CockpitApp {
             wish_input: String::new(),
             tab: Tab::Wunsch,
             kanzel_text: String::new(),
+            export_status: String::new(),
         }
     }
 }
@@ -47,6 +49,38 @@ impl CockpitApp {
             statement: "explizit bestaetigt (Dialog)".into(),
         })
     }
+
+    /// Wie `debug_rect`: reine UI-Introspektion, kein Motor-/Gate-Bezug.
+    /// Protokolliert den Zustand NACH einer Aktion, damit ein Klick-
+    /// Durchlauf ohne sichtbare Glyphen (Software-Renderer-Befund)
+    /// trotzdem verifizierbar bleibt.
+    fn debug_state(&self, after: &str) {
+        if std::env::var("COCKPIT_DEBUG_RECTS").is_ok() {
+            eprintln!("STATE after {after}: {:?}", self.core.state);
+        }
+    }
+}
+
+/// Optionale UI-Introspektion (kein Motor-/Gate-Bezug, rein fuer
+/// Automatisierung/Barrierefreiheits-Tools): unter
+/// `COCKPIT_DEBUG_RECTS=1` protokolliert jeder interaktive
+/// Kontrollpunkt sein Klick-Rechteck nach stderr. Notwendig, weil unter
+/// manchen Software-Renderern (bestaetigter Befund, s. reports/ux/)
+/// Glyphen nicht rasterisieren und Widgets dadurch ohne sichtbare
+/// Beschriftung erscheinen — die Koordinaten bleiben trotzdem exakt
+/// bestimmbar.
+fn debug_rect(name: &str, rect: egui::Rect) {
+    if std::env::var("COCKPIT_DEBUG_RECTS").is_ok() {
+        eprintln!(
+            "RECT {name} x={:.0}..{:.0} y={:.0}..{:.0} center=({:.0},{:.0})",
+            rect.min.x,
+            rect.max.x,
+            rect.min.y,
+            rect.max.y,
+            rect.center().x,
+            rect.center().y
+        );
+    }
 }
 
 impl eframe::App for CockpitApp {
@@ -54,12 +88,30 @@ impl eframe::App for CockpitApp {
         {
             let ui = &mut *root;
             ui.horizontal(|ui| {
-                ui.selectable_value(&mut self.tab, Tab::Wunsch, "Wunsch");
-                ui.selectable_value(&mut self.tab, Tab::Lauf, "Lauf");
-                ui.selectable_value(&mut self.tab, Tab::Pruef, "Pruefung");
-                ui.selectable_value(&mut self.tab, Tab::Artefakt, "Artefakt");
+                debug_rect(
+                    "tab:Wunsch",
+                    ui.selectable_value(&mut self.tab, Tab::Wunsch, "Wunsch")
+                        .rect,
+                );
+                debug_rect(
+                    "tab:Lauf",
+                    ui.selectable_value(&mut self.tab, Tab::Lauf, "Lauf").rect,
+                );
+                debug_rect(
+                    "tab:Pruefung",
+                    ui.selectable_value(&mut self.tab, Tab::Pruef, "Pruefung")
+                        .rect,
+                );
+                debug_rect(
+                    "tab:Artefakt",
+                    ui.selectable_value(&mut self.tab, Tab::Artefakt, "Artefakt")
+                        .rect,
+                );
                 ui.separator();
-                ui.checkbox(&mut self.kanzel_on, "Kanzel");
+                debug_rect(
+                    "checkbox:Kanzel",
+                    ui.checkbox(&mut self.kanzel_on, "Kanzel").rect,
+                );
                 let status = if self.kanzel_on {
                     LocalKanzel.status()
                 } else {
@@ -73,11 +125,19 @@ impl eframe::App for CockpitApp {
         match self.tab {
             Tab::Wunsch => {
                 ui.heading("Wunsch-Flaeche");
-                ui.text_edit_multiline(&mut self.wish_input);
-                if ui.button("Wunsch erfassen").clicked() {
+                debug_rect(
+                    "wish_input",
+                    ui.text_edit_multiline(&mut self.wish_input).rect,
+                );
+                let btn = ui.button("Wunsch erfassen");
+                debug_rect("button:Wunsch erfassen", btn.rect);
+                if btn.clicked() {
                     let _ = self.core.enter_wish(&self.wish_input);
+                    self.debug_state("enter_wish");
                 }
-                if ui.button("Kanzel formt Crystal").clicked() {
+                let btn = ui.button("Kanzel formt Crystal");
+                debug_rect("button:Kanzel formt Crystal", btn.rect);
+                if btn.clicked() {
                     let formed = if self.kanzel_on {
                         LocalKanzel.form_wish(&self.wish_input)
                     } else {
@@ -93,26 +153,33 @@ impl eframe::App for CockpitApp {
                                 "Kanzel degradiert — bitte Crystal manuell formen".to_string();
                         }
                     }
+                    self.debug_state("kanzel_formt_crystal");
                 }
                 if !self.kanzel_text.is_empty() {
                     ui.label(&self.kanzel_text);
                 }
-                if matches!(self.core.state, CockpitState::CrystalGeformt { .. })
-                    && ui.button("BESTAETIGEN (materielle Aktion)").clicked()
-                {
-                    let c = self.confirmation("confirm_crystal");
-                    let _ = self.core.confirm_crystal(c);
+                if matches!(self.core.state, CockpitState::CrystalGeformt { .. }) {
+                    let btn = ui.button("BESTAETIGEN (materielle Aktion)");
+                    debug_rect("button:BESTAETIGEN", btn.rect);
+                    if btn.clicked() {
+                        let c = self.confirmation("confirm_crystal");
+                        let _ = self.core.confirm_crystal(c);
+                        self.debug_state("confirm_crystal");
+                    }
                 }
                 ui.label(format!("Zustand: {:?}", self.core.state));
             }
             Tab::Lauf => {
                 ui.heading("Lauf-Flaeche");
-                if self.core.state == CockpitState::Bestaetigt
-                    && ui.button("Lauf STARTEN (materielle Aktion)").clicked()
-                {
-                    let rd = RunDescriptor::new(sha256(b"cockpit-run"), "document", 7);
-                    let c = self.confirmation("start_run");
-                    let _ = self.core.start_run(rd, c);
+                if self.core.state == CockpitState::Bestaetigt {
+                    let btn = ui.button("Lauf STARTEN (materielle Aktion)");
+                    debug_rect("button:Lauf STARTEN", btn.rect);
+                    if btn.clicked() {
+                        let rd = RunDescriptor::new(sha256(b"cockpit-run"), "document", 7);
+                        let c = self.confirmation("start_run");
+                        let _ = self.core.start_run(rd, c);
+                        self.debug_state("start_run");
+                    }
                 }
                 ui.label(format!("Zustand: {:?}", self.core.state));
             }
@@ -143,9 +210,46 @@ impl eframe::App for CockpitApp {
                 ui.heading("Artefakt-Flaeche");
                 if self.core.state == CockpitState::ArtefaktVerfuegbar {
                     ui.label("Artefakt verfuegbar (content-adressiert, zertifiziert).");
-                    if ui.button("Exportieren (materielle Aktion)").clicked() {
+                    let btn = ui.button("Exportieren (materielle Aktion)");
+                    debug_rect("button:Exportieren", btn.rect);
+                    if btn.clicked() {
                         let c = self.confirmation("export_artifact");
-                        let _ = self.core.export_artifact(c);
+                        // take_artifact() vollzieht die materielle Aktion
+                        // (Bestaetigung + Ledger-Verankerung, wie zuvor)
+                        // UND liefert die Bytes, die write_to() REAL auf
+                        // Platte schreibt — kein reiner Ledger-Eintrag mehr.
+                        match cockpit_core::journey::take_artifact(&mut self.core, c) {
+                            Ok(cert) => {
+                                let dir = std::env::var("COCKPIT_EXPORT_DIR")
+                                    .unwrap_or_else(|_| "./cockpit-exports".to_string());
+                                if let Err(e) = std::fs::create_dir_all(&dir) {
+                                    self.export_status = format!("Verzeichnisfehler: {e}");
+                                } else {
+                                    let hash12 = &cert.byte_digest.to_hex()[..12];
+                                    let filename = format!("export-{hash12}{}", cert.format);
+                                    let path = std::path::Path::new(&dir).join(&filename);
+                                    match cert.write_to(&path) {
+                                        Ok(()) => {
+                                            self.export_status = format!(
+                                                "exportiert: {} ({} Bytes, byte_digest {}...)",
+                                                path.display(),
+                                                cert.bytes.len(),
+                                                hash12
+                                            );
+                                        }
+                                        Err(e) => {
+                                            self.export_status = format!("Schreibfehler: {e}");
+                                        }
+                                    }
+                                }
+                            }
+                            Err(e) => {
+                                self.export_status = format!("Export-Fehler: {e:?}");
+                            }
+                        }
+                    }
+                    if !self.export_status.is_empty() {
+                        ui.label(&self.export_status);
                     }
                 } else {
                     ui.label(format!(

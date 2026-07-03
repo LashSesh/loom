@@ -1,0 +1,28 @@
+# Verdichtetes Rohlog (COCKPIT_DEBUG_RECTS=1) — Klick-Durchlauf v2, wgpu-Backend
+
+Vollstaendiges Rohlog: 2033 RECT-Zeilen (Wiederholung je Frame, ~60fps),
+hier auf je einen Beleg pro Widget verdichtet + alle 4 STATE-Zeilen.
+Das komplette Rohlog liegt on demand nach (nicht committet, reine Frame-Wiederholung ohne Zusatzinformation).
+
+## Widget-Rechtecke (letzter Frame vor jeweiligem Klick, exakte Pixel-Koordinaten)
+```
+RECT tab:Wunsch x=0..8 y=0..18 center=(4,9)
+RECT tab:Lauf x=16..24 y=0..18 center=(20,9)
+RECT tab:Pruefung x=32..40 y=0..18 center=(36,9)
+RECT tab:Artefakt x=48..56 y=0..18 center=(52,9)
+RECT checkbox:Kanzel x=78..96 y=0..18 center=(87,9)
+RECT wish_input x=0..280 y=33..37 center=(140,35)
+RECT button:Wunsch erfassen x=0..8 y=40..58 center=(4,49)
+RECT button:Kanzel formt Crystal x=0..8 y=61..79 center=(4,70)
+RECT button:BESTAETIGEN x=0..8 y=85..103 center=(4,94)
+RECT button:Lauf STARTEN x=0..8 y=33..51 center=(4,42)
+RECT button:Exportieren x=0..8 y=36..54 center=(4,45)
+```
+
+## Zustandsverlauf (STATE-Zeilen, woertlich, chronologisch)
+```
+STATE after enter_wish: WunschErfasst { wunsch: "nelhazsgnutreweB enho ,emhanssamnegeG ej ,nekisirtkejorP ierd ,omeM segitiesiewz nie" }
+STATE after kanzel_formt_crystal: CrystalGeformt { wunsch: "nelhazsgnutreweB enho ,emhanssamnegeG ej ,nekisirtkejorP ierd ,omeM segitiesiewz nie" }
+STATE after confirm_crystal: Bestaetigt
+STATE after start_run: ArtefaktVerfuegbar
+```
