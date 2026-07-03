@@ -11,6 +11,19 @@ loom-format = { path = "../loom-format" }
 loom-codec = { path = "../loom-codec" }
 loom-verify = { path = "../loom-verify" }
 loom-mount = { path = "../loom-mount" }
+# P6(c): Krypto NUR im CLI-Blatt (kein Kern-Crate erhaelt neue Deps).
+# Ed25519 signiert core_root ins SIGNATURE-Segment (0x0050, non_core).
+ed25519-dalek = "2"
+# OS-Schluesselbund NUR unter opt-in-Feature `keyring` (headless-CI
+# hat keinen Backend; Standard ist der seed-/dateibasierte Pfad).
+keyring = { version = "3", optional = true }
+
+[features]
+keyring-os = ["dep:keyring"]
+
+[lib]
+name = "loom_cli"
+path = "src/lib.rs"
 
 [[bin]]
 name = "loom"

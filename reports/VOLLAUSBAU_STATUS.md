@@ -35,10 +35,10 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | C Intelligenz | P4 **fertig**: echtes lokales Extraktiv-Modell (recorded, kein Egress), Zeuge grün; GGUF/LLM offen |
 | D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
 | E Skalen | P8 (SCALE-2) — geplant nach W4 |
-| F Härtung | P6(a/b) fertig; P6(c) Ed25519+Keyring **als Nächstes nach W3** |
+| F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated; Registry-Vollform offen |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 
 ## Nächster Schritt
 
-Interleaving-Einheit **F/P6(c)** (Ed25519 + OS-Keyring, CLI-Blatt), danach
-Welle **W4 = Familie N (Kommunikation/CRM, COM01–12)**.
+Welle **W4 = Familie N (Kommunikation/CRM, COM01–12)**; danach
+Interleaving-Einheit **E/P8** (SCALE-2 Dokumentenmappe).
