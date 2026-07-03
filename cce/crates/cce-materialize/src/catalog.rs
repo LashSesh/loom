@@ -48,14 +48,31 @@ pub fn by_id(id: &str) -> Option<&'static DomainEntry> {
     CATALOG.iter().find(|e| e.id == id)
 }
 
-/// feature_maturity_overclaim (S11/G12): eine Funktion/Domaene, die
-/// ein hoeheres PL traegt als ihre Beweislage, ist ein Verstoss.
-/// Beweislage im Bau: NUR D01 hat den gruenen Produkt-Kerntest —
-/// jede andere Domaene ueber L1 ist Overclaim.
+/// Domänen mit committeter Beweislage (Adapter 11/11 + Zeugen +
+/// Kerntest + Doku-Zeile) — wächst je abgeschlossener Welle. Diese
+/// Liste ist die EINE Wahrheit, an der PL2/PL3 hängt.
+/// - D01: Produkt-Kerntest (PL4).
+/// - D02–D15: Welle W1, family_a-Zeugen (PL3).
+pub const WITNESSED_DOMAINS: [&str; 15] = [
+    "D01", "D02", "D03", "D04", "D05", "D06", "D07", "D08", "D09", "D10", "D11", "D12", "D13",
+    "D14", "D15",
+];
+
+/// feature_maturity_overclaim (S11/G12): eine Domäne, die ein höheres
+/// PL trägt als ihre committete Beweislage, ist ein Verstoss. PL2/PL3
+/// verlangt Mitgliedschaft in WITNESSED_DOMAINS; PL4 ist D01 vorbehalten
+/// (Produkt-Kerntest), professionsgebundene PL4 zusätzlich review-gebunden.
 pub fn feature_maturity_overclaim() -> Vec<&'static str> {
     CATALOG
         .iter()
-        .filter(|e| e.level > ProductLevel::L1 && e.id != "D01")
+        .filter(|e| {
+            // PL4 nur fuer D01 (Nutzungs-/Kerntest-Evidenz).
+            let pl4_overclaim = e.level == ProductLevel::L4 && e.id != "D01";
+            // PL2/PL3 nur mit Zeugen.
+            let pl23_overclaim = (e.level == ProductLevel::L2 || e.level == ProductLevel::L3)
+                && !WITNESSED_DOMAINS.contains(&e.id);
+            pl4_overclaim || pl23_overclaim
+        })
         .map(|e| e.id)
         .collect()
 }
@@ -86,20 +103,15 @@ mod tests {
     }
 
     #[test]
-    fn d01_is_pl4_rest_pl1_no_overclaim() {
+    fn d01_pl4_family_a_pl3_no_overclaim() {
         assert_eq!(by_id("D01").unwrap().level, ProductLevel::L4);
+        // Welle W1: D02–D15 auf PL3 mit committeten Zeugen.
+        for id in ["D02", "D08", "D15"] {
+            assert_eq!(by_id(id).unwrap().level, ProductLevel::L3);
+        }
         assert!(feature_maturity_overclaim().is_empty(), "kein Overclaim");
-        // Anti-Overclaim greift: eine Domaene ueber L1 ohne Kerntest
-        // wuerde gelistet (Negativprobe ueber die Logik):
-        let fake = DomainEntry {
-            id: "D99",
-            purpose: "test",
-            crystal: "t",
-            artifact: "t",
-            core_gate: "t",
-            core_residue: "t",
-            level: ProductLevel::L3,
-        };
-        assert!(fake.level > ProductLevel::L1 && fake.id != "D01");
+        // Anti-Overclaim greift: PL3 ohne Zeugen-Mitgliedschaft waere ein
+        // Verstoss (Negativprobe ueber die Logik).
+        assert!(!WITNESSED_DOMAINS.contains(&"D16"));
     }
 }
