@@ -753,3 +753,171 @@ fn hbm_content_kristall() -> Cv {
         ),
     ])
 }
+
+// ---------- Etappe X1(b): SCALE-2-Vollmaterialisierung ----------
+//
+// Baut auf X1(a) auf: die Mappe buendelt ihre Memo-.looms PHYSISCH
+// (je ein CAS_BLOB pro Kind, jedes Kind selbst ein vollstaendig
+// versiegelter, unabhaengig gueltiger Arbeitskoerper) statt sie nur
+// per content_class zu REFERENZIEREN (der bisherige DocFolder-Stand,
+// unveraendert — kein Eingriff in cce-materialize::scale2_folder).
+
+fn hex34(b: &[u8; 34]) -> String {
+    b.iter().map(|x| format!("{x:02x}")).collect()
+}
+
+/// Zweiter, inhaltlich echter Kurz-Hinweis (nicht die Drei-Risiken-
+/// Referenz dupliziert) — zeigt, dass die Mappe heterogene Kinder
+/// buendelt, keine Klone.
+fn scale2_second_memo() -> cce_materialize::document::DocCrystal {
+    use cce_materialize::document::{DocUnit, UnitType};
+    cce_materialize::document::DocCrystal {
+        title: "Kurzhinweis: Nahtstabilitaet".to_string(),
+        units: vec![
+            DocUnit::new("s1", UnitType::Section, "Hinweis"),
+            DocUnit::new(
+                "d1",
+                UnitType::Definition,
+                "Nahtstabilitaet bezeichnet die Eigenschaft, dass eine Referenz \
+                 zwischen zwei Einheiten auch nach Reanalyse erhalten bleibt.",
+            )
+            .with_seam("refers", "s1"),
+        ],
+        covers: vec!["Nahtstabilitaet".to_string()],
+        required_sections: vec!["Hinweis".to_string()],
+        no_score_fields: true,
+        ordering: "neutral".to_string(),
+    }
+}
+
+/// Versiegelt EIN Dokument-Crystal als eigenstaendigen, unabhaengig
+/// gueltigen Arbeitskoerper (Profil "workcell": MANIFEST/CANON_DESC +
+/// CL_SUBSTRATE/PHC/RUNTIME_PROFILE/GATE_REPORTS, s. loom-verify
+/// required_kinds) — plus DOC/ARTIFACT/CAS_BLOB fuer den echten Inhalt.
+/// Real materialisiert (cce-runner), kein Platzhalter-Digest.
+fn seal_document_workbody(
+    crystal: &cce_materialize::document::DocCrystal,
+    artifact_id: &str,
+    seed_label: &str,
+) -> Sealed {
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_runner::runner::Run;
+
+    let rd = RunDescriptor::new(sha256(seed_label.as_bytes()), "document", 7);
+    let mut run = Run::submit(crystal.clone(), rd).expect("Motor-Submit");
+    run.run_to_end(None).expect("Motor-Lauf");
+    let artifact = run
+        .artifact
+        .as_ref()
+        .expect("Crystal muss real materialisieren (Gates gruen)");
+    let content_class = crystal.canonical_class().0;
+    let byte_digest = artifact.byte_digest();
+
+    let doc_meta = Cv::map(vec![
+        ("title", Cv::Text(crystal.title.clone())),
+        ("units", Cv::Uint(crystal.units.len() as u64)),
+        ("class", Cv::Text(content_class.to_hex())),
+    ]);
+    let artifact_cv = Cv::map(vec![
+        ("artifact_id", Cv::Text(artifact_id.to_string())),
+        (
+            "two_digest",
+            Cv::map(vec![
+                ("content_class", Cv::Text(content_class.to_hex())),
+                ("byte_digest", Cv::Text(byte_digest.to_hex())),
+            ]),
+        ),
+    ]);
+    let m = manifest_cv(
+        &format!("SCALE-2-Kind: {}", crystal.title),
+        "workcell",
+        "PL2",
+        false, // kein LEDGER-Segment hier -> keine Abschluss-Behauptung
+        0,
+        &[],
+        &["read_segment", "project_workcell", "export_artifact"],
+        "cc0",
+    );
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_DOC, &doc_meta),
+        seg(KIND_ARTIFACT, &artifact_cv),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(artifact.bytes.clone())),
+    ];
+    segs.extend(workcell_segments());
+    seal_canonical("workcell", &["workcell"], &segs).unwrap()
+}
+
+/// Der Milestone-Builder X1(b): die SCALE-2-Dokumentenmappe, PHYSISCH
+/// gebuendelt — Mappen-Extraktion liefert n (hier 2) eigenstaendig
+/// gueltige Kind-Arbeitskoerper (loom_mount::all_cas_blobs + je ein
+/// loom_verify::verify ⇒ Valid).
+pub fn build_scale2_folder_full() -> Sealed {
+    use cce_materialize::document::assets::three_risks_memo;
+    use cce_materialize::scale2_folder::{folder_seams_valid, DocFolder};
+
+    let memo_a = three_risks_memo();
+    let memo_b = scale2_second_memo();
+
+    let folder = DocFolder::from_memos(
+        "Projektmappe Vollausbau X1",
+        &[("memo_a", &memo_a), ("memo_b", &memo_b)],
+        &[("memo_a", "precedes", "memo_b")],
+    );
+    assert!(
+        folder_seams_valid(&folder),
+        "Mappe-Naehte muessen konsistent sein"
+    );
+
+    let sealed_a = seal_document_workbody(&memo_a, "artifact:scale2-memo-a", "scale2-child-a");
+    let sealed_b = seal_document_workbody(&memo_b, "artifact:scale2-memo-b", "scale2-child-b");
+
+    let folder_meta = Cv::map(vec![
+        ("title", Cv::Text(folder.title.clone())),
+        ("scale", Cv::Uint(2)),
+        ("class", Cv::Text(folder.canonical_class().0.to_hex())),
+        (
+            "entries",
+            Cv::Array(vec![
+                Cv::map(vec![
+                    ("id", Cv::Text("memo_a".into())),
+                    (
+                        "content_class",
+                        Cv::Text(memo_a.canonical_class().0.to_hex()),
+                    ),
+                    ("child_core_root", Cv::Text(hex34(&sealed_a.core_root))),
+                ]),
+                Cv::map(vec![
+                    ("id", Cv::Text("memo_b".into())),
+                    (
+                        "content_class",
+                        Cv::Text(memo_b.canonical_class().0.to_hex()),
+                    ),
+                    ("child_core_root", Cv::Text(hex34(&sealed_b.core_root))),
+                ]),
+            ]),
+        ),
+    ]);
+
+    let m = manifest_cv(
+        "SCALE-2 Dokumentenmappe — physisch gebuendelt (Oekosystem-Karte X1b)",
+        "workcell",
+        "PL2",
+        false, // kein LEDGER-Segment hier -> keine Abschluss-Behauptung
+        0,
+        &[],
+        &["read_segment", "project_workcell"],
+        "cc0",
+    );
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_DOC, &folder_meta),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(sealed_a.bytes.clone())),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(sealed_b.bytes.clone())),
+    ];
+    segs.extend(workcell_segments());
+    seal_canonical("workcell", &["workcell"], &segs).unwrap()
+}

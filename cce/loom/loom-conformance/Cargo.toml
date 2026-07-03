@@ -37,3 +37,7 @@ path = "src/bin/golden_gen.rs"
 [[bin]]
 name = "welt-kristall-gen"
 path = "src/bin/welt_kristall_gen.rs"
+
+[[bin]]
+name = "scale2-folder-gen"
+path = "src/bin/scale2_folder_gen.rs"
