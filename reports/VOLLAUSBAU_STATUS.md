@@ -33,13 +33,12 @@ Stand: nach Welle **W1**. CI: GRUEN. `feature_maturity_overclaim`: leer.
 | A Domänen | W1 fertig (Familie A, PL3); W2 als Nächstes |
 | B Erlebbarkeit | wgpu getestet (Software-GL blockt Text → Host nötig); #26 Datei-Export **fertig**; GUI-Feindesign offen |
 | C Intelligenz | P4 (echtes Lokalmodell) freigegeben — geplant nach W2 |
-| D Weltzugang | P5 (HttpTransport + Wikimedia live) freigegeben — **als Nächstes nach W1** |
+| D Weltzugang | P5 **fertig**: HttpTransport (feature `http`) + Wikimedia live, Fixture-fixiert, Zeuge grün; JSON-CSU-Extraktor offen |
 | E Skalen | P8 (SCALE-2) — geplant nach W4 |
 | F Härtung | P6(a/b) fertig; P6(c) Ed25519+Keyring freigegeben — geplant nach W3 |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 
 ## Nächster Schritt
 
-Interleaving-Einheit **D/P5** (HttpTransport + Wikimedia live,
-Snapshot-fixiert, hinter unverändertem versiegeltem Pfad), danach
-Welle **W2**.
+Welle **W2 = Familie J (Wissen/Forschung/Quellen, KNOW01–15)**; danach
+Interleaving-Einheit **C/P4** (echtes Lokalmodell).

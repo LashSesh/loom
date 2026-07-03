@@ -10,3 +10,10 @@ cce-core = { path = "../../crates/cce-core" }
 nexus-core = { path = "../nexus-core" }
 nexus-adapter = { path = "../nexus-adapter" }
 nexus-policy = { path = "../nexus-policy" }
+# Realer HTTP-Transport NUR unter dem opt-in-Feature `http` (standardmaessig
+# AUS): CI baut ihn nicht, bleibt netzfrei und deterministisch. Er ist der
+# EINE Netzpfad — hinter demselben versiegelten ApprovedFetchPlan.
+ureq = { version = "3", optional = true }
+
+[features]
+http = ["dep:ureq"]
