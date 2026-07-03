@@ -39,6 +39,7 @@ loom-mount = { path = "../loom/loom-mount" }
 loom-cli = { path = "../loom/loom-cli" }
 loom-canon = { path = "../loom/loom-canon" }
 loom-format = { path = "../loom/loom-format" }
+loom-codec = { path = "../loom/loom-codec" }
 cockpit-core = { path = "../cockpit/cockpit-core" }
 cce-runner = { path = "../crates/cce-runner" }
 

@@ -347,6 +347,7 @@ dependencies = [
  "cockpit-core",
  "loom-canon",
  "loom-cli",
+ "loom-codec",
  "loom-conformance",
  "loom-format",
  "loom-mount",

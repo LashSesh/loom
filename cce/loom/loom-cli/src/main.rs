@@ -147,17 +147,22 @@ fn dispatch_sign(cmd: &str) {
             let file = it.next().unwrap_or_default();
             let key = it.next().unwrap_or_default();
             let out = it.next().unwrap_or_default();
+            // X1(e): optionale Rolle (Autor/Pruefer/ReviewGate), Default
+            // "author" — additiv zu bereits vorhandenen Signaturen.
+            let role = it
+                .next()
+                .unwrap_or_else(|| loom_cli::sign::ROLE_AUTHOR.to_string());
             let bytes = std::fs::read(&file).expect("datei lesen");
             let seed_raw = std::fs::read(&key).expect("keyfile lesen");
             let seed: [u8; 32] = seed_raw
                 .as_slice()
                 .try_into()
                 .expect("seed muss 32 Byte sein");
-            match loom_cli::sign::sign(&bytes, &seed) {
+            match loom_cli::sign::sign(&bytes, &seed, &role) {
                 Ok(signed) => {
                     std::fs::write(&out, &signed).expect("signierte datei schreiben");
                     println!(
-                        "signiert: {out} (SIGNATURE 0x0050 beigelegt, core_root unveraendert)"
+                        "signiert: {out} (Rolle {role}, SIGNATURE 0x0050 beigelegt, core_root unveraendert)"
                     );
                 }
                 Err(e) => {
@@ -167,16 +172,48 @@ fn dispatch_sign(cmd: &str) {
             }
         }
         "verify-sig" => {
-            let file = std::env::args().nth(2).unwrap_or_default();
-            let bytes = std::fs::read(&file).expect("datei lesen");
-            match loom_cli::sign::verify_sig(&bytes) {
-                Ok(vk) => {
-                    let hex: String = vk.to_bytes().iter().map(|b| format!("{b:02x}")).collect();
-                    println!("signatur gueltig · public_key {hex}");
+            let first = std::env::args().nth(2).unwrap_or_default();
+            if first == "--all" {
+                let file = std::env::args().nth(3).unwrap_or_default();
+                let bytes = std::fs::read(&file).expect("datei lesen");
+                match loom_cli::sign::verify_sig_all(&bytes) {
+                    Ok(entries) => {
+                        let mut any_invalid = false;
+                        for e in &entries {
+                            let hex: String = e
+                                .public_key
+                                .to_bytes()
+                                .iter()
+                                .map(|b| format!("{b:02x}"))
+                                .collect();
+                            println!(
+                                "{}: {} · public_key {hex}",
+                                e.role,
+                                if e.valid { "gueltig" } else { "UNGUELTIG" }
+                            );
+                            any_invalid |= !e.valid;
+                        }
+                        if any_invalid {
+                            std::process::exit(1);
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("signatur-kette-fehler: {e:?}");
+                        std::process::exit(1);
+                    }
                 }
-                Err(e) => {
-                    eprintln!("signatur UNGUELTIG: {e:?}");
-                    std::process::exit(1);
+            } else {
+                let bytes = std::fs::read(&first).expect("datei lesen");
+                match loom_cli::sign::verify_sig(&bytes) {
+                    Ok(vk) => {
+                        let hex: String =
+                            vk.to_bytes().iter().map(|b| format!("{b:02x}")).collect();
+                        println!("signatur gueltig · public_key {hex}");
+                    }
+                    Err(e) => {
+                        eprintln!("signatur UNGUELTIG: {e:?}");
+                        std::process::exit(1);
+                    }
                 }
             }
         }
