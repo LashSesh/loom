@@ -1,0 +1,19 @@
+# 10 — UPDATED AGENT PROMPTS (acht copy-paste-fertige Aufträge, nach Repo-Audit kalibriert)
+
+Alle Prompts setzen voraus: Agent hat Repo-Zugriff; `spec/` und Wurzeldokumente gelten; **kein** Prompt erlaubt Architekturänderung; jeder endet mit Bericht nach 04_AGENT_AUFTRAG §3.
+
+**P1 · Verifikations-Agent (T0/WO-1):** „Führe im Repo-Root exakt die Kommandofolge aus reports-Audit `02_BUILD_AND_TEST_AUDIT.md §4` aus. Ändere NICHTS am Code. Schreibe `reports/verifikation_T0.md`: je Kommando Wortlaut, Exit-Code, letzte 5 Ausgabzeilen; bei Rot: Position, vollständige Fehlermeldung, KEIN Fix-Versuch."
+
+**P2 · Display-/Reise-Agent (T1/WO-2):** „Auf einem Linux-Desktop: `cd cce && cargo run -p cockpit-app`. Durchlaufe die Referenzreise per Klick (Wunsch: das Drei-Risiken-Memo aus docs/operator/handbuch.md §3 wörtlich) bis zum entnommenen Artefakt und Re-Import. Lege je Naht einen Screenshot unter `reports/ux/` ab plus `reports/ux/reise_protokoll.md` (Naht → gesehen → geklickt → Motor-Fakt). Verboten: Codeänderungen außer trivialer Startfehler-Fixes (dann als Abweichung melden)."
+
+**P3 · Paket-Agent (T2/WO-3):** „Führe `ci/package.sh` auf macOS- und Windows-Build-Host aus (identische Pipeline). Ergänze ins Paket eine `ERSTSTART.md` (3 Schritte, aus Handbuch §1/§9 kondensiert, Claim-Schranke beachten). Teste auf je einer frischen Maschine: entpacken → Cockpit starten → Saat-Reise → Artefakt. Bericht mit Paketgrößen, Hashes, Hürdenliste."
+
+**P4 · Lokalmodell-Agent (T3/WO-4):** „Implementiere EINEN echten LocalModelProvider (lokales Modell deiner Wahl, z. B. llama.cpp-Anbindung) ausschließlich unter `crates/cce-inference/src/providers/`, hinter unverändertem Gateway/Gates, replay_policy=recorded, Manifest vollständig (C.4). Verboten: neue Egress-Pfade, Änderungen an Gates/Zeugen. Abnahme: alle bestehenden 19 Inference-Zeugen grün; neuer Zeuge `r_inf_2b_real_local_model` (Aufzeichnung+Einspielung klassenidentisch); Offline-Modus-Test unverändert grün; Kanzel formt real."
+
+**P5 · Live-Quelle-Agent (T4/WO-5):** „Implementiere einen HttpTransport (Transport-Trait in nexus-fetch) minimal (GET, ETag), OHNE approve_fetch/Gates/Adapter zu ändern. Fahre den Wikimedia-Referenzlauf gegen die echte API mit Snapshot-Fixierung (Antwort als neues Fixture einfrieren). Abnahme: ref_2 live = Fixture-Klasse; disallowed_actions unberührt; Rate-Budget respektiert (Logbeweis); neuer Zeuge `ref_2b_live_snapshot_frozen`."
+
+**P6 · Härtungs-Agent (T5-Kern):** „(a) cargo-fuzz-Harness für `loom_canon::decode` und `loom_codec::decode_sealed` (Korpus: Golden-Files + N-Dateien; 1h-Lauf, Findings als Tests einfrieren). (b) `SECURITY_THREAT_MODEL.md` (2 Seiten: Angreifer öffnet fremde .loom / bösartiges Provider-Manifest / manipulierter Snapshot — je: verhindernder Mechanismus mit Datei:Zeile). (c) Ed25519-Signatur über core_root als loom-CLI `sign/verify-sig` gegen SIGNATURE-Kind 0x0050, Schlüssel via OS-Keyring-Crate NUR im CLI-Blatt. Kein Kern-Crate erhält neue Abhängigkeiten."
+
+**P7 · Domänen-Wellen-Agent (T6):** „Baue Domäne D02 [vom Auftraggeber aus K.6 gewählt] nach dem D01-Muster: DomainAdapter 11/11 (check_adapter_parity grün), Referenz- + 2 Negativ-Cubes mit erwarteten Residuen, Domänen-Kerntest (geschlossener Pfad ≃), Registry-PL-Hebung mit Evidence-Pfad. Wächter nimmt die Zeugen automatisch auf (Registry-Eintritt). Verboten: Motor-Änderungen; fehlt dem Adapter etwas im Motor ⇒ Residuum melden, S14-Pfad vorschlagen, stoppen."
+
+**P8 · SCALE-2-Agent (T7):** „Implementiere ScaleAdapter(2) ‚Dokumentenmappe' (Einheiten = D01-Workbodies; Nähte = Verweis-/Reihenfolge-Konsistenz; Materialisierung = Mappen-Index + gebündelte .loom). Red(2)-Kerntest: 3 Memos → Mappe geschlossen → Reanalyze klassenidentisch; MultiScaleClosure(1→2)-Zeuge. Keine Änderung an SCALE-1-Pfaden (Wächter beweist)."
