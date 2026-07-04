@@ -5,6 +5,7 @@
 //! Zertifizierungsmechanismus, den man abfragen koennte.
 
 use cce_core::signature::{sha256, Digest};
+use cce_swe::grounding::GroundingPacket;
 
 /// Die zwei Aufgabenklassen aus Dokument 20 §1 (Coding = CCEs neue
 /// Staerke P2/P3; Document = CCEs urspruengliche Staerke, 213 Domaenen).
@@ -76,6 +77,27 @@ impl BenchmarkTaskPackage {
 
     pub fn digest_hex(&self) -> String {
         self.task_package_digest().to_hex()
+    }
+
+    /// Dokument 22 §3: der `packet_digest` des GroundingPacket wird TEIL
+    /// des `task_package_digest` — ein Regel-Unterschied zwischen den
+    /// Armen ist damit strukturell ausgeschlossen, nicht nur behauptet.
+    /// Der bestehende `task_package_digest()` (P4, zwei Arme ohne
+    /// Grounding) bleibt WOERTLICH unveraendert; dies ist additiv die
+    /// geerdete Fassung fuer den Drei-Arm-Vergleich (P4-Ext). Beide
+    /// Bestandteile werden mit dem Untertrenner 0x1e verbunden, damit die
+    /// Faltung eindeutig und reihenfolgestabil ist.
+    pub fn grounded_task_package_digest(&self, packet: &GroundingPacket) -> Digest {
+        let base = self.task_package_digest();
+        let mut buf = Vec::new();
+        buf.extend_from_slice(&base.0);
+        buf.push(0x1e);
+        buf.extend_from_slice(packet.digest_hex().as_bytes());
+        sha256(&buf)
+    }
+
+    pub fn grounded_digest_hex(&self, packet: &GroundingPacket) -> String {
+        self.grounded_task_package_digest(packet).to_hex()
     }
 }
 
@@ -191,6 +213,84 @@ impl CceRunResult {
             (None, Some(t)) => t,
             _ => false,
         }
+    }
+}
+
+/// ExternalToolResult (Dokument 22 §2): das BEOBACHTBARE Ergebnis eines
+/// Fremdwerkzeugs (Cursor / GitHub Copilot / Bolt), das CCE weder
+/// kontrolliert noch dessen Inneres beobachten kann. CCE stellt keine
+/// Behauptung ueber das Werkzeug auf — nur ueber die Tatsachen, die es
+/// selbst gesehen hat: Enddatei-Inhalt, Wanduhrzeit, Zahl der noetigen
+/// menschlichen Nachbesserungen, ob die `success_criteria` mechanisch
+/// erfuellt sind. `tool_name` ist ein freies Textfeld (kein Enum).
+/// `evidence_present` ist strukturell stets `false` (wie der Raw-Arm):
+/// es gibt dort keinen von CCE beobachtbaren Gate-/Replay-/
+/// Zertifizierungsmechanismus.
+///
+/// Die drei Felder `task_package_digest`, `packet_digest` und
+/// `submission_order` sind nicht Teil des §2-Tupels, sondern die
+/// Protokoll-Bindung aus §3 (identischer Ausgangszustand, identisches
+/// GroundingPacket, Fremdarm zuerst und isoliert) — dieselbe additive
+/// Disziplin wie `submission_order`/`task_package_digest` beim Raw-Arm.
+#[derive(Debug, Clone)]
+pub struct ExternalToolResult {
+    pub package_id: String,
+    /// Der GEERDETE task_package_digest (§3, packet_digest eingefaltet) —
+    /// muss mit dem der anderen Arme identisch sein.
+    pub task_package_digest: String,
+    /// Der packet_digest des GroundingPacket, das dieser Arm tatsaechlich
+    /// erhielt (als abgeleitete Exportdatei, §1). Wird zusaetzlich explizit
+    /// auf Gleichheit geprueft (§3).
+    pub packet_digest: String,
+    pub tool_name: String,
+    pub tool_version: Option<String>,
+    pub output_content: Vec<u8>,
+    pub wall_time_ms: u64,
+    pub human_interventions_count: u32,
+    pub criteria_met: bool,
+    pub evidence_present: bool,
+    pub observer_note: String,
+    /// Reihenfolge-Marker: der Fremdarm gibt VOR dem CCE-Arm ab (§3).
+    pub submission_order: u64,
+}
+
+impl ExternalToolResult {
+    #[allow(clippy::too_many_arguments)]
+    pub fn observed(
+        package_id: &str,
+        task_package_digest: &str,
+        packet_digest: &str,
+        tool_name: &str,
+        tool_version: Option<&str>,
+        output_content: Vec<u8>,
+        wall_time_ms: u64,
+        human_interventions_count: u32,
+        criteria_met: bool,
+        observer_note: &str,
+        submission_order: u64,
+    ) -> Self {
+        Self {
+            package_id: package_id.to_string(),
+            task_package_digest: task_package_digest.to_string(),
+            packet_digest: packet_digest.to_string(),
+            tool_name: tool_name.to_string(),
+            tool_version: tool_version.map(str::to_string),
+            output_content,
+            wall_time_ms,
+            human_interventions_count,
+            criteria_met,
+            // Strukturell: das Fremdwerkzeug traegt keine von CCE
+            // beobachtbare Evidence.
+            evidence_present: false,
+            observer_note: observer_note.to_string(),
+            submission_order,
+        }
+    }
+
+    /// Digest ueber den beobachteten Enddatei-Inhalt (fuer die
+    /// Evidence-Aufzeichnung im Workbody).
+    pub fn output_digest(&self) -> String {
+        sha256(&self.output_content).to_hex()
     }
 }
 
@@ -316,5 +416,68 @@ mod tests {
         assert!(raw.criteria_met());
         let raw_fail = RawRunResult::observed("p", "d", "o", 10, None, Some(false), 0, 1);
         assert!(!raw_fail.criteria_met());
+    }
+
+    fn packet(pkg_id: &str) -> GroundingPacket {
+        use cce_swe::grounding::{compile_grounding, RuleAtom, RuleSeverity};
+        compile_grounding(
+            pkg_id,
+            vec![RuleAtom {
+                rule_id: "no-unwrap".to_string(),
+                scope: "src/".to_string(),
+                trigger: ".unwrap()".to_string(),
+                prescription: "Fehler propagieren".to_string(),
+                severity: RuleSeverity::Blocking,
+                evidence_ref: Some("CLAUDE.md#errors".to_string()),
+                gate_ref: None,
+                decay: None,
+            }],
+            vec![],
+            vec!["fs_write".to_string()],
+        )
+        .packet
+    }
+
+    #[test]
+    fn grounded_digest_folds_in_packet_and_changes_with_it() {
+        let a = pkg();
+        // Grounded weicht vom ungegroundeten Digest ab (packet eingefaltet).
+        let p1 = packet("pkt-1");
+        assert_ne!(
+            a.grounded_digest_hex(&p1),
+            a.digest_hex(),
+            "packet_digest muss den task_package_digest veraendern"
+        );
+        // Anderes Packet ⇒ anderer geerdeter Digest (Regel-Unterschied
+        // strukturell sichtbar, §3).
+        let p2 = packet("pkt-2");
+        assert_ne!(a.grounded_digest_hex(&p1), a.grounded_digest_hex(&p2));
+        // Gleiches Packet ⇒ deterministisch gleicher geerdeter Digest.
+        assert_eq!(
+            a.grounded_digest_hex(&p1),
+            a.grounded_digest_hex(&packet("pkt-1"))
+        );
+    }
+
+    #[test]
+    fn external_tool_result_is_evidence_free_and_free_text_named() {
+        let ext = ExternalToolResult::observed(
+            "p",
+            "grounded-digest",
+            "packet-digest",
+            "Cursor",
+            Some("0.42"),
+            b"pub fn add(a:i32,b:i32)->i32{a+b}".to_vec(),
+            60_000,
+            2,
+            true,
+            "manuell in Cursor ausgefuehrt, zwei Nachbesserungen",
+            1,
+        );
+        assert!(!ext.evidence_present);
+        assert_eq!(ext.tool_name, "Cursor");
+        assert_eq!(ext.tool_version.as_deref(), Some("0.42"));
+        assert!(ext.criteria_met);
+        assert!(!ext.output_digest().is_empty());
     }
 }
