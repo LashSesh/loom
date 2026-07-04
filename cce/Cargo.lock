@@ -412,6 +412,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "cce-dogfood"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-phaseblock",
+ "cce-swe",
+ "cce-toolgateway",
+]
+
+[[package]]
 name = "cce-hbm"
 version = "0.1.0"
 dependencies = [

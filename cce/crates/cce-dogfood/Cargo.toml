@@ -1,0 +1,22 @@
+[package]
+name = "cce-dogfood"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# P3 (Dokument 19 §8): Dogfooding. Verdrahtet AUSSCHLIESSLICH die
+# bestehenden P1/P2-Bausteine (cce-swe/cce-toolgateway/cce-phaseblock/
+# cce-core) hinter drei neuen Vor-Gates -- keine neue Kern-Logik, kein
+# neuer Egress-/Container-Pfad. Reicht daher KEINE loom-*-Abhaengigkeit
+# ein: der RepoWorkbody-Bau bleibt exklusiv cce_swe::workbody.
+[dependencies]
+cce-core = { path = "../cce-core" }
+cce-phaseblock = { path = "../cce-phaseblock" }
+cce-toolgateway = { path = "../cce-toolgateway" }
+cce-swe = { path = "../cce-swe" }
+
+[features]
+# Reicht nur durch -- reale Prozess-Aufrufe bleiben cce-toolgateways
+# eigener Schalter (dieselbe Disziplin wie ueberall).
+process = ["cce-toolgateway/process", "cce-swe/process"]
