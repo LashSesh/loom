@@ -48,6 +48,7 @@ cce-bridge = { path = "../crates/cce-bridge" }
 loom-replay = { path = "../loom/loom-replay" }
 cce-swe = { path = "../crates/cce-swe" }
 cce-dogfood = { path = "../crates/cce-dogfood" }
+cce-benchmark = { path = "../crates/cce-benchmark" }
 
 # Betriebsverifikation P1 (echter Egress, #[ignore]): reicht das
 # `http`-Feature NUR durch, aktiviert selbst nichts im Default-Bau.
@@ -75,3 +76,11 @@ path = "swe/swe_catalog.rs"
 [[test]]
 name = "dogfood_catalog"
 path = "dogfood/dogfood_catalog.rs"
+
+# Benchmark-Zeugen (Dokument 20, P4) liegen unter conformance/benchmark/
+# -- N-BENCH-1/2 + der positive Container-Verify laufen hermetisch in
+# der Default-CI; die zwei realen Vergleichslaeufe (R-BENCH-1/2) leben
+# separat als #[ignore]-Betriebs-Harness.
+[[test]]
+name = "benchmark_catalog"
+path = "benchmark/benchmark_catalog.rs"

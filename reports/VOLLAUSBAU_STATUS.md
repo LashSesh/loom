@@ -1,4 +1,4 @@
-# Vollausbau-Status (eine Seite, Klartext) — Stand nach Etappe P2
+# Vollausbau-Status (eine Seite, Klartext) — Stand nach Etappe P4 (K9 erfüllt)
 
 **Track A (213/213 Domänen auf PL3, D01=PL4) + Blocks 1–3 (Belegpflicht
 UX, Kanzel↔Modell+GUI-Feindesign, JSON→CSU-Extraktor+Welt-Crystal) +
@@ -32,6 +32,8 @@ Werkzeug-Gates, Kern-Kette bis PhaseBlock, RepoWorkbody-Containerklasse
 | X4 | **R-CYC-1** (Paradigma-Vollzyklus, 8 Stationen in 1 Zeugen), R-Agent-13/14 **GESCHLOSSEN** (typisierter Pattern, ScopeGate v2) | `reports/X4_bericht.md` |
 | P1 | **CloudModelProviderOpenAI** real gebaut hinter unveraendertem Gateway (Manifest/Terms/Privacy/Retention/Budget vollstaendig, recorded-Replay); ohne Feature `http`/Schluessel sauber degradiert, CI netzfrei; **Betriebsverifikation** gegen die echte OpenAI-API (`gpt-4o-mini`) einmalig real erbracht | `reports/P1_bericht.md` |
 | P2 | **crate `cce-swe`**: RepoWorkbody/RepoSnapshot/DiffCandidate/TaskLedger, fs_write/git/build/test real im ToolGateway (Feature `process`, hermetisch im Default), sechs Werkzeug-Gates, Kern-Kette bis PhaseBlock, provider-erzeugte Diff (recorded), Replay, RepoWorkbody `verify == Valid`, 14 Zeugen | `reports/P2_bericht.md` |
+| P3 | **crate `cce-dogfood`** (Dogfooding-Kerntest): TaskProposal + ProtectedPathFence + drei neue Gates; R-DOG-1 real am eigenen Repo (echte Kanzel → Diff → Build/Test → PhaseBlock → RepoWorkbody `Valid` → Replay → git commit auf `dogfood/p3-001`, KEIN Merge nach main), N-DOG-1..4 im Wächter | `reports/P3_dogfooding_bericht.md` |
+| P4 | **crate `cce-benchmark`** (Vergleichsläufe, K9): FairnessGate + ComparisonSealGate, Container-Klasse `"benchmark"`; R-BENCH-1 (Coding) + R-BENCH-2 (Dokument) real: ungegatet vs. CCE, dasselbe Modell — D4/D5 Parität (kostenlos), D1/D2/D3/D6 kategorisch nur CCE; beide Benchmark-Workbodies `verify == Valid` | `reports/P4_vergleichslaeufe_bericht.md` |
 
 **R-CYC-1-Stand: GRUEN, dauerhaft im Waechter** (`conformance/tests/
 x4_r_cyc_1.rs`) — Quelle→Arbeit→Verbund→Selbstbezug→Gedaechtnis→
@@ -52,6 +54,8 @@ ist ab jetzt der oberste Kerntest der Plattform.
 | G Pakete | gesperrt (Build-Hosts fehlen) |
 | H Brückenraum L9b | `cce-bridge` vollstaendig, R-1b GESCHLOSSEN |
 | I SWE-Tiefe | `cce-swe` real gebaut (P2): fs_write/git/build/test im ToolGateway, sechs Werkzeug-Gates, Kern-Kette bis PhaseBlock, RepoWorkbody `"repo"`; Dauerbetrieb (echte Subprozesse) bleibt Feature `process` |
+| J Dogfooding | `cce-dogfood` (P3): R-DOG-1 real am eigenen Repo erbracht (`dogfood/p3-001`, ungemergt); Schutzzone/BranchIsolation/MergeExclusion strukturell |
+| K Vergleich | `cce-benchmark` (P4): R-BENCH-1/2 real gefahren, D1–D6-Matrix belegt; K9 · CompetitiveDoD erfüllt. Weitere Arme (Cursor/Copilot/Bolt) = benannter Folgeschritt |
 
 ## Host-Leiste (Stand nach P1)
 
@@ -76,11 +80,15 @@ CONSTITUTION_STAND_X4.md`.
 
 ## Danach: Dokument 17/18 — „Parity, then Surpass"
 
-Der Auftraggeber-Maßstab ab jetzt: vollfunktionale Systeme (Claude
-Code, Copilot, Cursor, Bolt) **mehrfach übertroffen**, nicht nur
-erreicht. Reihenfolge: X4 (Fundament-Schlussstein, abgeschlossen) →
-**P1 (Frontier-Intelligenz real, abgeschlossen, s.
-`reports/P1_bericht.md`)** → **P2 (SWE-Tiefe, hier abgeschlossen, s.
-`reports/P2_bericht.md`)** → P3 (Dogfooding-Meilenstein, Spezifikation
-folgt vom Auftraggeber) → P4 (Vergleichsläufe). Neue Abnahme-Klasse
-K9·CompetitiveDoD steht ÜBER K1–K8, ersetzt sie nicht.
+Der Auftraggeber-Maßstab: vollfunktionale Systeme (Claude Code, Copilot,
+Cursor, Bolt) **mehrfach übertroffen**, nicht nur erreicht. Sequenz
+**vollständig durchlaufen:** X4 (Fundament-Schlussstein) → **P1**
+(Frontier-Intelligenz real, `reports/P1_bericht.md`) → **P2** (SWE-Tiefe,
+`reports/P2_bericht.md`) → **P3** (Dogfooding-Meilenstein,
+`reports/P3_dogfooding_bericht.md`) → **P4** (Vergleichsläufe,
+`reports/P4_vergleichslaeufe_bericht.md`). Die Abnahme-Klasse
+**K9·CompetitiveDoD ist erfüllt** (D1–D6-Matrix belegt, D4/D5 Parität,
+D1/D2/D3/D6 kategorisch) — sie steht ÜBER K1–K8, ersetzt sie nicht. Der
+Prototyp ist im Sinne des Auftraggebers **fertig**. Benannte
+Folgeschritte (Vergleich gegen die namentlich genannten Werkzeuge
+selbst; Host-Termine) bleiben eigene Aufträge.

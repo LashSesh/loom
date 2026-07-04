@@ -126,6 +126,17 @@ fn required_kinds(profile: &str) -> Vec<u16> {
             KIND_CANDIDATE_OUTPUTS,
             KIND_TOOL_PROFILE,
         ]),
+        // Dokument 20 §5 (P4): der Benchmark-Koerper braucht CL
+        // (ComparisonMatrix + cites auf den CCE-Arm-RepoWorkbody),
+        // EVIDENCE (beide Arm-Ergebnisse), CANDIDATE_OUTPUTS (der
+        // CCE-Arm-Output), LEDGER, RESIDUE.
+        "benchmark" => base.extend([
+            KIND_CL_SUBSTRATE,
+            KIND_LEDGER,
+            KIND_RESIDUE,
+            KIND_EVIDENCE,
+            KIND_CANDIDATE_OUTPUTS,
+        ]),
         _ => {}
     }
     base
@@ -627,6 +638,69 @@ pub fn verify(bytes: &[u8]) -> VerificationReport {
                     "Altform 'network_request': keine der drei Egress-Capabilities ohne Neu-Deklaration aktivierbar (sichtbar, read-kompatibel)",
                 ));
             }
+        }
+    }
+
+    // ---- L2 Dokument 20 §5 (P4): Benchmark-Semantik. Nur fuer die
+    // Klasse "benchmark": beide Ergebnis-Digests vorhanden, Fairness-
+    // Reihenfolge konsistent (Raw-Arm strikt vor CCE-Arm), Matrix-Zeilen
+    // vollstaendig (D1–D6). Rein hermetisch (Bytes dieses Containers).
+    let is_benchmark =
+        matches!(get(&manifest, "container_class"), Some(Cv::Text(c)) if c == "benchmark");
+    if is_benchmark {
+        // EVIDENCE traegt raw_result + cce_result mit output_digest und
+        // submission_order.
+        let evidence = by_kind.get(&KIND_EVIDENCE).and_then(|v| v.first());
+        let read_arm = |arm: &str| -> Option<(String, u64)> {
+            let ev = evidence?;
+            let r = get(ev, arm)?;
+            let digest = match get(r, "output_digest") {
+                Some(Cv::Text(d)) if !d.is_empty() => d.clone(),
+                _ => return None,
+            };
+            let order = match get(r, "submission_order") {
+                Some(Cv::Uint(n)) => *n,
+                _ => return None,
+            };
+            Some((digest, order))
+        };
+        match (read_arm("raw_result"), read_arm("cce_result")) {
+            (Some((_, raw_order)), Some((_, cce_order))) => {
+                if raw_order >= cce_order {
+                    reject = true;
+                    diagnoses.push(diag(
+                        "L2",
+                        "benchmark_fairness_order",
+                        "Raw-Arm submission_order nicht strikt vor CCE-Arm (Fairness verletzt)",
+                    ));
+                }
+            }
+            _ => {
+                reject = true;
+                diagnoses.push(diag(
+                    "L2",
+                    "benchmark_result_missing",
+                    "benchmark-Container ohne beide Ergebnis-Digests (raw_result/cce_result) in EVIDENCE",
+                ));
+            }
+        }
+        // ComparisonMatrix im CL_SUBSTRATE: genau sechs D-Zeilen.
+        let matrix_rows = by_kind
+            .get(&KIND_CL_SUBSTRATE)
+            .and_then(|v| v.first())
+            .and_then(|cl| get(cl, "comparison_matrix"))
+            .and_then(|m| match m {
+                Cv::Array(rows) => Some(rows.len()),
+                _ => None,
+            })
+            .unwrap_or(0);
+        if matrix_rows != 6 {
+            reject = true;
+            diagnoses.push(diag(
+                "L2",
+                "benchmark_matrix_incomplete",
+                &format!("ComparisonMatrix hat {matrix_rows} Zeilen statt 6 (D1–D6)"),
+            ));
         }
     }
 

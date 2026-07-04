@@ -537,6 +537,46 @@ echte, live gegen die tatsächliche OpenAI-API laufende Diff-Erzeugung
 
 ---
 
+## Etappe P3 (Dokument 19) — Dogfooding
+
+Crate `crates/cce-dogfood` real gebaut: TaskProposal + ProtectedPathFence
++ drei neue Gates (TaskProposalGate/ProtectedPathGate/BranchIsolationGate,
+plus strukturelles MergeExclusionGate), Kern-Kette verdrahtet über die
+UNVERÄNDERTEN P2-Bausteine. **R-DOG-1 real erbracht** am eigenen
+Repository (Branch `dogfood/p3-001`, ungemergt): echte Kanzel → Diff →
+echtes Build/Test → PhaseBlock → RepoWorkbody `verify == Valid` → Replay
+→ realer `git commit` mit aufgezeichneter Bestätigung. N-DOG-1..4
+hermetisch im Wächter. Kein automatischer Merge nach `main` (bleibt
+exklusiv Auftraggeber-Handlung). Details: `reports/P3_dogfooding_bericht.md`.
+
+Kein neues Bau-Residuum durch P3 selbst. Ehrlich dokumentiert: R-DOG-1
+brauchte mehrere echte Kanzel-Anläufe (Format-/Selbstkonsistenzfehler des
+Modells, alle korrekt von BuildEvidenceGate/TestEvidenceGate gefangen) +
+einen eigenen Harness-Fehler — vollständige Historie im Bericht.
+
+## Etappe P4 (Dokument 20) — Vergleichsläufe (K9 erfüllt)
+
+Crate `crates/cce-benchmark` real gebaut: FairnessGate +
+ComparisonSealGate, Container-Klasse `"benchmark"` (additiv in
+`loom_format::PROFILES` + `loom-verify`, unveränderte „repo"-Regel exakt
+erhalten), D1–D6-Matrixbau. **R-BENCH-1 (Coding) + R-BENCH-2 (Dokument)
+real gefahren:** ungegatetes gpt-4o-mini gegen CCE, dasselbe Modell —
+**D4/D5 Parität** in beiden Klassen (beide criteria_met, 0 Eingriffe;
+die Beweispflicht kostet an Aufgabenqualität nichts), **D1/D2/D3/D6
+kategorisch** nur beim CCE-Arm (der ungegatete Arm hat strukturell keinen
+Evidence-/Replay-/Governance-/Audit-Mechanismus). Beide
+Benchmark-Workbodies `verify == Valid`. N-BENCH-1/2 hermetisch im Wächter.
+**K9 · CompetitiveDoD erfüllt.** Details:
+`reports/P4_vergleichslaeufe_bericht.md`.
+
+Kein neues Bau-Residuum durch P4 selbst. Ausdrücklich benannt (kein
+Blocker, nicht Teil der P4-DoD): ein realer Vergleich gegen
+Cursor/Copilot/Bolt selbst (bräuchte deren Konten/Lizenzen —
+`cce-benchmark` nimmt jeden weiteren Arm ohne neue Architektur auf);
+breitere Aufgaben-Stichproben zur statistischen Absicherung.
+
+---
+
 **Keine verwaiste Nummer:** jede oben gelistete Nummer hat einen
 Endstatus (GESCHLOSSEN/TEILWEISE GESCHLOSSEN/OFFEN+Grund) und einen
 Fundstellen-Verweis. Kein Eintrag blockiert den Bau-DoD; Repo-R1
