@@ -1,7 +1,8 @@
 //! ToolManifest (C.10) — deklarativ; Deklaration ≠ Aktivierung.
 
-/// Die neun Tool-Klassen (C.10) — je Klasse ein eigener Lock.
-pub const TOOL_CLASSES: [&str; 9] = [
+/// Die elf Tool-Klassen (C.10 + P2/Dokument 18 §3: build/test additiv) —
+/// je Klasse ein eigener Lock.
+pub const TOOL_CLASSES: [&str; 11] = [
     "fs_read",
     "fs_write",
     "shell",
@@ -11,6 +12,8 @@ pub const TOOL_CLASSES: [&str; 9] = [
     "ci",
     "network_tool",
     "custom",
+    "build",
+    "test",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
