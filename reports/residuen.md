@@ -370,7 +370,7 @@ Datei selbst zu ändern.
 | R-Agent-12 | Klassen-Registry-Signaturenfeld stets leer | OFFEN — kein signierter Seed existiert |
 | R-Agent-13 | Pattern-Herkunft war caller-geliefert | **GESCHLOSSEN** (Etappe X4 §2a) |
 | R-Agent-14 | ScopeGate war String-basiert | **GESCHLOSSEN** (Etappe X4 §2b) |
-| R-Agent-15 | Keine dedizierte P2-Spezifikationsdatei auffindbar | OFFEN — Rückfrage gestellt, blockiert P2-Beginn |
+| R-Agent-15 | Keine dedizierte P2-Spezifikationsdatei auffindbar | **GESCHLOSSEN** (Dokument 18 nachgeliefert, 2026-07-04) |
 
 Separat in diesem Register geschlossen: **S1.10-R1** (docx-Bibliothek,
 GESCHLOSSEN X1d), **Signatur-Registry-Vollform** (GESCHLOSSEN X1e),
@@ -499,6 +499,12 @@ Vorläufige Behandlung: NICHT eigenständig spezifiziert — Bau gestoppt,
 Rückfrage beim Auftraggeber gestellt (s. Chatverlauf), bevor P2 begonnen
 wird.
 Blockiert: den Beginn von P2, bis Rückfrage beantwortet ist.
+
+**GESCHLOSSEN (2026-07-04):** Dokument 18 (`cce-spec-repo/18 P2 SWE
+TIEFE SPEC.md`) wurde nachgeliefert — vollständige P2-Spezifikation
+(§1-§9, Objektmodell, fünf Werkzeugklassen, sechs Werkzeug-Gates,
+Kern-Kette, Zeugen R-SWE-1..5/N-SWE-1..8, Bauplan a→h). P2-Bau folgt
+ab jetzt exakt diesem Dokument.
 
 ---
 
