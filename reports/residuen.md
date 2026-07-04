@@ -508,6 +508,35 @@ ab jetzt exakt diesem Dokument.
 
 ---
 
+## Etappe P2 (Dokument 18) — SWE-Tiefe
+
+Crate `crates/cce-swe` real gebaut: Objektmodell (RepoWorkbody/
+RepoSnapshot/DiffCandidate/BuildRun/TestRun/TaskLedger), fünf
+Werkzeugklassen (fs_read bereits aus P1-Aera, fs_write/git/build/test
+neu) real im `ToolGateway` (`crates/cce-toolgateway`), sechs
+Werkzeug-Gates (vier neu, drei aus `cce_inference::gates`
+wiederverwendet), die Kern-Kette DiffCandidate→apply(dry-run)→
+BuildRun→TestRun→Gates→PhaseBlock, eine provider-erzeugte Diff (OpenAI
+hinter dem unveränderten Gateway, recorded), Replay-Determinismus, 14
+Zeugen (R-SWE-1..5/N-SWE-1..8 + Typ-Erreichbarkeit) dauerhaft im
+Wächter (`conformance/swe/swe_catalog.rs`). RepoWorkbody ist eine neue
+Containerklasse `"repo"` (additiv in `loom_format::PROFILES`,
+`required_kinds` in `loom-verify` additiv erweitert) — kein neues
+Segment nötig. Reale Prozess-Aufrufe (git/build/test) liegen NUR unter
+dem neuen opt-in-Feature `process` (Standard AUS, dieselbe Disziplin
+wie `http`); CI bleibt hermetisch. Details: `reports/P2_bericht.md`.
+
+Kein neues Bau-Residuum durch P2 selbst. Zwei Betriebsschritte
+ausdrücklich vorgemerkt (kein Blocker): (1) eine reale, manuelle
+Betriebsverifikation des Features `process` gegen ein echtes
+Referenz-Repository (echte `cargo build`/`cargo test`/`git commit`) —
+analog zu P1s Betriebsverifikation gegen die echte OpenAI-API; (2) eine
+echte, live gegen die tatsächliche OpenAI-API laufende Diff-Erzeugung
+(statt der hermetischen `RecordedOpenAiDiffProvider`-Fixture, Feature
+`http` + `OPENAI_API_KEY`, unverändert aus P1).
+
+---
+
 **Keine verwaiste Nummer:** jede oben gelistete Nummer hat einen
 Endstatus (GESCHLOSSEN/TEILWEISE GESCHLOSSEN/OFFEN+Grund) und einen
 Fundstellen-Verweis. Kein Eintrag blockiert den Bau-DoD; Repo-R1
