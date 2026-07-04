@@ -59,8 +59,10 @@ pub const FLAG_SEALED: u8 = 1 << 0;
 /// Norm IST ein .loom-Workbody, kein Verweis darauf). Dokument 18 §6
 /// (P2) fuegt additiv "repo" hinzu: die Speicherform des
 /// SWE-RepoWorkbody (ein zertifizierter Bauauftrag IST ein
-/// .loom-Workbody).
-pub const PROFILES: [&str; 8] = [
+/// .loom-Workbody). Dokument 20 §5 (P4) fuegt additiv "benchmark" hinzu:
+/// die Speicherform eines Vergleichslaufs (die Ueberlegenheitsbehauptung
+/// wird selbst ein zertifiziertes Artefakt).
+pub const PROFILES: [&str; 9] = [
     "inspection",
     "workcell",
     "source",
@@ -69,6 +71,7 @@ pub const PROFILES: [&str; 8] = [
     "full",
     "norm",
     "repo",
+    "benchmark",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]

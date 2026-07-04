@@ -320,6 +320,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "cce-benchmark"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-inference",
+ "cce-swe",
+ "cce-toolgateway",
+ "loom-canon",
+ "loom-cites",
+ "loom-codec",
+ "loom-format",
+ "loom-replay",
+ "loom-verify",
+]
+
+[[package]]
 name = "cce-bridge"
 version = "0.1.0"
 dependencies = [
@@ -345,6 +361,7 @@ dependencies = [
 name = "cce-conformance"
 version = "0.1.0"
 dependencies = [
+ "cce-benchmark",
  "cce-bridge",
  "cce-core",
  "cce-crystal",

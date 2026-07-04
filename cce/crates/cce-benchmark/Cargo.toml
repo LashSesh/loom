@@ -1,0 +1,36 @@
+[package]
+name = "cce-benchmark"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# P4 (Dokument 20 §4): Vergleichslaeufe. Blatt-Crate, keine neue
+# Kern-Logik. Der CCE-Arm bindet den UNVERAENDERTEN cce-swe-Kern
+# (run_swe_task + seal_repo_workbody, P2). Der cce-dogfood-Kern (P3) ist
+# CCE-SELBST-Repo-spezifisch (ProtectedPathFence/BranchIsolation) und
+# laut Dokument 20 §4 hier ausdruecklich NICHT noetig, da nie CCEs
+# eigenes Repo betroffen ist — deshalb wird cce-swe direkt gebunden (der
+# Kern, den cce-dogfood nur umhuellt), nicht cce-dogfood. Der Benchmark-
+# Container ist selbst ein `.loom` (Klasse "benchmark") und braucht daher
+# denselben benannten .loom-Port wie cce-swe/cce-bridge.
+[dependencies]
+cce-core = { path = "../cce-core" }
+cce-swe = { path = "../cce-swe" }
+cce-inference = { path = "../cce-inference" }
+cce-toolgateway = { path = "../cce-toolgateway" }
+loom-canon = { path = "../../loom/loom-canon" }
+loom-format = { path = "../../loom/loom-format" }
+loom-codec = { path = "../../loom/loom-codec" }
+loom-cites = { path = "../../loom/loom-cites" }
+loom-replay = { path = "../../loom/loom-replay" }
+
+[dev-dependencies]
+loom-verify = { path = "../../loom/loom-verify" }
+
+[features]
+# Reicht den realen Prozess-/Netz-Schalter nur durch — reale
+# Build-/Test-Aufrufe (cce-toolgateway) und Cloud-Egress
+# (cce-inference/http) bleiben opt-in, Standard AUS, CI hermetisch.
+process = ["cce-toolgateway/process", "cce-swe/process"]
+http = ["cce-inference/http"]

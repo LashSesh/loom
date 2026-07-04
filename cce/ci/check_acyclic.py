@@ -48,6 +48,18 @@ ALLOWED_CORE_TO_OUTER = {
     # nur als dev-dependency fuer genau diesen Zeugen, kein Laufzeitpfad
     # des Blatt-Crates selbst.
     "cce-dogfood": {"loom-verify"},
+    # Dokument 20 §5 (P4): der Benchmark-Vergleich IST selbst ein
+    # `.loom`-Koerper der Klasse "benchmark" — dieselben benannten
+    # .loom-Ports wie cce-swe/cce-bridge, aus demselben Grund. (loom-verify
+    # nur als dev-dependency fuer die hermetischen verify==Valid-Zeugen.)
+    "cce-benchmark": {
+        "loom-cites",
+        "loom-canon",
+        "loom-format",
+        "loom-codec",
+        "loom-replay",
+        "loom-verify",
+    },
 }
 
 
