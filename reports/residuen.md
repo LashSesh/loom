@@ -370,7 +370,7 @@ Datei selbst zu ändern.
 | R-Agent-12 | Klassen-Registry-Signaturenfeld stets leer | OFFEN — kein signierter Seed existiert |
 | R-Agent-13 | Pattern-Herkunft war caller-geliefert | **GESCHLOSSEN** (Etappe X4 §2a) |
 | R-Agent-14 | ScopeGate war String-basiert | **GESCHLOSSEN** (Etappe X4 §2b) |
-| R-Agent-15 | Keine dedizierte P2-Spezifikationsdatei auffindbar | OFFEN — Rückfrage gestellt, blockiert P2-Beginn |
+| R-Agent-15 | Keine dedizierte P2-Spezifikationsdatei auffindbar | **GESCHLOSSEN** (Dokument 18 nachgeliefert, 2026-07-04) |
 
 Separat in diesem Register geschlossen: **S1.10-R1** (docx-Bibliothek,
 GESCHLOSSEN X1d), **Signatur-Registry-Vollform** (GESCHLOSSEN X1e),
@@ -499,6 +499,41 @@ Vorläufige Behandlung: NICHT eigenständig spezifiziert — Bau gestoppt,
 Rückfrage beim Auftraggeber gestellt (s. Chatverlauf), bevor P2 begonnen
 wird.
 Blockiert: den Beginn von P2, bis Rückfrage beantwortet ist.
+
+**GESCHLOSSEN (2026-07-04):** Dokument 18 (`cce-spec-repo/18 P2 SWE
+TIEFE SPEC.md`) wurde nachgeliefert — vollständige P2-Spezifikation
+(§1-§9, Objektmodell, fünf Werkzeugklassen, sechs Werkzeug-Gates,
+Kern-Kette, Zeugen R-SWE-1..5/N-SWE-1..8, Bauplan a→h). P2-Bau folgt
+ab jetzt exakt diesem Dokument.
+
+---
+
+## Etappe P2 (Dokument 18) — SWE-Tiefe
+
+Crate `crates/cce-swe` real gebaut: Objektmodell (RepoWorkbody/
+RepoSnapshot/DiffCandidate/BuildRun/TestRun/TaskLedger), fünf
+Werkzeugklassen (fs_read bereits aus P1-Aera, fs_write/git/build/test
+neu) real im `ToolGateway` (`crates/cce-toolgateway`), sechs
+Werkzeug-Gates (vier neu, drei aus `cce_inference::gates`
+wiederverwendet), die Kern-Kette DiffCandidate→apply(dry-run)→
+BuildRun→TestRun→Gates→PhaseBlock, eine provider-erzeugte Diff (OpenAI
+hinter dem unveränderten Gateway, recorded), Replay-Determinismus, 14
+Zeugen (R-SWE-1..5/N-SWE-1..8 + Typ-Erreichbarkeit) dauerhaft im
+Wächter (`conformance/swe/swe_catalog.rs`). RepoWorkbody ist eine neue
+Containerklasse `"repo"` (additiv in `loom_format::PROFILES`,
+`required_kinds` in `loom-verify` additiv erweitert) — kein neues
+Segment nötig. Reale Prozess-Aufrufe (git/build/test) liegen NUR unter
+dem neuen opt-in-Feature `process` (Standard AUS, dieselbe Disziplin
+wie `http`); CI bleibt hermetisch. Details: `reports/P2_bericht.md`.
+
+Kein neues Bau-Residuum durch P2 selbst. Zwei Betriebsschritte
+ausdrücklich vorgemerkt (kein Blocker): (1) eine reale, manuelle
+Betriebsverifikation des Features `process` gegen ein echtes
+Referenz-Repository (echte `cargo build`/`cargo test`/`git commit`) —
+analog zu P1s Betriebsverifikation gegen die echte OpenAI-API; (2) eine
+echte, live gegen die tatsächliche OpenAI-API laufende Diff-Erzeugung
+(statt der hermetischen `RecordedOpenAiDiffProvider`-Fixture, Feature
+`http` + `OPENAI_API_KEY`, unverändert aus P1).
 
 ---
 

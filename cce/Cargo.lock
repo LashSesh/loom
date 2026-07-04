@@ -359,6 +359,7 @@ dependencies = [
  "cce-runner",
  "cce-spiral",
  "cce-store",
+ "cce-swe",
  "cce-toolgateway",
  "cockpit-core",
  "loom-canon",
@@ -536,6 +537,23 @@ version = "0.1.0"
 dependencies = [
  "cce-core",
  "cce-phaseblock",
+]
+
+[[package]]
+name = "cce-swe"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-inference",
+ "cce-phaseblock",
+ "cce-store",
+ "cce-toolgateway",
+ "loom-canon",
+ "loom-cites",
+ "loom-codec",
+ "loom-format",
+ "loom-replay",
+ "loom-verify",
 ]
 
 [[package]]

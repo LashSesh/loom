@@ -9,3 +9,13 @@ publish = false
 # nexus-*- und keine cce-inference-Abhaengigkeit.
 [dependencies]
 cce-core = { path = "../cce-core" }
+
+[features]
+# Reale Prozess-Aufrufe (git/build/test, P2/Dokument 18 §9) NUR unter
+# diesem opt-in-Feature (standardmaessig AUS) — dieselbe Disziplin wie
+# `http` in cce-inference: CI baut/testet ohne dieses Feature und bleibt
+# damit hermetisch (aufgezeichnete ToolEvidence-Fixtures statt echter
+# Subprozesse). Kein Shell-Sammelzugriff (IG.3/§3): jede reale Ausfuehrung
+# geht ueber einen fest typisierten `std::process::Command`-Aufruf je
+# Werkzeugklasse, nie ueber `sh -c` mit freiem Text.
+process = []
