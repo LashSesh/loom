@@ -370,6 +370,7 @@ Datei selbst zu ändern.
 | R-Agent-12 | Klassen-Registry-Signaturenfeld stets leer | OFFEN — kein signierter Seed existiert |
 | R-Agent-13 | Pattern-Herkunft war caller-geliefert | **GESCHLOSSEN** (Etappe X4 §2a) |
 | R-Agent-14 | ScopeGate war String-basiert | **GESCHLOSSEN** (Etappe X4 §2b) |
+| R-Agent-15 | Keine dedizierte P2-Spezifikationsdatei auffindbar | OFFEN — Rückfrage gestellt, blockiert P2-Beginn |
 
 Separat in diesem Register geschlossen: **S1.10-R1** (docx-Bibliothek,
 GESCHLOSSEN X1d), **Signatur-Registry-Vollform** (GESCHLOSSEN X1e),
@@ -458,6 +459,46 @@ tatsächliche OpenAI-API bleibt ein Betriebsschritt (Feature + Schlüssel
 aktivieren) — explizit vorgemerkt, nicht blockierend für P1's eigenen
 Auftragsumfang (Dokument 17 §3: Manifest + Gates + recorded-Replay real
 gebaut).
+
+---
+
+## Nachtrag Etappe P1 — Betriebsverifikation (2026-07-04)
+
+**IG-R1-Zusatz:** die "reale Erprobung"-Klausel aus dem Eintrag oben ist
+jetzt einmalig real erbracht (ein manueller, `#[ignore]`-markierter
+Smoke-Test, echtes Modell `gpt-4o-mini`, Details `reports/
+P1_bericht.md` §„Betriebsverifikation"). Das ändert IG-R1s Endstatus
+nicht (bereits GESCHLOSSEN durch den P1-Bau selbst) — es dokumentiert
+nur, dass der zuvor vorgemerkte Betriebsschritt inzwischen einmal
+tatsächlich durchgeführt wurde. Der Bau-Default (`cargo test
+--workspace`, `bash ci/run_ci.sh`) bleibt unverändert netzfrei; Feature
+`http` bleibt AUS.
+
+---
+
+## Nachtrag P2-Anschluss (2026-07-04) — R-Agent-15
+
+R-Agent-15: keine dedizierte P2-Spezifikationsdatei in `cce-spec-repo/`
+auffindbar
+Fundstelle: Auftrag verweist auf Dokument 17 §3 ("`17 MESSLATTE PARITY
+SURPASS.md`"); durchsucht wurden alle Dateien unter `cce-spec-repo/`
+(Top-Level 00–17 + `spec/00_kern`..`spec/40_format`) nach "P2",
+"SWE-Tiefe", "PL3", "Repo-Workbody", "ToolCapabilityLock".
+Frage/Konflikt: Dokument 17 §3 enthält nur EINEN Satz zu P2 ("die
+Software-Familie von PL3-Struktur auf Arbeitsreife: Repo-Workbody
+(Code-Einheiten, Diffs als Artefakte, Build-/Test-Läufe als Evidence),
+Tool-Klassen fs/git/build/test real unter ToolCapabilityLocks") — keine
+eigene P2-Spec-Datei mit Feldern/Zeugen/Abnahmekriterien wie bei den
+anderen Etappen (vgl. S-E5 für Ring E5, Dokument 16 für X4). Ohne
+Vorgabe zu Feldern/genauen Testkriterien/Abgrenzung gegenüber dem
+bereits bestehenden `cce-toolgateway` (der laut P1_bericht/vorherigen
+Berichten bereits fs/git/build/test-Tool-Klassen SPEZIFIZIERT+GETESTET
+hat, aber laut Auftrag jetzt "real gefahren" werden sollen) wäre jede
+konkrete Ausgestaltung geraten.
+Vorläufige Behandlung: NICHT eigenständig spezifiziert — Bau gestoppt,
+Rückfrage beim Auftraggeber gestellt (s. Chatverlauf), bevor P2 begonnen
+wird.
+Blockiert: den Beginn von P2, bis Rückfrage beantwortet ist.
 
 ---
 

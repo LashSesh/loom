@@ -47,6 +47,11 @@ cce-runner = { path = "../crates/cce-runner" }
 cce-bridge = { path = "../crates/cce-bridge" }
 loom-replay = { path = "../loom/loom-replay" }
 
+# Betriebsverifikation P1 (echter Egress, #[ignore]): reicht das
+# `http`-Feature NUR durch, aktiviert selbst nichts im Default-Bau.
+[features]
+http = ["cce-inference/http"]
+
 # Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
 [[test]]
 name = "inference_catalog"

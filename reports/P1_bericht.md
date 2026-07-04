@@ -125,6 +125,65 @@ ein Betriebsschritt, sobald der Auftraggeber Feature+Schlüssel aktiviert
 (Dokument 17 §3 verlangt genau: Manifest + Gates + recorded-Replay hinter
 dem unveränderten Gateway, real gebaut).
 
+## Betriebsverifikation (2026-07-04)
+
+Echter, manueller Smoke-Test des vollen Pfads gegen die tatsächliche
+OpenAI-API — kein neuer Baustein, reine Erprobung von P1 im Betrieb.
+
+**Voraussetzung geprüft:** `OPENAI_API_KEY` ist als Prozess-Umgebungsvariable
+gesetzt (nur der Variablenname wurde geprüft, nie der Wert —
+`env | grep -i OPENAI_API_KEY | sed -E 's/=.*/=<gesetzt>/'`).
+
+**Aufbau:** ein neuer, dauerhaft im Katalog verbleibender Zeuge
+`p1_betriebsverifikation_echter_openai_egress_nach_voller_gate_kette`
+(`conformance/inference/inference_catalog.rs`) — `#[cfg(feature =
+"http")]` UND `#[ignore]`, läuft also **nie** in `cargo test --workspace`
+oder `bash ci/run_ci.sh` (die bleiben netzfrei per Bau-Default), sondern
+ausschließlich explizit über:
+
+```
+cargo test -p cce-conformance --features http -- --ignored p1_betriebsverifikation
+```
+
+Das Feature `http` wird von `conformance/Cargo.toml` nur an
+`cce-inference/http` durchgereicht — im Conformance-Crate selbst löst
+es nichts anderes aus.
+
+**Modell:** `gpt-4o-mini` (echte, bezahlbare OpenAI-Chat-Completions-ID —
+bewusst nicht der Platzhalter `"gpt-test"` aus den Bau-Zeugen).
+
+**Ergebnis (ein Lauf, lokal ausgeführt, danach verworfen — nur das Faktum
+hier dokumentiert):**
+
+- (a) Vor-Egress-Gate-Kette nachweislich vollständig vor dem Egress
+  durchlaufen: `InferenceEvidence::egress_gate_reports` enthält alle zehn
+  Gate-Reports, jeder mit `GateVerdict::Pass` — geprüft direkt am realen
+  Anbieter (nicht nur strukturell angenommen wie zuvor am Mock/an der
+  degradierten Variante).
+- (b) eine echte, inhaltlich plausible Antwort kam zurück und wurde korrekt
+  als `GatewayOutcome::Candidate` mit nicht-leerem `CandidateOutput.content`
+  abgebildet (`ResponseOutcome::Output` → `CandidateOutput`, kein Fallback,
+  kein stiller Leerinhalt). Testausgabe (bewusst ohne Rohtext, nur Größen):
+  1142 Zeichen Antwort, 243 Tokens laut `usage.total_tokens`.
+- (c) der Schlüssel taucht an keiner Stelle auf — nicht in Testcode, nicht
+  in Testausgabe, nicht in diesem Report, nicht im Commit-Diff. Der Test
+  liest ihn nicht einmal selbst; das bleibt exklusiv `infer()`
+  vorbehalten (unverändert seit dem P1-Bau).
+
+**Volle Prüfkette danach erneut grün:** `cargo fmt --all -- --check`,
+`cargo clippy --workspace --all-targets -- -D warnings` (Default-Build),
+`cargo clippy -p cce-inference -p cce-conformance --all-targets --features
+http -- -D warnings`, `python3 ci/check_acyclic.py` (55 Crates, DAG +
+Socket-Scan sauber), `bash ci/run_ci.sh` — alle grün, unverändert
+netzfrei. Der neue Zeuge zählt im Default-Bau nicht mit (cfg-gated weg,
+nicht nur `--ignored`-gefiltert): `inference_catalog` bleibt bei 30 Tests
+im Default, 31 mit `--features http` (davon 1 `--ignored`).
+
+Damit ist P1 nicht mehr nur strukturell erprobt, sondern einmal real am
+tatsächlichen Anbieter beobachtet. Betriebsschritte darüber hinaus
+(Streaming, Retry-/Backoff-Politik, produktive Modell-ID-Wahl) bleiben wie
+zuvor vorgemerkte Betriebsentscheidungen, kein Bau-Residuum.
+
 ## Nächster Schritt
 
 P2 · SWE-Tiefe (Dokument 17 §3): Software-Familie von PL3-Struktur auf
