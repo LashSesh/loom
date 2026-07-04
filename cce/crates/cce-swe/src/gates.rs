@@ -5,7 +5,8 @@
 //! unveraendert wiederverwendet, statt sie zu duplizieren; ToolCapability/
 //! ToolScope/BuildEvidence/TestEvidence/Regression sind neu (P2).
 
-use crate::model::{BuildRun, TestRun};
+use crate::grounding::{GroundingPacket, RuleSeverity};
+use crate::model::{BuildRun, DiffCandidate, TestRun};
 use crate::residues::swe_residue;
 
 pub use cce_inference::gates::{
@@ -139,5 +140,118 @@ pub fn regression_gate(breaks_existing_witness: bool) -> InfVerdict {
             gate: "RegressionGate".into(),
             reason: "kein bestehender Zeuge gekippt".into(),
         }
+    }
+}
+
+// ---------- Agent-Grounding-Gates (Dokument 21 §3/§4, additiv) ----------
+
+/// Zaehlt die geaenderten Zeilen eines DiffCandidate (`+`/`-`-Zeilen ueber
+/// alle Hunks) — die Aenderungsgroesse fuer das DeltaBudgetGate.
+pub fn diff_delta_lines(diff: &DiffCandidate) -> usize {
+    diff.hunks
+        .iter()
+        .flat_map(|h| h.unified_diff.lines())
+        .filter(|l| {
+            (l.starts_with('+') || l.starts_with('-'))
+                && !l.starts_with("+++")
+                && !l.starts_with("---")
+        })
+        .count()
+}
+
+/// DeltaBudgetGate (§3): ein DiffCandidate, dessen Zeilenumfang das im
+/// Auftrag deklarierte Budget ueberschreitet, HAELT — ausser bei explizit
+/// aufgezeichneter Erhoehung des Budgets durch den Auftraggeber
+/// (materielle Aktion, HumanConfirmationGate). Verhindert unbemerkt
+/// riesige Aenderungen.
+pub fn delta_budget_gate(
+    delta_lines: usize,
+    budget: usize,
+    increase_confirmation: Option<&str>,
+) -> InfVerdict {
+    if delta_lines <= budget {
+        return InfVerdict::Allow {
+            gate: "DeltaBudgetGate".into(),
+            reason: format!("{delta_lines} ≤ Budget {budget}"),
+        };
+    }
+    match increase_confirmation {
+        Some(r) if !r.is_empty() => InfVerdict::Allow {
+            gate: "DeltaBudgetGate".into(),
+            reason: format!("{delta_lines} > Budget {budget}, aber aufgezeichnete Erhoehung: {r}"),
+        },
+        _ => InfVerdict::Hold {
+            gate: "DeltaBudgetGate".into(),
+            residue: Box::new(swe_residue(
+                "delta_budget_exceeded",
+                &format!(
+                    "Diff aendert {delta_lines} Zeilen > Budget {budget} ohne aufgezeichnete \
+                     Erhoehung — Hold"
+                ),
+            )),
+        },
+    }
+}
+
+/// ContextBudgetGate (§3): ein GroundingPacket, das die deklarierte
+/// Zeichen-Obergrenze ueberschreitet, HAELT mit `context_budget_exceeded`
+/// — kein stilles Kuerzen sensibler Regeln.
+pub fn context_budget_gate(packet: &GroundingPacket, char_limit: usize) -> InfVerdict {
+    let size = packet.context_size();
+    if size <= char_limit {
+        InfVerdict::Allow {
+            gate: "ContextBudgetGate".into(),
+            reason: format!("{size} ≤ Kontextbudget {char_limit}"),
+        }
+    } else {
+        InfVerdict::Hold {
+            gate: "ContextBudgetGate".into(),
+            residue: Box::new(swe_residue(
+                "context_budget_exceeded",
+                &format!(
+                    "GroundingPacket {size} Zeichen > Budget {char_limit} — Hold, kein stilles \
+                     Kuerzen"
+                ),
+            )),
+        }
+    }
+}
+
+/// RuleComplianceGate (§4): jeder DiffCandidate wird gegen die
+/// `blocking`-RuleAtoms des GroundingPacket geprueft — reject bei
+/// Verstoss, UNABHAENGIG vom Modell-Output oder den Werkzeug-Gates. Eine
+/// Regel loest aus, wenn ihr `trigger` in einer HINZUGEFUEGTEN (`+`)
+/// Zeile eines Hunks auftaucht, dessen Pfad unter dem `scope` der Regel
+/// liegt.
+pub fn rule_compliance_gate(diff: &DiffCandidate, packet: &GroundingPacket) -> InfVerdict {
+    for rule in &packet.rules {
+        if rule.severity != RuleSeverity::Blocking {
+            continue;
+        }
+        for hunk in &diff.hunks {
+            if !hunk.path.starts_with(rule.scope.as_str()) {
+                continue;
+            }
+            for line in hunk.unified_diff.lines() {
+                if let Some(added) = line.strip_prefix('+') {
+                    if !line.starts_with("+++") && added.contains(rule.trigger.as_str()) {
+                        return InfVerdict::Reject {
+                            gate: "RuleComplianceGate".into(),
+                            residue: Box::new(swe_residue(
+                                "rule_violation",
+                                &format!(
+                                    "blocking-Regel '{}' verletzt (Trigger '{}' in {}): {}",
+                                    rule.rule_id, rule.trigger, hunk.path, rule.prescription
+                                ),
+                            )),
+                        };
+                    }
+                }
+            }
+        }
+    }
+    InfVerdict::Allow {
+        gate: "RuleComplianceGate".into(),
+        reason: "kein blocking-Regel-Trigger in hinzugefuegten Zeilen".into(),
     }
 }

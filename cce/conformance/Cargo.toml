@@ -84,3 +84,8 @@ path = "dogfood/dogfood_catalog.rs"
 [[test]]
 name = "benchmark_catalog"
 path = "benchmark/benchmark_catalog.rs"
+
+# Agent-Grounding-Zeugen (Dokument 21, P2-Ext) unter conformance/grounding/
+[[test]]
+name = "grounding_catalog"
+path = "grounding/grounding_catalog.rs"
