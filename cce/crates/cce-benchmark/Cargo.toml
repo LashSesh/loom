@@ -27,6 +27,10 @@ loom-replay = { path = "../../loom/loom-replay" }
 
 [dev-dependencies]
 loom-verify = { path = "../../loom/loom-verify" }
+# Nur fuer den #[ignore]-Betriebs-Harness (R-BENCH-1/2): der CCE-Arm
+# akzeptiert seinen PhaseBlock via accept_block, bevor er den
+# RepoWorkbody siegelt.
+cce-phaseblock = { path = "../cce-phaseblock" }
 
 [features]
 # Reicht den realen Prozess-/Netz-Schalter nur durch — reale

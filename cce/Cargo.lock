@@ -325,6 +325,7 @@ version = "0.1.0"
 dependencies = [
  "cce-core",
  "cce-inference",
+ "cce-phaseblock",
  "cce-swe",
  "cce-toolgateway",
  "loom-canon",
