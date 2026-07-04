@@ -359,6 +359,7 @@ dependencies = [
  "cce-runner",
  "cce-spiral",
  "cce-store",
+ "cce-swe",
  "cce-toolgateway",
  "cockpit-core",
  "loom-canon",

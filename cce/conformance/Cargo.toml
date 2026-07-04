@@ -46,13 +46,23 @@ cockpit-core = { path = "../cockpit/cockpit-core" }
 cce-runner = { path = "../crates/cce-runner" }
 cce-bridge = { path = "../crates/cce-bridge" }
 loom-replay = { path = "../loom/loom-replay" }
+cce-swe = { path = "../crates/cce-swe" }
 
 # Betriebsverifikation P1 (echter Egress, #[ignore]): reicht das
 # `http`-Feature NUR durch, aktiviert selbst nichts im Default-Bau.
+# `process` (P2) reicht analog die reale git/build/test-Prozessfaehigkeit
+# durch (cce-toolgateway) -- ebenfalls nur #[ignore]-Betriebsschritte,
+# kein Default-Verhalten.
 [features]
 http = ["cce-inference/http"]
+process = ["cce-toolgateway/process", "cce-swe/process"]
 
 # Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
 [[test]]
 name = "inference_catalog"
 path = "inference/inference_catalog.rs"
+
+# SWE-Zeugen (Dokument 18, P2) liegen unter conformance/swe/
+[[test]]
+name = "swe_catalog"
+path = "swe/swe_catalog.rs"
