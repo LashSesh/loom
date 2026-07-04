@@ -414,7 +414,7 @@ Einarbeitung — keiner blockiert den Bau).
 | Nummer | Thema | Endstatus |
 |---|---|---|
 | CSA-R3 | ConnectorAdapter-OAuth-Vollform (= Register-07 #7, = R-16) | OFFEN — Betriebsschritt |
-| IG-R1 | Live-Cloud-Provider (= Register-07 #4) | OFFEN nach X4 — wird unmittelbar danach durch P1 (OpenAI-CloudModelProvider) angegangen |
+| IG-R1 | Live-Cloud-Provider (= Register-07 #4) | **GESCHLOSSEN** (P1, `CloudModelProviderOpenAI` real gebaut hinter unveraendertem Gateway); realer Betrieb bleibt WO-4/5-Entscheidung (Feature `http` + `OPENAI_API_KEY` sind im Bau AUS/nicht gesetzt) |
 | IG-R3 | ExternalAgent produktiv (= Register-07 #5) | OFFEN — Betriebsschritt |
 | IG-R4 | Kanzel-Prompt-Bibliothek | OFFEN — Reifepfad |
 | S15-R1 | SCALE-2..8-Kerntests (= Register-07 #10, = R-10) | TEILWEISE GESCHLOSSEN — SCALE-1..3 real geschlossen (X1b, E2, R-CYC-1 Station 3); SCALE-4..8 bleiben typisierte, ungebaute Stufen |
@@ -432,6 +432,34 @@ Einarbeitung — keiner blockiert den Bau).
 | R-13 | Klonungs-Lock (BoundedOperatorSpecialization) | OFFEN, BEWUSST — Lock scharf, Negativzeuge bleibt rot (Betriebsentscheidung) |
 | R-16 | ConnectorAdapter-OAuth | s. CSA-R3 oben |
 | Repo-R1 | Fehlende LICENSE/NOTICE-Datei (= Register-07 #23) | OFFEN — blockiert nur Veroeffentlichung, nicht den Bau |
+
+---
+
+## Etappe P1 (Dokument 17 §3, Overlay-Klausel: OpenAI statt Anthropic)
+
+**IG-R1 (Live-Cloud-Provider) GESCHLOSSEN.** `CloudModelProviderOpenAI`
+(`crates/cce-inference/src/providers/openai.rs`) implementiert
+`ModelProvider` real, läuft ausschließlich durch das unveränderte
+`run_inference()` (alle zehn Vor-Egress-Gates unverändert aus G8a),
+trägt ein vollständiges Manifest (Terms/Privacy/Retention/Budget,
+`replay_policy=Recorded`, `capability_locks` für `model_egress`). Der
+reale HTTP-Pfad (`ureq`+`serde_json`) liegt hinter dem opt-in-Feature
+`http` (Standard AUS, `cce-inference/Cargo.toml`) — CI baut/testet ohne
+dieses Feature und bleibt damit strukturell netzfrei; `OPENAI_API_KEY`
+wird ausschließlich zur Laufzeit aus der Prozessumgebung gelesen, nie
+gespeichert/geloggt/committet. Ohne Feature ODER ohne Schlüssel
+degradiert der Provider sichtbar (`provider_unavailable`), kein
+Socket-Versuch — dieselbe Disziplin wie `DisabledProvider`. Details,
+inkl. der Anleitung, wo/wie der Schlüssel einzutragen ist: `reports/
+P1_bericht.md`.
+
+Kein neues Residuum durch P1 selbst. Die reale Erprobung gegen die
+tatsächliche OpenAI-API bleibt ein Betriebsschritt (Feature + Schlüssel
+aktivieren) — explizit vorgemerkt, nicht blockierend für P1's eigenen
+Auftragsumfang (Dokument 17 §3: Manifest + Gates + recorded-Replay real
+gebaut).
+
+---
 
 **Keine verwaiste Nummer:** jede oben gelistete Nummer hat einen
 Endstatus (GESCHLOSSEN/TEILWEISE GESCHLOSSEN/OFFEN+Grund) und einen

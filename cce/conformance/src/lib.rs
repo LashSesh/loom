@@ -5,7 +5,7 @@
 /// Kennung des Regressionswaechters; waechst mit jeder Phase.
 pub const GUARD_PHASES: &[&str] = &[
     "G0", "G1", "G2", "G3", "G4", "G5", "G6", "G7", "G8", "G8a", "G9", "G10", "G11", "G12", "W1",
-    "W2", "CE1", "L9B", "X4",
+    "W2", "CE1", "L9B", "X4", "P1",
 ];
 
 /// Produktversion (S11: Versionierung; Update-DoD-Pfad s. `update_dod`).
@@ -89,6 +89,11 @@ pub const FEATURE_PL: &[(&str, &str, &str)] = &[
         "r_cyc_1_vollzyklus",
         "PL2",
         "conformance/tests/x4_r_cyc_1.rs",
+    ),
+    (
+        "cloud_openai_provider",
+        "PL2",
+        "conformance/inference/inference_catalog.rs::p1_cloud_openai_manifest_complete_terms_privacy_retention_budget",
     ),
 ];
 

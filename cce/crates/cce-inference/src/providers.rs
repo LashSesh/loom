@@ -10,6 +10,7 @@ pub mod embedded;
 pub mod external_agent;
 pub mod local;
 pub mod local_extractive;
+pub mod openai;
 
 use crate::manifest::ModelManifest;
 use crate::request::InferenceRequest;

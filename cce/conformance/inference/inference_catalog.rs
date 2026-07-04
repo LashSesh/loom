@@ -715,3 +715,102 @@ fn offline_core_unbroken_with_real_local_model_present() {
         other => panic!("Disabled muss degradiert antworten, war {other:?}"),
     }
 }
+
+// ---------- P1 (Dokument 17 §3 + Overlay-Klausel): CloudModelProviderOpenAI ----------
+//
+// Der reale HTTP-Egress liegt hinter dem opt-in-Feature `http` (Standard AUS,
+// s. `crates/cce-inference/Cargo.toml`) — dieser Katalog baut/laeuft OHNE das
+// Feature, bleibt also netzfrei (F.3-Disziplin). Was hier bewiesen wird, ist
+// GENAU die Bau-Garantie: vollstaendiges Manifest (Terms/Privacy/Retention/
+// Budget), Lauf durch das UNVERAENDERTE Gateway mit allen Vor-Egress-Gates,
+// und saubere, sichtbare Degradation OHNE jeden Socket-Versuch, solange kein
+// Schluessel/Feature aktiv ist — exakt der Zustand, in dem CI immer laeuft.
+
+#[test]
+fn p1_cloud_openai_manifest_complete_terms_privacy_retention_budget() {
+    use cce_inference::providers::openai::CloudModelProviderOpenAI;
+    let provider = CloudModelProviderOpenAI::new("gpt-test");
+    let m = provider.manifest();
+    assert!(m.validate().is_ok(), "Manifest muss vollstaendig sein");
+    assert_eq!(m.provider_class, ProviderClass::CloudModel);
+    // Terms
+    assert!(m
+        .provider_terms_ref
+        .as_deref()
+        .is_some_and(|t| t.starts_with("terms:known")));
+    // Privacy + Retention
+    assert_eq!(m.privacy_mode.as_deref(), Some("no_training_use"));
+    assert_ne!(
+        m.data_retention_mode.as_deref(),
+        Some("indefinite_retention")
+    );
+    // Budget
+    assert!(m.cost_budget.is_some());
+    assert!(m.token_budget.is_some());
+    // recorded-Replay (Auftraggeber-Weisung)
+    assert_eq!(
+        m.replay_policy,
+        cce_inference::manifest::ReplayPolicy::Recorded
+    );
+    // CloudModel braucht den model_egress-Lock — deklariert, nicht optional.
+    assert!(!m.capability_locks.is_empty());
+}
+
+#[test]
+fn p1_cloud_openai_without_key_or_feature_degrades_after_full_gate_chain_no_socket() {
+    // Ohne Feature `http` (dieser Bau) verhaelt sich der Provider EXAKT wie
+    // ohne gesetzten OPENAI_API_KEY: run_inference laesst die volle
+    // Vor-Egress-Gate-Kette durch (Lock offen, alle 10 Gates allow) und der
+    // Provider selbst meldet sichtbar `provider_unavailable` — kein stiller
+    // Fallback-Inhalt, kein Socket-Versuch (das Feature ist nicht einmal
+    // kompiliert).
+    use cce_inference::providers::openai::CloudModelProviderOpenAI;
+    let provider = CloudModelProviderOpenAI::new("gpt-test");
+    let req = InferenceRequest::example("p1-degrade");
+    let lock = open_egress_lock();
+    let mut rec = InferenceRecorder::default();
+    let out = run_inference(
+        &provider,
+        &req,
+        &boundary(),
+        "no_pii",
+        Some(&lock),
+        0,
+        "draft",
+        &mut rec,
+    );
+    match out {
+        GatewayOutcome::Failed { residue, .. } => {
+            assert!(residue.id.contains("provider_unavailable"));
+        }
+        other => panic!("erwartet sichtbare Degradation, war {other:?}"),
+    }
+}
+
+#[test]
+fn p1_cloud_openai_egress_blocked_before_provider_without_open_lock() {
+    // Ohne offenen model_egress-Lock haelt ModelCapabilityGate VOR jedem
+    // Providerkontakt — dieselbe strukturelle Garantie wie beim Mock
+    // (r_inf_3), jetzt fuer den echten Anbieter: kein Lock ⇒ kein Egress-
+    // Versuch, unabhaengig von Schluessel/Feature.
+    use cce_inference::providers::openai::CloudModelProviderOpenAI;
+    let provider = CloudModelProviderOpenAI::new("gpt-test");
+    let req = InferenceRequest::example("p1-nolock");
+    let mut rec = InferenceRecorder::default();
+    let out = run_inference(
+        &provider,
+        &req,
+        &boundary(),
+        "no_pii",
+        None,
+        0,
+        "draft",
+        &mut rec,
+    );
+    match out {
+        GatewayOutcome::BlockedBeforeEgress(failed) => {
+            assert!(failed.iter().any(|v| v.gate() == "ModelCapabilityGate"));
+        }
+        other => panic!("erwartet Gate-Halt VOR Egress, war {other:?}"),
+    }
+}
