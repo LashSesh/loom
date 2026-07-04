@@ -44,6 +44,8 @@ members = [
     "crates/cce-toolgateway",
     # SWE-Tiefe (Dokument 18, P2)
     "crates/cce-swe",
+    # Dogfooding (Dokument 19, P3)
+    "crates/cce-dogfood",
     # L9b Normic Memory (S-E5, Ring E5)
     "crates/cce-bridge",
     # .loom-Container (LOOM Teil 11)
