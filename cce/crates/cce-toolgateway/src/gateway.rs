@@ -159,6 +159,14 @@ impl ToolGateway {
         self.locks.insert(tool_class.to_string(), lock);
     }
 
+    /// Oeffentliche Lock-Abfrage (nur lesend): erlaubt Aufrufern (z. B.
+    /// der SWE-Kern-Kette, P2) den Lock-Zustand in eine eigene
+    /// GateReport-Kette zu komponieren, ohne den `CapabilityLock` selbst
+    /// preiszugeben (der bleibt privat, keine Sammel-Freigabe).
+    pub fn is_locked(&self, tool_class: &str) -> bool {
+        self.lock_open(tool_class)
+    }
+
     fn lock_open(&self, tool_class: &str) -> bool {
         self.locks
             .get(tool_class)

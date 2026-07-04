@@ -30,6 +30,18 @@ ALLOWED_CORE_TO_OUTER = {
         "loom-verify",
         "loom-replay",
     },
+    # Dokument 18 §6/§9 (P2): der RepoWorkbody ist — wie die Norm bei
+    # cce-bridge — selbst ein .loom-Workbody; dieselben benannten Ports
+    # (Container-Kern + CitationResolver-Naht + Replay-Segment-Helfer)
+    # aus demselben Grund.
+    "cce-swe": {
+        "loom-cites",
+        "loom-canon",
+        "loom-format",
+        "loom-codec",
+        "loom-verify",
+        "loom-replay",
+    },
 }
 
 

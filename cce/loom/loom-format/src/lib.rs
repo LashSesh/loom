@@ -56,8 +56,11 @@ pub const FLAG_SEALED: u8 = 1 << 0;
 
 /// Container-Klassen/Profile (Teil 2.5). S-E5 §2/§10(e) fuegt additiv
 /// "norm" hinzu: die Speicherform des L9b-Normic-Memory-Workbody (eine
-/// Norm IST ein .loom-Workbody, kein Verweis darauf).
-pub const PROFILES: [&str; 7] = [
+/// Norm IST ein .loom-Workbody, kein Verweis darauf). Dokument 18 §6
+/// (P2) fuegt additiv "repo" hinzu: die Speicherform des
+/// SWE-RepoWorkbody (ein zertifizierter Bauauftrag IST ein
+/// .loom-Workbody).
+pub const PROFILES: [&str; 8] = [
     "inspection",
     "workcell",
     "source",
@@ -65,6 +68,7 @@ pub const PROFILES: [&str; 7] = [
     "runtime",
     "full",
     "norm",
+    "repo",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]

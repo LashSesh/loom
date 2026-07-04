@@ -1,0 +1,34 @@
+[package]
+name = "cce-swe"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# P2 (Dokument 18 §9): SWE-Tiefe. Ports laut Bauplan: cce-core (Signatur/
+# Gate/Residue/PhaseBlock-Bausteine), cce-toolgateway (die fuenf
+# Werkzeugklassen), cce-inference (Provider hinter dem unveraenderten
+# Gateway, fuer R-SWE-5), cce-store (CAS), loom-* (Container).
+[dependencies]
+cce-core = { path = "../cce-core" }
+cce-phaseblock = { path = "../cce-phaseblock" }
+cce-toolgateway = { path = "../cce-toolgateway" }
+cce-inference = { path = "../cce-inference" }
+cce-store = { path = "../cce-store" }
+loom-canon = { path = "../../loom/loom-canon" }
+loom-format = { path = "../../loom/loom-format" }
+loom-codec = { path = "../../loom/loom-codec" }
+loom-cites = { path = "../../loom/loom-cites" }
+loom-replay = { path = "../../loom/loom-replay" }
+
+[dev-dependencies]
+loom-verify = { path = "../../loom/loom-verify" }
+
+[features]
+# Reicht das Feature nur an cce-toolgateway durch — reale
+# Prozess-Aufrufe (git/build/test) bleiben NUR unter diesem
+# opt-in-Feature (Standard AUS, dieselbe Disziplin wie `http` in
+# cce-inference). CI baut/testet ohne dieses Feature und bleibt
+# hermetisch. Der separate Cloud-Egress-Schalter bleibt
+# `cce-inference/http` (unveraendert, eigenstaendig).
+process = ["cce-toolgateway/process"]

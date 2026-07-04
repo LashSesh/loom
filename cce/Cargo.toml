@@ -42,6 +42,8 @@ members = [
     # L9c Inference/Tool (Overlay 05, Teil C/F — Phase G8a)
     "crates/cce-inference",
     "crates/cce-toolgateway",
+    # SWE-Tiefe (Dokument 18, P2)
+    "crates/cce-swe",
     # L9b Normic Memory (S-E5, Ring E5)
     "crates/cce-bridge",
     # .loom-Container (LOOM Teil 11)

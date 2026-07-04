@@ -109,6 +109,23 @@ fn required_kinds(profile: &str) -> Vec<u16> {
             KIND_CSA_NSB,
             KIND_HBM,
         ]),
+        // Dokument 18 §6 (P2): die RepoWorkbody-Speicherform braucht CL
+        // (cites/Snapshot-Beschreibung), LEDGER (TaskLedger), RESIDUE,
+        // EVIDENCE (ToolEvidence: Build-/TestRun), REPLAY_MANIFEST
+        // (SWE-A4-Replay-Vertrag), CANDIDATE_OUTPUTS (der DiffCandidate
+        // selbst, C.7 — nie ein Commit) und TOOL_PROFILE (die
+        // verwendeten Werkzeug-Deklarationen, Deklaration ≠ Aktivierung)
+        // — dieselbe Disziplin wie "norm", zusaetzlich um die
+        // SWE-spezifischen Kinds erweitert.
+        "repo" => base.extend([
+            KIND_CL_SUBSTRATE,
+            KIND_LEDGER,
+            KIND_RESIDUE,
+            KIND_EVIDENCE,
+            KIND_REPLAY_MANIFEST,
+            KIND_CANDIDATE_OUTPUTS,
+            KIND_TOOL_PROFILE,
+        ]),
         _ => {}
     }
     base
