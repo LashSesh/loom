@@ -7,5 +7,6 @@
 pub mod gates;
 pub mod kette;
 pub mod model;
+pub mod provider_diff;
 pub mod residues;
 pub mod workbody;

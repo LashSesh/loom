@@ -309,4 +309,81 @@ mod tests {
             verification.diagnoses
         );
     }
+
+    /// R-SWE-3: derselbe Auftrag, zweiter Lauf — Ergebnisklasse
+    /// identisch (`base_snapshot_root` + gleiche RD ⇒ gleiche
+    /// DiffCandidate-/BuildRun-/TestRun-Klasse, §5). Zwei vollstaendig
+    /// unabhaengige `ToolGateway`/`FsWriteTool`-Instanzen, derselbe
+    /// Auftrag — keine geteilte Zustandsvariable zwischen den Laeufen.
+    #[test]
+    fn same_task_twice_yields_identical_result_class() {
+        fn run_once() -> (Digest, Digest, i32, i32) {
+            let base = RepoSnapshot::from_files(
+                &[(
+                    "repo/src/lib.rs",
+                    "rust",
+                    CodeUnitRole::Source,
+                    ORIGINAL_LIB.as_bytes(),
+                )],
+                "rustc-1.0",
+                Some("deadbeef"),
+            );
+            let diff = DiffCandidate {
+                base_snapshot_root: base.snapshot_root(),
+                hunks: vec![DiffHunk {
+                    path: "repo/src/lib.rs".to_string(),
+                    unified_diff: DIFF.to_string(),
+                }],
+                rationale: "behebt den Vorzeichenfehler in add()".to_string(),
+                produced_by: ProducedBy::Operator {
+                    operator: "operator:sk".to_string(),
+                },
+            };
+            let mut gw = ToolGateway::new();
+            gw.open_lock("fs_write", "op", "l1");
+            gw.open_lock("build", "op", "l1");
+            gw.open_lock("test", "op", "l1");
+            let mut fs_write_tool =
+                FsWriteTool::with_files(&[("repo/src/lib.rs", ORIGINAL_LIB.as_bytes())]);
+            let fs_write_manifest = tool_manifest("fs_write");
+            let build_manifest = tool_manifest("build");
+            let build_tool = BuildTool::with_fixture(&["cargo", "build"], 0, "Compiling ok");
+            let test_manifest = tool_manifest("test");
+            let test_tool =
+                TestTool::with_fixture(&["cargo", "test"], 0, "test result: ok. 1 passed");
+            let rd_ref = sha256(b"rd:r-swe-3");
+
+            let outcome = run_swe_task(
+                &diff,
+                &base,
+                &mut gw,
+                &fs_write_manifest,
+                &mut fs_write_tool,
+                &build_manifest,
+                &build_tool,
+                &test_manifest,
+                &test_tool,
+                false,
+                rd_ref,
+            );
+            match outcome {
+                SweOutcome::Candidate(boxed) => {
+                    let (block, snapshot) = *boxed;
+                    (block.payload_digest, snapshot.snapshot_root(), 0, 0)
+                }
+                other => panic!("erwartet Candidate, war {other:?}"),
+            }
+        }
+
+        let (payload_1, root_1, _, _) = run_once();
+        let (payload_2, root_2, _, _) = run_once();
+        assert_eq!(
+            payload_1, payload_2,
+            "gleicher Auftrag ⇒ gleiche PhaseBlock-Payload-Klasse (Replay-Basis, §5)"
+        );
+        assert_eq!(
+            root_1, root_2,
+            "gleicher Auftrag ⇒ gleicher Snapshot-Root nach Apply"
+        );
+    }
 }
