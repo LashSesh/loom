@@ -47,6 +47,7 @@ cce-runner = { path = "../crates/cce-runner" }
 cce-bridge = { path = "../crates/cce-bridge" }
 loom-replay = { path = "../loom/loom-replay" }
 cce-swe = { path = "../crates/cce-swe" }
+cce-dogfood = { path = "../crates/cce-dogfood" }
 
 # Betriebsverifikation P1 (echter Egress, #[ignore]): reicht das
 # `http`-Feature NUR durch, aktiviert selbst nichts im Default-Bau.
@@ -55,7 +56,7 @@ cce-swe = { path = "../crates/cce-swe" }
 # kein Default-Verhalten.
 [features]
 http = ["cce-inference/http"]
-process = ["cce-toolgateway/process", "cce-swe/process"]
+process = ["cce-toolgateway/process", "cce-swe/process", "cce-dogfood/process"]
 
 # Inference-Zeugen liegen per Overlay-05 Teil G unter conformance/inference/
 [[test]]
@@ -66,3 +67,11 @@ path = "inference/inference_catalog.rs"
 [[test]]
 name = "swe_catalog"
 path = "swe/swe_catalog.rs"
+
+# Dogfooding-Negativzeugen (Dokument 19, P3) liegen unter
+# conformance/dogfood/ -- N-DOG-1..4 laufen hermetisch in der
+# Default-CI; der eine reale Beweis (R-DOG-1) lebt separat als
+# #[ignore]-Test in crates/cce-dogfood/tests/.
+[[test]]
+name = "dogfood_catalog"
+path = "dogfood/dogfood_catalog.rs"
