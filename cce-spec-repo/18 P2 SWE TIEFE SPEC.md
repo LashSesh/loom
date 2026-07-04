@@ -1,0 +1,43 @@
+# 18 — P2-SPEZIFIKATION: SWE-TIEFE (Software-Arbeit unter Gates, Vorstufe zum Dogfooding)
+
+**Zweck (Messlatte 17 §3/P2):** Die Software-Familie von PL3-Struktur auf **Arbeitsreife** heben — CCE bearbeitet echte Code-Aufgaben in echten Repositories, jeder Schritt beweispflichtig, jede Werkzeugwirkung gate-verriegelt. P2 ist die Vorstufe zu P3 (Dogfooding am eigenen Repo). Normativer Overlay in etablierter Autoritätsordnung. **Kein neues Tor:** Werkzeuge laufen ausschließlich durch das bestehende ToolGateway (L9c); externe Werkzeug-Wirkung nur unter ToolCapabilityLocks. Bauphase = P2.
+
+## §1 Leitprinzipien (Erweiterung der Egress-Vierteilung auf Code-Arbeit)
+
+**SWE-A1 (Diff ist Kandidat, nie Commit):** Jede Codeänderung entsteht als **DiffCandidate** — ein CandidateOutput. Sie wird nie direkt wirksam; erst Gate+Evidence+Replay macht sie zum PhaseBlock, ein materieller Schreib-/Commit-Schritt zusätzlich HITL-pflichtig. **SWE-A2 (Grün ist Evidence, nicht Behauptung):** Build- und Testergebnisse sind aufgezeichnete ToolEvidence (Exit-Code, Log-Digest, Dauer), nie Modell-Selbstauskunft. **SWE-A3 (Werkzeug-Wirkung verriegelt):** fs_write/git/build/test/package laufen je unter eigenem ToolCapabilityLock; Remote zusätzlich ToolEgressGate; nichts implizit frei (IG.3 wörtlich). **SWE-A4 (Repo-Zustand ist adressiert):** Der Ausgangszustand eines Bauauftrags ist ein content-adressierter RepoSnapshot; derselbe Snapshot + derselbe Auftrag ⇒ dieselbe Ergebnisklasse (Replay-Basis). **SWE-A5 (Fremdcode ist Quelle):** Code aus dem Netz (Abhängigkeiten, fremde Repos) fällt unter CSA, nicht unter das ToolGateway — Herkunft und Lizenz bleiben belegpflichtig.
+
+## §2 Objektmodell
+
+**RepoWorkbody** (neue Containerklasse `repo`): ein `.loom`, dessen Einheiten Code-Artefakte sind. **CodeUnit:** `(path, language, content_digest, role ∈ {source, test, config, doc})`; Inhalt als CAS_BLOB (E1 wirkt weiter). **RepoSnapshot:** deduplizierte, sortierte Menge von CodeUnits + Metadaten (Wurzel, Commit-Ref falls vorhanden, Toolchain-Pin); `snapshot_root` = Merkle über die CodeUnits — die adressierte Ausgangslage. **DiffCandidate:** `(base_snapshot_root, hunks[path, unified_diff], rationale, produced_by {provider_id/manifest_ref | operator})` — ein CandidateOutput; trägt nie einen Commit-Marker. **BuildRun/TestRun:** `(snapshot_root_after_apply, tool_id, command, exit_code, log_digest, duration, artifacts[])` — ToolEvidence; das Ergebnis ist Faktum, nicht Interpretation. **TaskLedger:** die PhaseBlock-Kette eines Bauauftrags (Wunsch → Plan → DiffCandidate → apply(dry) → BuildRun → TestRun → Gate → PhaseBlock | ResidueReport), Ledger=CommitProjection wie überall.
+
+## §3 ToolGateway-Vollzug für SWE (die fünf Werkzeugklassen real)
+
+Je Klasse: ToolManifest (IG.3) + eigener Lock. **fs_read** (scope-begrenzter Lesezugriff; kein Lock jenseits Scope) · **fs_write** (schreibt NUR in einen deklarierten Arbeitsbereich; schreibt nie außerhalb `scope`; Lock Pflicht) · **git** (status/diff/add/commit/branch; `commit` ist materielle Aktion ⇒ HumanConfirmationGate; kein `push` ohne ToolEgressGate) · **build** (Toolchain-Aufruf, z. B. `cargo build`; Ergebnis = ToolEvidence) · **test** (z. B. `cargo test`; Ergebnis = ToolEvidence). Verbote strukturell: kein Shell-Sammelzugriff (jede Aktion über eine typisierte Werkzeugklasse, nicht über freies `sh -c`), kein Paketmanager-Egress ohne CSA-Bindung + eigenen Lock, kein Netzwerk-Tool ohne ToolEgressGate.
+
+## §4 Die Werkzeug-Gates (fail-closed, zusätzlich zu IG.4)
+
+**ToolCapabilityGate** (angeforderte Klasse hat offenen Lock im Scope — sonst `tool_capability_denied`) · **ToolScopeGate** (fs_write/git wirken nur im deklarierten Arbeitsbereich — Pfad außerhalb ⇒ `tool_scope_violation`, reject; erbt die Pfad-Sicherheit von LOOM §9.2) · **BuildEvidenceGate** (ein DiffCandidate wird nur dann commit-fähig, wenn ein BuildRun mit exit_code==0 als Evidence vorliegt — sonst `build_unverified`, Hold) · **TestEvidenceGate** (analog: geforderte Testsuite grün als Evidence — sonst `tests_unverified`/`tests_red`, Hold) · **RegressionGate** (der EINE Wächter: kein DiffCandidate wird PhaseBlock, der einen bestehenden Zeugen kippt — die Selbstschutz-Regel gilt für Code-Arbeit wörtlich) · **ToolEgressGate/HumanConfirmationGate** (Remote-Werkzeug bzw. materielle Aktion wie commit/push/Dateisystem-Schreiben außerhalb dry-run).
+
+**Kern-Kette:** `DiffCandidate → apply(dry-run in Arbeitskopie) → BuildRun → TestRun → BuildEvidenceGate ∧ TestEvidenceGate ∧ RegressionGate → [HumanConfirmationGate für materiellen Schreib-/Commit-Schritt] → PhaseBlock | ResidueReport`. Kein Sprung überspringbar; Confidence des Modells ist nie eines dieser Gates (PROD-INV-20 wörtlich).
+
+## §5 Replay und Determinismus
+
+Ein Bauauftrag ist replayfähig: gleicher `base_snapshot_root` + gleicher RD (inkl. aktiviertem Provider-/Norm-Profil + Tool-Locks) ⇒ gleiche Ergebnisklasse (DiffCandidate-Klasse, BuildRun-Exit-Klasse, TestRun-Klasse). Modell-Nichtdeterminismus in der Diff-Erzeugung wird — wie überall — als `model_replay_weak` sichtbar geführt, nicht versteckt; die aufgezeichnete Response (recorded) hält den Lauf klassenstabil. Toolchain-Pin ist Teil des Snapshots (unterschiedliche Compiler-Version = anderer Snapshot).
+
+## §6 `.loom`- und Format-Anschluss
+
+RepoWorkbody nutzt bestehende Kinds: CodeUnits als CAS_BLOB + ARTIFACT-Refs, TaskLedger im LEDGER, ToolEvidence im EVIDENCE, DiffCandidates im CANDIDATE_OUTPUTS (0x0063), Tool-Deklarationen im TOOL_PROFILE (0x0064). **Kein neues Segment nötig** — die Format-Erweiterungen aus G8a/E1 tragen P2 vollständig. TYPE_REGISTRY erhält additiv `unit:code` (minor). Ein RepoWorkbody ist verify-fähig, signierbar, zitierbar (`cites`) wie jeder Workbody.
+
+## §7 Abgrenzung zu P3
+
+P2 baut die **Fähigkeit** (RepoWorkbody, Werkzeugklassen, Gates, Replay) und beweist sie an einem **kleinen, neutralen Referenz-Repo** (nicht am CCE-Repo selbst). P3 (Dogfooding) richtet dieselbe Fähigkeit auf das **eigene** Repository und ist der Prototyp-Kerntest (K9). Diese Trennung hält P2 sauber testbar, ohne Selbstbezugsrisiko.
+
+## §8 Zeugen (Wächter-Eintritt mit P2)
+
+**R-SWE-1** RepoSnapshot eines kleinen Referenz-Repos (z. B. „Taschenrechner-Crate mit einem failing test") — snapshot_root deterministisch über zwei Läufe. **R-SWE-2** DiffCandidate behebt den failing test → apply(dry) → BuildRun exit 0 → TestRun grün → alle Gates → PhaseBlock; der TaskLedger ist ein zertifizierter RepoWorkbody. **R-SWE-3** derselbe Auftrag, zweiter Lauf: Ergebnisklasse identisch (Replay). **R-SWE-4** git commit als materielle Aktion ⇒ HumanConfirmationGate-Bestätigung aufgezeichnet. **R-SWE-5** ein DiffCandidate, der einen Provider nutzt (OpenAI hinter Gateway, recorded): die modellerzeugte Diff durchläuft dieselbe Kette. **N-SWE-1** DiffCandidate ohne grünen BuildRun ⇒ `build_unverified`, kein PhaseBlock. **N-SWE-2** Diff mit rotem Test ⇒ `tests_red`, Hold. **N-SWE-3** fs_write außerhalb des Arbeitsbereichs ⇒ `tool_scope_violation`, reject. **N-SWE-4** git ohne Lock ⇒ `tool_capability_denied`. **N-SWE-5** DiffCandidate, der einen bestehenden Zeugen kippt ⇒ RegressionGate reject. **N-SWE-6** push ohne ToolEgressGate ⇒ reject. **N-SWE-7** Modell-Confidence als Ersatz für BuildEvidenceGate ⇒ reject (PROD-INV-20). **N-SWE-8** direkter Commit eines DiffCandidate am Gate vorbei ⇒ `model_attempted_direct_commit`/reject.
+
+## §9 Bauplan P2 und DoD
+
+Crate `crates/cce-swe` (RepoWorkbody, Snapshot, DiffCandidate, TaskLedger; Ports: cce-core, cce-toolgateway, cce-inference [Provider], loom-* [Container], cce-store). Werkzeug-Implementierungen im ToolGateway-Blatt; reale Prozess-Aufrufe (build/test) NUR unter opt-in-Feature analog `http` — CI bleibt hermetisch über aufgezeichnete ToolEvidence-Fixtures. Reihenfolge: a) RepoWorkbody+Snapshot+`unit:code` → b) fünf Werkzeugklassen + Locks im ToolGateway → c) die sechs Werkzeug-Gates → d) DiffCandidate→PhaseBlock-Kette (dry-run-Disziplin) → e) Provider-erzeugte Diff (R-SWE-5, recorded) → f) Replay (R-SWE-3) → g) Zeugen R-SWE-1..5/N-SWE-1..8 in den Wächter → h) Doku-Zeile + Status/Register. **Ausgangs-Gate P2:** alle 13 Zeugen korrekt · Alt-Zeugen unverändert · CI hermetisch GRUEN (kein Netz, keine echten Prozess-Aufrufe im Default) · kein neues Kern-Crate mit externen Abhängigkeiten (Prozess-/git-Kisten nur im Blatt) · reports/P2_bericht.md. **DoD(P2)=1 ⟺** §2–§8 implementiert ∧ Gate P2 grün ∧ ein RepoWorkbody eines Referenz-Repos ist real zertifiziert (verify Valid) ∧ die modellerzeugte Diff hat die volle Gate-Kette durchlaufen.
+
+*Nach P2 folgt P3 (Dogfooding am eigenen Repo) als Prototyp-Kerntest — dafür liefere ich die Spezifikation, sobald P2 grün ist.*
