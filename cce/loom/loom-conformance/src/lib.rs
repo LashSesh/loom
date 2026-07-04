@@ -1985,3 +1985,320 @@ pub fn build_first_active_norm() -> (
         seal_norm(&candidate, &report, &[]).expect("Norm-Workbody muss siegeln");
     (norm, sealed_norm, report, members)
 }
+
+// ---------- Dokument 16 §1: R-CYC-1 Vollzyklus-Zeuge ----------
+//
+// Acht Stationen, EIN Zeuge: Welt -> Arbeit -> Verbund -> Selbstbezug ->
+// Gedaechtnis -> Rueckwirkung -> sichtbare Erosion -> Replay des Ganzen.
+// Jede Station ist eine eigenstaendige, wiederverwendbare Funktion; der
+// eigentliche Test (conformance/tests/x4_r_cyc_1.rs) prueft alle acht.
+
+/// Station 2 (Arbeit): ein NEUES, geschlossenes ("full", LEDGER
+/// closure_proof=true) Memo mit `supports`/`derives`-cites auf den
+/// Welt-Kristall. Dieselbe Aussage wie die E2-`citing_memo_welt_kristall`-
+/// Crystal, aber mit echtem Abschlussbeweis statt des bloss
+/// transportierbaren `workcell`-Profils aus Ring E2 — R-CYC-1 verlangt
+/// "vollstaendig geschlossen".
+pub fn build_cyc1_memo_workbody(welt_root_hex: &str) -> Sealed {
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_runner::runner::Run;
+    use loom_cites::{cites_field, external_citations_hex, CiteEntry, CiteKind};
+
+    let crystal = citing_memo_welt_kristall();
+    let rd = RunDescriptor::new(sha256(b"r-cyc-1-memo"), "document", 7);
+    let mut run = Run::submit(crystal.clone(), rd.clone()).expect("Motor-Submit");
+    run.run_to_end(None).expect("Motor-Lauf");
+    let artifact = run
+        .artifact
+        .as_ref()
+        .expect("R-CYC-1-Memo muss real materialisieren (Gates gruen)");
+    let content_class = crystal.canonical_class().0;
+    let byte_digest = artifact.byte_digest();
+    let (_uid, nsb, evidence) = csa_content();
+
+    let cites = vec![
+        CiteEntry {
+            unit_id: "d1".to_string(),
+            target_core_root_hex: welt_root_hex.to_string(),
+            target_unit_ref: None,
+            cite_kind: CiteKind::Supports,
+        },
+        CiteEntry {
+            unit_id: "d2".to_string(),
+            target_core_root_hex: welt_root_hex.to_string(),
+            target_unit_ref: Some("d1".to_string()),
+            cite_kind: CiteKind::Derives,
+        },
+    ];
+    let external_citations = external_citations_hex(&cites);
+
+    let doc_meta = Cv::map(vec![
+        ("title", Cv::Text(crystal.title.clone())),
+        ("units", Cv::Uint(crystal.units.len() as u64)),
+        ("class", Cv::Text(content_class.to_hex())),
+    ]);
+    let artifact_cv = Cv::map(vec![
+        ("artifact_id", Cv::Text("artifact:r-cyc-1-memo-md".into())),
+        (
+            "two_digest",
+            Cv::map(vec![
+                ("content_class", Cv::Text(content_class.to_hex())),
+                ("byte_digest", Cv::Text(byte_digest.to_hex())),
+            ]),
+        ),
+    ]);
+    let mut m = manifest_cv(
+        "R-CYC-1 Station 2: Memo, geschlossen, stuetzt sich auf den Welt-Kristall",
+        "full",
+        "PL2",
+        true,
+        0,
+        &[],
+        &["read_segment", "project_workcell", "export_artifact"],
+        "cc0",
+    );
+    m = manifest_declare_external_citations(m, &external_citations);
+
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_LEDGER, &ledger_segment(true)),
+        seg(KIND_RESIDUE, &residue_segment(&[])),
+        seg(KIND_EVIDENCE, &evidence),
+        seg(
+            KIND_REPLAY_MANIFEST,
+            &loom_replay::replay_manifest_segment(
+                &rd.crystal_digest.to_hex(),
+                rd.seed,
+                &content_class.to_hex(),
+            ),
+        ),
+        seg(KIND_CSA_NSB, &nsb),
+        seg(KIND_HBM, &family_hbm_content("r-cyc-1-memo")),
+        seg(KIND_DOC, &doc_meta),
+        seg(KIND_ARTIFACT, &artifact_cv),
+    ];
+    let mut workcell_segs = workcell_segments();
+    // workcell_segments()[0] ist immer CL_SUBSTRATE (cubes/constraints) —
+    // hier durch eine Fassung MIT den echten cites ersetzt.
+    workcell_segs[0] = seg(
+        KIND_CL_SUBSTRATE,
+        &Cv::map(vec![
+            (
+                "cubes",
+                Cv::Array(vec![Cv::Text("cube:r-cyc-1-memo".into())]),
+            ),
+            ("constraints", Cv::Array(vec![])),
+            ("cites", cites_field(&cites)),
+        ]),
+    );
+    segs.extend(workcell_segs);
+    seal_canonical("full", &["full"], &segs).unwrap()
+}
+
+/// Station 3 (Verbund, Teil 1): eine geschlossene SCALE-2-Mappe, die
+/// GENAU das Station-2-Memo als CAS_BLOB-Kind buendelt.
+pub fn build_cyc1_folder_workbody(welt_root_hex: &str) -> Sealed {
+    let memo = build_cyc1_memo_workbody(welt_root_hex);
+    let (_uid, nsb, evidence) = csa_content();
+    let folder_meta = Cv::map(vec![
+        ("title", Cv::Text("R-CYC-1 Mappe (Station 3)".into())),
+        ("scale", Cv::Uint(2)),
+        (
+            "entries",
+            Cv::Array(vec![Cv::map(vec![
+                ("id", Cv::Text("memo".into())),
+                ("child_core_root", Cv::Text(hex34(&memo.core_root))),
+            ])]),
+        ),
+    ]);
+    let m = manifest_cv(
+        "R-CYC-1 Station 3: SCALE-2-Mappe (geschlossen)",
+        "full",
+        "PL2",
+        true,
+        0,
+        &[],
+        &["read_segment", "project_workcell"],
+        "cc0",
+    );
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_LEDGER, &ledger_segment(true)),
+        seg(KIND_RESIDUE, &residue_segment(&[])),
+        seg(KIND_EVIDENCE, &evidence),
+        seg(
+            KIND_REPLAY_MANIFEST,
+            &loom_replay::replay_manifest_segment("sha256:r-cyc-1-folder", 7, "sha256:folder"),
+        ),
+        seg(KIND_CSA_NSB, &nsb),
+        seg(KIND_HBM, &family_hbm_content("r-cyc-1-folder")),
+        seg(KIND_DOC, &folder_meta),
+        seg(KIND_CAS_BLOB, &Cv::Bytes(memo.bytes.clone())),
+    ];
+    segs.extend(workcell_segments());
+    seal_canonical("full", &["full"], &segs).unwrap()
+}
+
+/// Station 3 (Verbund, Teil 2): die Mappe in einem SCALE-3-Projektraum,
+/// mit einer echten `cites`-Naht Mappe -> Welt-Kristall (dieselbe
+/// Disziplin wie `real_project()` in `e2_scale3_project.rs`: die
+/// deklarierte Naht ist strukturell gepruegt UND durch eine reale,
+/// gate-passende Zitat-Kante im gebuendelten Memo gedeckt).
+pub fn build_cyc1_project(
+    welt_root_hex: &str,
+    folder: &Sealed,
+) -> cce_materialize::scale3_project::Scale3Project {
+    use cce_materialize::scale3_project::{CellKind, ProjectEntry, Scale3Project, PROJECT_ROOT};
+
+    Scale3Project::new(
+        "R-CYC-1 Projektraum",
+        vec![
+            ProjectEntry {
+                id: "welt_kristall".to_string(),
+                cell_kind: CellKind::Source,
+                core_root_hex: welt_root_hex.to_string(),
+            },
+            ProjectEntry {
+                id: "cyc1_folder".to_string(),
+                cell_kind: CellKind::Folder,
+                core_root_hex: hex34(&folder.core_root),
+            },
+        ],
+        &[
+            (PROJECT_ROOT, "contains", "welt_kristall"),
+            (PROJECT_ROOT, "contains", "cyc1_folder"),
+            ("cyc1_folder", "cites", "welt_kristall"),
+        ],
+    )
+}
+
+/// Station 4 (Selbstbezug): ein echter, kleiner HBM-Lauf ueber den
+/// tatsaechlichen Projektraum-Bestand (die REALE Struktur-Eigenschaft
+/// des Station-2-Memos: eine `Relation`-Regel ueber seine `supports`-
+/// Naht) — liefert einen zertifizierten Blueprint-Kandidaten.
+pub fn build_cyc1_source_blueprint() -> cce_hbm::candidate::BlueprintCandidate {
+    let lines = vec!["invariant: r-cyc-1-memo|regel=Relation|naht=supports".to_string()];
+    let input = cce_hbm::pipeline::MiningInput {
+        corpus_id: "r-cyc-1-projektraum-bestand".to_string(),
+        lines: lines.clone(),
+        weights: cce_hbm::score::ScoreWeights::default(),
+        theta_d: 0,
+        expansion_budget: lines.len() + 8,
+    };
+    let out = cce_hbm::pipeline::run_pipeline(&input)
+        .expect("Gate_A darf am R-CYC-1-Projektraum-Bestand nie halten");
+    out.candidates
+        .into_iter()
+        .find(|c| {
+            c.status == cce_hbm::candidate::CandidateStatus::Pass
+                && cce_bridge::extract::blueprint_to_pattern(c).is_some()
+        })
+        .expect("mindestens ein zertifizierter Kandidat muss ein Pattern liefern")
+}
+
+/// Das gesamte R-CYC-1-Ergebnis (Stationen 1-5), fuer den Replay-Zeugen
+/// (Station 8) und die Erosionsprobe (Station 7) wiederverwendbar.
+pub struct RCyc1Witness {
+    pub welt_root_hex: String,
+    pub memo: Sealed,
+    pub folder: Sealed,
+    pub project: cce_materialize::scale3_project::Scale3Project,
+    pub blueprint_class_hex: String,
+    /// Die drei ProvenanceSet-Mitglieder der Norm: [Memo, Mappe, eine
+    /// bestehende Familien-Referenz-Cube] — "die geschlossenen Koerper
+    /// aus Station 2-3 (+ bestehende Familien-Cubes bis κ_min)" (§1.5).
+    pub provenance_members: Vec<Sealed>,
+    pub norm: cce_bridge::BridgeNorm,
+    pub norm_sealed: Sealed,
+    pub bridge_report: cce_bridge::gate::BridgeGateReport,
+}
+
+/// Baut den gesamten Vorderteil des Vollzyklus (Stationen 1-5).
+/// Deterministisch: zweimaliger Aufruf muss an jeder Station
+/// klassenidentische Ergebnisse liefern (Station 8, Replay des Ganzen).
+pub fn build_r_cyc_1() -> RCyc1Witness {
+    use cce_bridge::distill::{distill, DistillationInput};
+    use cce_bridge::extract::blueprint_to_pattern;
+    use cce_bridge::gate::{bridge_gate, BridgeGateContext};
+    use cce_bridge::types::Scope;
+    use cce_bridge::workbody::seal_norm;
+    use cce_bridge::BridgeVerdict;
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_materialize::family_a_domains::d02;
+
+    // Station 1: Quelle.
+    let welt = build_welt_kristall_wikimedia();
+    let welt_root_hex = hex34(&welt.core_root);
+
+    // Station 2: Arbeit.
+    let memo = build_cyc1_memo_workbody(&welt_root_hex);
+
+    // Station 3: Verbund.
+    let folder = build_cyc1_folder_workbody(&welt_root_hex);
+    let project = build_cyc1_project(&welt_root_hex, &folder);
+
+    // Station 4: Selbstbezug.
+    let blueprint = build_cyc1_source_blueprint();
+    let blueprint_class_hex = blueprint.class().0.to_hex();
+
+    // Station 5: Gedaechtnis.
+    let family_d02 = build_family_reference_workbody(&d02());
+    let provenance_members = vec![memo.clone(), folder.clone(), family_d02];
+    let candidate_roots: Vec<String> = provenance_members
+        .iter()
+        .map(|s| hex34(&s.core_root))
+        .collect();
+    // Der Resolver muss zusaetzlich den Welt-Kristall kennen: das Memo
+    // traegt eine EIGENE supports/derives-Naht dorthin (Station 2), und
+    // die Quellen-Quiescence-Pruefung (provenance::check_member)
+    // verlangt, dass JEDE eigene closure-relevante Naht eines Mitglieds
+    // ueber DENSELBEN Resolver aufloest — sonst waere das Memo trotz
+    // eigener Geschlossenheit "ineligibel" (offene supports-Naht).
+    let mut resolver_universe = provenance_members.clone();
+    resolver_universe.push(welt.clone());
+    let resolver = InMemoryResolver::from_sealed(&resolver_universe);
+
+    let pattern = blueprint_to_pattern(&blueprint)
+        .expect("Blueprint wurde bereits auf blueprint_to_pattern().is_some() gefiltert");
+    let rd = RunDescriptor::new(sha256(b"r-cyc-1-distillation"), "document", 1);
+    let input = DistillationInput {
+        pattern,
+        candidate_roots,
+        n_support: 3,
+        known_counterexamples: vec![],
+        scope: Scope::Global,
+        kappa_min: 3,
+    };
+    let candidate = distill(input, &resolver, &rd)
+        .expect("Destillation ueber Station 2-3 + eine Familien-Referenz muss gelingen");
+
+    let domains: Vec<String> = provenance_members
+        .iter()
+        .filter_map(|s| manifest_first_domain_ref(&s.bytes))
+        .collect();
+    let ctx = BridgeGateContext::new(&domains, &[]);
+    let report = bridge_gate(&candidate, &ctx);
+    assert_eq!(
+        report.verdict(),
+        BridgeVerdict::Allow,
+        "R-CYC-1 Station 5: BridgeGate muss ALLOW liefern: {report:?}"
+    );
+    let (norm, norm_sealed) =
+        seal_norm(&candidate, &report, &[]).expect("Norm-Workbody muss siegeln");
+
+    RCyc1Witness {
+        welt_root_hex,
+        memo,
+        folder,
+        project,
+        blueprint_class_hex,
+        provenance_members,
+        norm,
+        norm_sealed,
+        bridge_report: report,
+    }
+}
