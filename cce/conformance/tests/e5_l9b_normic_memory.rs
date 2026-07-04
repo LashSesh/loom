@@ -12,9 +12,10 @@ use cce_bridge::distill::{distill, DistillError, DistillationInput};
 use cce_bridge::gate::{bridge_gate, BridgeGateContext};
 use cce_bridge::lifecycle::{check_erosion, revoke};
 use cce_bridge::memory::{parse_norms_section, query};
+use cce_bridge::pattern::DomainRuleForm;
 use cce_bridge::provenance::ProvenanceError;
 use cce_bridge::types::{residue, CounterExample, NexusClass, NormStatus, Scope};
-use cce_bridge::{BridgeNorm, BridgeVerdict};
+use cce_bridge::{BridgeNorm, BridgeVerdict, Pattern};
 use cce_core::replay::RunDescriptor;
 use cce_core::signature::sha256;
 use cce_runner::runner::{Run, RunStatus};
@@ -221,8 +222,7 @@ fn n_nrm_1_below_kappa_min_is_insufficient_provenance() {
         .collect();
     let rd = RunDescriptor::new(sha256(b"insufficient-provenance"), "document", 1);
     let input = DistillationInput {
-        pattern: "p".to_string(),
-        nexus_class: NexusClass::StructuralRule,
+        pattern: Pattern::StructuralRule(DomainRuleForm::UniqueSubjects),
         candidate_roots: roots,
         n_support: 2,
         known_counterexamples: vec![],
@@ -257,8 +257,7 @@ fn n_nrm_2_and_prod_inv_21_candidate_without_allow_cannot_seal() {
     // entscheidet, nie der Kandidat selbst.
     let rd = RunDescriptor::new(sha256(b"no-promotion-without-gate"), "document", 1);
     let input = DistillationInput {
-        pattern: "p".to_string(),
-        nexus_class: NexusClass::StructuralRule,
+        pattern: Pattern::StructuralRule(DomainRuleForm::UniqueSubjects),
         candidate_roots: roots[..1].to_vec(),
         n_support: 1,
         known_counterexamples: vec![],
@@ -284,21 +283,31 @@ fn n_nrm_2_and_prod_inv_21_candidate_without_allow_cannot_seal() {
 // (== PROD-INV-23: Normen lockern nie).
 // ---------------------------------------------------------------------
 
+/// Dokument 16 §2b (ScopeGate v2): die Whitelist ist jetzt eine
+/// Konstruktions-, keine Texteigenschaft — ein `ClosureProfile`, das
+/// einen BESTEHENDEN Fundament-Gate-Namen kapert, bleibt trotzdem
+/// erkennbar und rot; die anderen vier Pattern-Formen koennen so etwas
+/// gar nicht erst ausdruecken.
 #[test]
 fn n_nrm_3_and_prod_inv_23_scope_loosening_patterns_are_rejected() {
     let (_norm, _sealed, _report, members) = build_first_active_norm();
     let resolver = InMemoryResolver::from_sealed(&members);
     let roots: Vec<String> = members.iter().map(|m| hex34(&m.core_root)).collect();
+    let mandatory_ids: Vec<String> = cce_core::gate::mandatory_gates()
+        .into_iter()
+        .map(|g| g.id)
+        .collect();
+    assert!(
+        !mandatory_ids.is_empty(),
+        "mindestens ein Fundament-Gate muss existieren"
+    );
 
-    for offending_pattern in [
-        "Gate deaktivieren fuer PL2-Laeufe",
-        "Capability-Lock entfernen bei aktivem norm_profile",
-        "Invariante aufheben, sobald drei Gegenbeispiele vorliegen",
-    ] {
-        let rd = RunDescriptor::new(sha256(offending_pattern.as_bytes()), "document", 1);
+    for mandatory_id in mandatory_ids {
+        let rd = RunDescriptor::new(sha256(mandatory_id.as_bytes()), "document", 1);
         let input = DistillationInput {
-            pattern: offending_pattern.to_string(),
-            nexus_class: NexusClass::StructuralRule,
+            pattern: Pattern::ClosureProfile {
+                added_gate_ids: vec![mandatory_id.clone()],
+            },
             candidate_roots: roots.clone(),
             n_support: 3,
             known_counterexamples: vec![],
@@ -312,7 +321,7 @@ fn n_nrm_3_and_prod_inv_23_scope_loosening_patterns_are_rejected() {
         assert_eq!(
             report.verdict(),
             BridgeVerdict::Reject,
-            "Pattern {offending_pattern:?} haette rejecten muessen"
+            "ClosureProfile ueber Fundament-Gate {mandatory_id:?} haette rejecten muessen"
         );
         assert_eq!(report.residue(), Some(residue::NORM_SCOPE_VIOLATION));
     }
@@ -330,8 +339,7 @@ fn n_nrm_4_counterexamples_without_hitl_confirmation_are_rejected() {
 
     let rd = RunDescriptor::new(sha256(b"counterexamples-unconfirmed"), "document", 1);
     let input = DistillationInput {
-        pattern: "p".to_string(),
-        nexus_class: NexusClass::StructuralRule,
+        pattern: Pattern::StructuralRule(DomainRuleForm::UniqueSubjects),
         candidate_roots: roots,
         n_support: 3,
         known_counterexamples: vec![CounterExample {
@@ -363,8 +371,9 @@ fn n_nrm_5_conflicting_active_norm_of_same_scope_holds() {
 
     let rd = RunDescriptor::new(sha256(b"conflicting-candidate"), "document", 1);
     let input = DistillationInput {
-        pattern: "eine ANDERE Regel-Behauptung, gleicher globaler Scope".to_string(),
-        nexus_class: NexusClass::StructuralRule,
+        pattern: Pattern::StructuralRule(DomainRuleForm::AcyclicRelation {
+            seam: "eine-andere-behauptung".to_string(),
+        }),
         candidate_roots: roots,
         n_support: 3,
         known_counterexamples: vec![],
@@ -408,8 +417,7 @@ fn n_nrm_7_distillation_without_a_complete_rd_is_forbidden() {
     let mut incomplete_rd = RunDescriptor::new(sha256(b"no-background-run"), "document", 1);
     incomplete_rd.domain = String::new();
     let input = DistillationInput {
-        pattern: "p".to_string(),
-        nexus_class: NexusClass::StructuralRule,
+        pattern: Pattern::StructuralRule(DomainRuleForm::UniqueSubjects),
         candidate_roots: roots,
         n_support: 3,
         known_counterexamples: vec![],
@@ -432,8 +440,7 @@ fn n_nrm_8_distillation_replay_mismatch_is_rejected() {
 
     let rd = RunDescriptor::new(sha256(b"replay-check"), "document", 1);
     let make_input = || DistillationInput {
-        pattern: "identisches Pattern".to_string(),
-        nexus_class: NexusClass::StructuralRule,
+        pattern: Pattern::StructuralRule(DomainRuleForm::UniqueSubjects),
         candidate_roots: roots.clone(),
         n_support: 3,
         known_counterexamples: vec![],
@@ -451,7 +458,9 @@ fn n_nrm_8_distillation_replay_mismatch_is_rejected() {
     // Eine abweichende "Reproduktion" (simuliert einen manipulierten
     // zweiten Destillationslauf) wird vom DistillationReplayGate erkannt.
     let mut mismatched = b.clone();
-    mismatched.pattern = "abweichendes Pattern".to_string();
+    mismatched.pattern = Pattern::StructuralRule(DomainRuleForm::AcyclicRelation {
+        seam: "abweichend".to_string(),
+    });
     let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
     let mut ctx = BridgeGateContext::new(&domains, &[]);
     ctx.replay_reproduction = Some(&mismatched);

@@ -2,6 +2,7 @@
 //! ProvenanceSet, NormCandidate, BridgeNorm, NormStatus, sowie das
 //! vollstaendige Residuen-Vokabular (§8, jeweils ein Zeuge zugeordnet).
 
+use crate::pattern::Pattern;
 use cce_core::canonical::Canonicalize;
 use cce_core::value::CanonValue;
 use loom_cites::CiteEntry;
@@ -130,12 +131,15 @@ pub struct CounterExample {
 
 /// §2: NormCandidate — Kandidat ≠ Norm (das Kandidaten-Commit-Verbot
 /// gilt unveraendert). Quelle des `pattern` ist der Aufrufer (HBM-
-/// Blueprints und/oder Registry-Bestand als Pattern-Lieferant, §7) —
-/// L9b selbst destilliert nicht algorithmisch, sondern gatet/promoviert.
+/// Blueprints via `extract::blueprint_to_pattern` und/oder
+/// Registry-Bestand als Pattern-Lieferant, §7) — L9b selbst destilliert
+/// nicht algorithmisch, sondern gatet/promoviert. Dokument 16 §2b: die
+/// `NexusClass` ist KEIN eigenes Feld mehr, sondern
+/// `pattern.class()` — zwei Felder, die auseinanderlaufen koennten,
+/// sind strukturell ausgeschlossen.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct NormCandidate {
-    pub pattern: String,
-    pub nexus_class: NexusClass,
+    pub pattern: Pattern,
     pub provenance_set: ProvenanceSet,
     pub n_support: u64,
     pub n_counter: u64,
@@ -145,14 +149,19 @@ pub struct NormCandidate {
     pub distillation_rd_class_hex: String,
 }
 
+impl NormCandidate {
+    pub fn nexus_class(&self) -> NexusClass {
+        self.pattern.class()
+    }
+}
+
 /// §2: BridgeNorm — die promovierte Norm. `norm_id` = content_class des
 /// Norm-Workbody selbst (die Norm IST der Container, nicht ein Verweis
 /// darauf).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BridgeNorm {
     pub norm_id: String,
-    pub nexus_class: NexusClass,
-    pub pattern: String,
+    pub pattern: Pattern,
     pub provenance_set: ProvenanceSet,
     pub known_counterexamples: Vec<CounterExample>,
     pub scope: Scope,
@@ -162,6 +171,10 @@ pub struct BridgeNorm {
 }
 
 impl BridgeNorm {
+    pub fn nexus_class(&self) -> NexusClass {
+        self.pattern.class()
+    }
+
     /// §2: das ProvenanceSet einer Norm IST ihre `external_citations`-
     /// Liste mit `cite_kind=derives` — S-E2a wirkt woertlich weiter.
     pub fn derives_cites(&self) -> Vec<CiteEntry> {
@@ -186,8 +199,8 @@ impl BridgeNorm {
 impl Canonicalize for NormCandidate {
     fn canonical_value(&self) -> CanonValue {
         CanonValue::map([
-            ("pattern", CanonValue::text(&self.pattern)),
-            ("nexus_class", CanonValue::text(self.nexus_class.as_str())),
+            ("pattern", CanonValue::text(self.pattern.describe())),
+            ("nexus_class", CanonValue::text(self.nexus_class().as_str())),
             (
                 "provenance_set",
                 CanonValue::List(
@@ -240,6 +253,10 @@ pub mod residue {
     pub const UNRESOLVED_NORM_CITATION: &str = "unresolved_norm_citation";
     /// N-NRM-6: Anwendung ohne explizite Aktivierung (PROD-INV-22).
     pub const NORM_NOT_ACTIVATED: &str = "norm_not_activated";
+    /// Dokument 16 §2a: ein Blueprint traegt keine erkennbare,
+    /// whitelist-konforme Regelform — `extract::blueprint_to_pattern`
+    /// liefert `None`, nie ein geratenes Pattern.
+    pub const PATTERN_EXTRACTION_UNSUPPORTED: &str = "pattern_extraction_unsupported";
 }
 
 #[cfg(test)]
@@ -280,8 +297,7 @@ mod tests {
     fn derives_cites_matches_provenance_members() {
         let norm = BridgeNorm {
             norm_id: "norm:1".to_string(),
-            nexus_class: NexusClass::StructuralRule,
-            pattern: "p".to_string(),
+            pattern: Pattern::StructuralRule(crate::pattern::DomainRuleForm::UniqueSubjects),
             provenance_set: ProvenanceSet::new(vec!["aa".repeat(34), "bb".repeat(34)]),
             known_counterexamples: vec![],
             scope: Scope::Global,
@@ -289,6 +305,7 @@ mod tests {
             promotion_evidence: "e".to_string(),
             supersedes: None,
         };
+        assert_eq!(norm.nexus_class(), NexusClass::StructuralRule);
         let cites = norm.derives_cites();
         assert_eq!(cites.len(), 2);
         assert!(cites

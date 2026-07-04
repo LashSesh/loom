@@ -310,3 +310,159 @@ und gruen (`conformance/tests/e5_l9b_normic_memory.rs`,
 Register-Eintrag (Typ-Stubs, keine Wirkung) ist damit durch einen
 echten, gateten, replay-pflichtigen Bau ersetzt — `spec/` selbst bleibt
 unangetastet (das Register dort wird NICHT editiert, s. R-Agent-1).
+
+---
+
+## Etappe X4 (Dokument 16 §2) — R-Agent-13/14 GESCHLOSSEN
+
+**R-Agent-13 (Pattern-Herkunft war caller-geliefert): GESCHLOSSEN.**
+Neuer typisierter Extraktor `cce_bridge::extract::blueprint_to_pattern
+(&BlueprintCandidate) -> Option<Pattern>` liest echte HBM-Blueprint-
+Facetten (die reale `"invariant: {id}|regel={Name}|naht={seam}"`-Form)
+und leitet daraus NUR eine der sechs whitelisted `DomainRuleForm`-Formen
+ab — nicht abbildbare Blueprints liefern `None`, nie ein geratenes
+Pattern (sichtbares Residuum `pattern_extraction_unsupported` beim
+Aufrufer). `build_first_active_norm` (R-NRM-1) UND `build_r_cyc_1`
+(R-CYC-1, Station 5) destillieren ihr Pattern jetzt beide aus einem
+echten, kleinen HBM-Lauf statt aus Freitext. Details: `reports/
+X4_bericht.md`.
+
+**R-Agent-14 (ScopeGate war String-/Stichwort-basiert): GESCHLOSSEN.**
+`NormCandidate`/`BridgeNorm.pattern` ist jetzt eine typisierte
+`Pattern`-Repräsentation (`StructuralRule`/`SeamPattern`/
+`ClosureProfile`/`VocabularyNorm`/`ProcessNorm`) — die Fundament-
+Schutz-Whitelist (§4) ist damit eine KONSTRUKTIONS-, keine
+Texteigenschaft: vier der fünf Formen können eine Lockerung typisch
+gar nicht mehr ausdrücken; die einzige verbleibende, genuin
+gefährliche Form (`ClosureProfile`, Zusatz-Gates) wird strukturell
+gegen die bestehenden Fundament-Gate-IDs geprüft (Kaperungsversuch ⇒
+`norm_scope_violation`). N-NRM-3/PROD-INV-23 auf die typisierte Form
+umgestellt, bleibt rot. Details: `reports/X4_bericht.md`.
+
+---
+
+## Etappe X4 (Dokument 16 §3c) — Register-Gesamtstand
+
+Konsolidierung JEDER jemals vergebenen Residuen-/Zeugen-Nummer über die
+gesamte Bauzeit, mit Endstatus. Dieses Register (`reports/
+residuen.md`) ist das AGENTEN-EIGENE, fortlaufend gepflegte Register —
+`cce-spec-repo/07_TOTAL_RESIDUE_TO_CLOSURE_REGISTER.md` (das Register
+DES Auftraggebers, #1–25) bleibt unangetastet (`spec/`-Disziplin,
+R-Agent-1); wo sein "Ist"-Text seit seinem Stand (03.07., vor Block 1-3
+und X1-X4) inzwischen überholt ist, wird das hier vermerkt, OHNE die
+Datei selbst zu ändern.
+
+### R-Agent-N (dieses Register)
+
+| # | Thema | Endstatus |
+|---|---|---|
+| R-Agent-1 | Ablageort der Spezifikationen (`cce-spec-repo/spec/`) | OFFEN — dauerhafte Auslegung, blockiert nichts |
+| R-Agent-2 | K1–K18/C1–C14-Katalognummern rekonstruiert | OFFEN — dauerhafte Auslegung |
+| R-Agent-3 | PhaseBlock-10-Tupel-Feldzuordnung rekonstruiert | OFFEN — dauerhafte Auslegung |
+| R-Agent-4 | HyperDAG-Kantentyp-Anzahl (Formel 5 vs. Fliesstext 6) | OFFEN — Spec-vor-Fliesstext-Autoritaet angewandt |
+| R-Agent-5 | V0–V9/LOOM-Abnahme(10)/TAT-P1–P7 rekonstruiert | OFFEN — dauerhafte Auslegung |
+| R-Agent-6 | egui-Font-Atlas rendert nicht (Sandbox-Grenze) | OFFEN — Host-Termin (GPU-Klickpfad) |
+| R-Agent-7 | `xdotool`-Zeichenumkehr-Artefakt der Testkette | OFFEN — harmlos, Testketten-Artefakt |
+| R-Agent-8 | LibreOffice-Headless-Konvertierung in der Sandbox kaputt | OFFEN — Umgebungsgrenze, `python-docx` als Gegenbeweis |
+| R-Agent-9 | SCALE-3-Blueprint-Zelle war struktureller Platzhalter | **GESCHLOSSEN** (Ring E3) |
+| R-Agent-10 | I.5 Replay-Inputs additiv, kein Use-Case | OFFEN — kein Use-Case bisher |
+| R-Agent-11 | `wasm-bindgen-cli`/`playwright` sind lokale Sandbox-Werkzeuge | OFFEN — bewusst, regenerierbar |
+| R-Agent-12 | Klassen-Registry-Signaturenfeld stets leer | OFFEN — kein signierter Seed existiert |
+| R-Agent-13 | Pattern-Herkunft war caller-geliefert | **GESCHLOSSEN** (Etappe X4 §2a) |
+| R-Agent-14 | ScopeGate war String-basiert | **GESCHLOSSEN** (Etappe X4 §2b) |
+
+Separat in diesem Register geschlossen: **S1.10-R1** (docx-Bibliothek,
+GESCHLOSSEN X1d), **Signatur-Registry-Vollform** (GESCHLOSSEN X1e),
+**R-1b** (Nexus-Bridge L9b, GESCHLOSSEN X3/Ring E5, s. oben).
+
+### Register 07 (`cce-spec-repo/07_TOTAL_RESIDUE_TO_CLOSURE_REGISTER.md`, #1–25) — Stand-Abgleich
+
+Der Registerbefund dort lautet wörtlich: "25 Einträge, 0 blockieren die
+Bau-DoD, genau 1 (Lizenz) blockiert eine etwaige Veröffentlichung." Das
+gilt unveraendert. Seither (Block 1-3, X1-X4) GESCHLOSSEN, obwohl die
+Datei selbst (unangetastet) noch den alten Stand zeigt:
+
+| # | Residuum | Registerstand ("Ist") | Tatsaechlicher Stand nach X1-X4 |
+|---|---|---|---|
+| 11 | Nexus-Bridge L9b | "port_only" | **GESCHLOSSEN** (Ring E5/X3, R-1b) |
+| 14 | Signatur-Registry Ed25519+Keyring | "SIGNATURE-Kind registriert" | Mehrfachsignaturen-Vollform **GESCHLOSSEN** (X1e); OS-Keyring-Live-Test bleibt offen (Host-Termin) |
+| 15 | blake3-Zweitprofil | "nur sha2-256" | **GESCHLOSSEN** (X1c, CLI-Blatt-Feature) |
+| 16 | CDDL unter `schemas/` | "Vertraege in loom-verify" | **GESCHLOSSEN** (15 CDDL-Dateien extrahiert, `reports/P6_haertung_bericht.md`) |
+| 17 | GUI-Feindesign 5 Ansichten | "Kernansichten da" | **GESCHLOSSEN** (Block 2, alle 5 Pflichtansichten verdrahtet) |
+| 18 | zstd-Transportprofil | "CompressionUnsupported" | **GESCHLOSSEN** (X1c, CLI-Blatt-Feature) |
+| 20 | .docx-Export | ".md verlustarm" | **GESCHLOSSEN** (X1d, = S1.10-R1) |
+| 25 | Fuzzing/Threat-Model | "Symbol-Scan + Limits" | TEIL-geschlossen: deterministischer CI-Fuzz-Harness + Threat-Model geliefert (`reports/P6_haertung_bericht.md`); coverage-gesteuertes nightly `cargo-fuzz` bleibt Betriebsschritt (K8 teilerfuellt) |
+
+Alle uebrigen 17 Eintraege (#1-10, 12, 13, 19, 21-24) bleiben wie im
+Register 07 gefuehrt unveraendert OFFEN (Host-/Betriebstermine,
+PL4-Reifepfade, Lizenzentscheidung, redaktionelle Amendment-
+Einarbeitung — keiner blockiert den Bau).
+
+### LC-R\* (LOOM-Container-Residuen)
+
+| Nummer | Thema | Endstatus |
+|---|---|---|
+| LC-R1 | Signatur-Registry (Einzelsignatur -> Mehrfachsignatur-Vollform) | **GESCHLOSSEN** (X1e); OS-Keyring-Live-Test offen (Host) |
+| LC-R2 | blake3-Zweitprofil | **GESCHLOSSEN** (X1c) |
+| LC-R3 | CDDL-Schemadateien unter `schemas/` | **GESCHLOSSEN** (P6-Haertung) |
+| LC-R5 | GUI-Feindesign, 5 Pflichtansichten | **GESCHLOSSEN** (Block 2) |
+
+(LC-R4 kommt an keiner Stelle im Repo vor.)
+
+### CSA-R\*, IG-R\*, S15-R\* (unveraendert offen, Betriebs-/Reifepfade)
+
+| Nummer | Thema | Endstatus |
+|---|---|---|
+| CSA-R3 | ConnectorAdapter-OAuth-Vollform (= Register-07 #7, = R-16) | OFFEN — Betriebsschritt |
+| IG-R1 | Live-Cloud-Provider (= Register-07 #4) | **GESCHLOSSEN** (P1, `CloudModelProviderOpenAI` real gebaut hinter unveraendertem Gateway); realer Betrieb bleibt WO-4/5-Entscheidung (Feature `http` + `OPENAI_API_KEY` sind im Bau AUS/nicht gesetzt) |
+| IG-R3 | ExternalAgent produktiv (= Register-07 #5) | OFFEN — Betriebsschritt |
+| IG-R4 | Kanzel-Prompt-Bibliothek | OFFEN — Reifepfad |
+| S15-R1 | SCALE-2..8-Kerntests (= Register-07 #10, = R-10) | TEILWEISE GESCHLOSSEN — SCALE-1..3 real geschlossen (X1b, E2, R-CYC-1 Station 3); SCALE-4..8 bleiben typisierte, ungebaute Stufen |
+
+### Weitere bare R-N/R-NN (aus der Bauzeit vor diesem Fortsetzungs-Abschnitt)
+
+| Nummer | Thema | Endstatus |
+|---|---|---|
+| R-1b | Nexus-Bridge L9b | **GESCHLOSSEN** (s. oben) |
+| R-6 | MEF-1 Payload-Byte-Kodierung | **GESCHLOSSEN** (`reports/G02_bericht.md`) |
+| R-7 | DispersionProfile-Default (Dyadic) | **GESCHLOSSEN** (`reports/G04_bericht.md`) |
+| R-8 | HBM Score-Kalibrierung (= Register-07 #21) | OFFEN — Betriebs-Kalibrierlauf |
+| R-9 | Amendment-Einarbeitung in S-Dateien (= Register-07 #22) | OFFEN, BEWUSST DAUERHAFT — redaktioneller Auftraggeber-Schritt, vom Agenten nie ausgefuehrt |
+| R-10 | SCALE-2..8-Kerntests | s. S15-R1 oben |
+| R-13 | Klonungs-Lock (BoundedOperatorSpecialization) | OFFEN, BEWUSST — Lock scharf, Negativzeuge bleibt rot (Betriebsentscheidung) |
+| R-16 | ConnectorAdapter-OAuth | s. CSA-R3 oben |
+| Repo-R1 | Fehlende LICENSE/NOTICE-Datei (= Register-07 #23) | OFFEN — blockiert nur Veroeffentlichung, nicht den Bau |
+
+---
+
+## Etappe P1 (Dokument 17 §3, Overlay-Klausel: OpenAI statt Anthropic)
+
+**IG-R1 (Live-Cloud-Provider) GESCHLOSSEN.** `CloudModelProviderOpenAI`
+(`crates/cce-inference/src/providers/openai.rs`) implementiert
+`ModelProvider` real, läuft ausschließlich durch das unveränderte
+`run_inference()` (alle zehn Vor-Egress-Gates unverändert aus G8a),
+trägt ein vollständiges Manifest (Terms/Privacy/Retention/Budget,
+`replay_policy=Recorded`, `capability_locks` für `model_egress`). Der
+reale HTTP-Pfad (`ureq`+`serde_json`) liegt hinter dem opt-in-Feature
+`http` (Standard AUS, `cce-inference/Cargo.toml`) — CI baut/testet ohne
+dieses Feature und bleibt damit strukturell netzfrei; `OPENAI_API_KEY`
+wird ausschließlich zur Laufzeit aus der Prozessumgebung gelesen, nie
+gespeichert/geloggt/committet. Ohne Feature ODER ohne Schlüssel
+degradiert der Provider sichtbar (`provider_unavailable`), kein
+Socket-Versuch — dieselbe Disziplin wie `DisabledProvider`. Details,
+inkl. der Anleitung, wo/wie der Schlüssel einzutragen ist: `reports/
+P1_bericht.md`.
+
+Kein neues Residuum durch P1 selbst. Die reale Erprobung gegen die
+tatsächliche OpenAI-API bleibt ein Betriebsschritt (Feature + Schlüssel
+aktivieren) — explizit vorgemerkt, nicht blockierend für P1's eigenen
+Auftragsumfang (Dokument 17 §3: Manifest + Gates + recorded-Replay real
+gebaut).
+
+---
+
+**Keine verwaiste Nummer:** jede oben gelistete Nummer hat einen
+Endstatus (GESCHLOSSEN/TEILWEISE GESCHLOSSEN/OFFEN+Grund) und einen
+Fundstellen-Verweis. Kein Eintrag blockiert den Bau-DoD; Repo-R1
+(Lizenz) blockiert ausschliesslich eine etwaige externe
+Veroeffentlichung, wie im Register 07 selbst vermerkt.

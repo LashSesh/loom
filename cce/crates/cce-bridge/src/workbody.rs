@@ -45,8 +45,8 @@ fn norm_manifest_cv(norm: &BridgeNorm) -> Cv {
             "title",
             Cv::Text(format!(
                 "Norm ({}): {}",
-                norm.nexus_class.as_str(),
-                norm.pattern
+                norm.nexus_class().as_str(),
+                norm.pattern.describe()
             )),
         ),
         ("container_class", Cv::Text("norm".into())),
@@ -88,7 +88,7 @@ fn norm_manifest_cv(norm: &BridgeNorm) -> Cv {
         ),
         // Norm-spezifische additive Felder (S-E5 §2) — additiv/minor
         // neben den 13 Pflichtfeldern (Teil 3.5).
-        ("nexus_class", Cv::Text(norm.nexus_class.as_str().into())),
+        ("nexus_class", Cv::Text(norm.nexus_class().as_str().into())),
         ("norm_id", Cv::Text(norm.norm_id.clone())),
         ("norm_scope", Cv::Text(norm.scope.as_string())),
         ("norm_status", Cv::Text(norm.status.as_str().into())),
@@ -110,8 +110,8 @@ fn norm_cl_substrate_cv(norm: &BridgeNorm) -> Cv {
         (
             "norm_pattern",
             Cv::map(vec![
-                ("nexus_class", Cv::Text(norm.nexus_class.as_str().into())),
-                ("pattern", Cv::Text(norm.pattern.clone())),
+                ("nexus_class", Cv::Text(norm.nexus_class().as_str().into())),
+                ("pattern", norm.pattern.to_cv()),
                 ("scope", Cv::Text(norm.scope.as_string())),
             ]),
         ),
@@ -216,7 +216,6 @@ pub fn seal_norm(
     let norm_id = candidate.canonical_class().0.to_hex();
     let norm = BridgeNorm {
         norm_id,
-        nexus_class: candidate.nexus_class,
         pattern: candidate.pattern.clone(),
         provenance_set: candidate.provenance_set.clone(),
         known_counterexamples: candidate.known_counterexamples.clone(),
@@ -258,12 +257,14 @@ pub fn seal_norm(
 mod tests {
     use super::*;
     use crate::gate::{bridge_gate, BridgeGateContext};
-    use crate::types::{NexusClass, ProvenanceSet, Scope};
+    use crate::pattern::{DomainRuleForm, Pattern};
+    use crate::types::{ProvenanceSet, Scope};
 
     fn base_candidate() -> NormCandidate {
         NormCandidate {
-            pattern: "wiederkehrende Relation-Regel ueber Familien".to_string(),
-            nexus_class: NexusClass::StructuralRule,
+            pattern: Pattern::StructuralRule(DomainRuleForm::Relation {
+                seam: "refers".to_string(),
+            }),
             provenance_set: ProvenanceSet::new(vec![
                 "a1".repeat(34),
                 "a2".repeat(34),

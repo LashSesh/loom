@@ -9,3 +9,12 @@ publish = false
 [dependencies]
 cce-core = { path = "../cce-core" }
 cce-store = { path = "../cce-store" }
+# Realer Cloud-Egress (P1) NUR unter dem opt-in-Feature `http`
+# (standardmaessig AUS): CI baut ihn nicht, bleibt netzfrei und
+# deterministisch — dieselbe Disziplin wie nexus-fetch::HttpTransport.
+# Der EINE Netzpfad liegt hinter demselben unveraenderten Gateway.
+ureq = { version = "3", optional = true, features = ["json"] }
+serde_json = { version = "1", optional = true }
+
+[features]
+http = ["dep:ureq", "dep:serde_json"]

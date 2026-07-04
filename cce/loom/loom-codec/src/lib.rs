@@ -184,6 +184,7 @@ pub enum PackError {
 
 /// Ein gepackter (versiegelter) Container im canonical-stored-Profil:
 /// alle Segmente unkomprimiert, physisch in Tabellenordnung.
+#[derive(Debug, Clone)]
 pub struct Sealed {
     pub bytes: Vec<u8>,
     pub core_root: [u8; 34],

@@ -3,8 +3,9 @@
 //! Norm, das Kandidaten-Commit-Verbot gilt unveraendert (die eigentliche
 //! Promotion laeuft ausschliesslich durchs BridgeGate, §3).
 
+use crate::pattern::Pattern;
 use crate::provenance::{resolve_provenance, ProvenanceError};
-use crate::types::{CounterExample, NexusClass, NormCandidate, Scope};
+use crate::types::{CounterExample, NormCandidate, Scope};
 use cce_core::canonical::Canonicalize;
 use cce_core::replay::{RdError, RunDescriptor};
 use loom_cites::CitationResolver;
@@ -19,11 +20,13 @@ pub enum DistillError {
 }
 
 /// Eingabe eines Destillationslaufs — `pattern` wird vom Aufrufer
-/// geliefert (HBM-Blueprints und/oder Registry-Bestand als Pattern-
-/// Lieferant, §7); L9b selbst gatet/promoviert, es mined nicht.
+/// geliefert (HBM-Blueprints via `extract::blueprint_to_pattern` und/
+/// oder Registry-Bestand als Pattern-Lieferant, §7); L9b selbst
+/// gatet/promoviert, es mined nicht. Dokument 16 §2b: `pattern` ist die
+/// typisierte Form — die `NexusClass` folgt daraus (`pattern.class()`),
+/// kein eigenes Feld mehr.
 pub struct DistillationInput {
-    pub pattern: String,
-    pub nexus_class: NexusClass,
+    pub pattern: Pattern,
     pub candidate_roots: Vec<String>,
     pub n_support: u64,
     /// Pflichtfeld: ein Kandidat, der Gegenbeispiele verschweigt, ist
@@ -49,7 +52,6 @@ pub fn distill(
     let distillation_rd_class_hex = rd.canonical_class().0.to_hex();
     Ok(NormCandidate {
         pattern: input.pattern,
-        nexus_class: input.nexus_class,
         provenance_set,
         n_support: input.n_support,
         n_counter: input.known_counterexamples.len() as u64,
@@ -112,8 +114,7 @@ mod tests {
         let mut rd = RunDescriptor::new(sha256(b"c"), "document", 1);
         rd.domain = String::new();
         let input = DistillationInput {
-            pattern: "p".to_string(),
-            nexus_class: NexusClass::StructuralRule,
+            pattern: Pattern::StructuralRule(crate::pattern::DomainRuleForm::UniqueSubjects),
             candidate_roots: roots,
             n_support: 3,
             known_counterexamples: vec![],
@@ -130,8 +131,9 @@ mod tests {
         let resolver = MockResolver { targets };
         let rd = RunDescriptor::new(sha256(b"c"), "document", 1);
         let input = DistillationInput {
-            pattern: "wiederkehrende Relation-Regel".to_string(),
-            nexus_class: NexusClass::StructuralRule,
+            pattern: Pattern::StructuralRule(crate::pattern::DomainRuleForm::Relation {
+                seam: "refers".to_string(),
+            }),
             candidate_roots: roots,
             n_support: 3,
             known_counterexamples: vec![],
@@ -153,8 +155,7 @@ mod tests {
         let resolver = MockResolver { targets };
         let rd = RunDescriptor::new(sha256(b"c"), "document", 1);
         let input = DistillationInput {
-            pattern: "p".to_string(),
-            nexus_class: NexusClass::StructuralRule,
+            pattern: Pattern::StructuralRule(crate::pattern::DomainRuleForm::UniqueSubjects),
             candidate_roots: roots,
             n_support: 3,
             known_counterexamples: vec![CounterExample {
@@ -175,8 +176,7 @@ mod tests {
         let resolver = MockResolver { targets };
         let rd = RunDescriptor::new(sha256(b"c"), "document", 1);
         let input = DistillationInput {
-            pattern: "p".to_string(),
-            nexus_class: NexusClass::StructuralRule,
+            pattern: Pattern::StructuralRule(crate::pattern::DomainRuleForm::UniqueSubjects),
             candidate_roots: roots,
             n_support: 1,
             known_counterexamples: vec![],

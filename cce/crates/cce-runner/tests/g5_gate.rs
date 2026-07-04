@@ -139,8 +139,7 @@ fn journey_phase_ladder_closes_as_red_scale1() {
 fn sample_active_norm(norm_id: &str) -> cce_bridge::BridgeNorm {
     cce_bridge::BridgeNorm {
         norm_id: norm_id.to_string(),
-        nexus_class: cce_bridge::NexusClass::StructuralRule,
-        pattern: "p".to_string(),
+        pattern: cce_bridge::Pattern::StructuralRule(cce_bridge::DomainRuleForm::UniqueSubjects),
         provenance_set: cce_bridge::ProvenanceSet::new(vec!["aa".repeat(34)]),
         known_counterexamples: vec![],
         scope: cce_bridge::Scope::Global,
