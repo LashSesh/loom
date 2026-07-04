@@ -23,6 +23,7 @@ cce-phc = { path = "../../crates/cce-phc" }
 cce-materialize = { path = "../../crates/cce-materialize" }
 cce-hbm = { path = "../../crates/cce-hbm" }
 cce-runner = { path = "../../crates/cce-runner" }
+cce-bridge = { path = "../../crates/cce-bridge" }
 nexus-core = { path = "../../nexus/nexus-core" }
 # Block 3 (Vollausbau-Folgeauftrag): das erste Welt-Crystal braucht den
 # echten CSA-Adapterpfad (JSON->CSU->EvidencePack), keine neuen externen
@@ -66,3 +67,11 @@ path = "src/bin/risikomatrix_gen.rs"
 [[bin]]
 name = "class-registry-gen"
 path = "src/bin/class_registry_gen.rs"
+
+[[bin]]
+name = "family-ref-gen"
+path = "src/bin/family_ref_gen.rs"
+
+[[bin]]
+name = "norm-gen"
+path = "src/bin/norm_gen.rs"

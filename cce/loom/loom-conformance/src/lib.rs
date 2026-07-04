@@ -128,6 +128,26 @@ pub fn manifest_declare_external_citations(manifest: Cv, roots_hex: &[String]) -
     Cv::Map(entries)
 }
 
+/// S-E5 §10(e): ersetzt `domain_refs` additiv-korrigierend (Cv-Maps
+/// dulden keine doppelten Schluessel, s. `loom_canon::CanonError::
+/// MapKeyDuplicate` — ein reines Anhaengen wie bei
+/// `manifest_declare_external_citations` waere hier ein Encode-Fehler).
+/// Gebraucht, um `manifest_cv`s generisches `"dom:document"` durch die
+/// ECHTE Domaene eines Familien-Referenz-Cubes zu ersetzen, damit die
+/// ProvenanceSet-Diversitaetspruefung (BridgeGate §3 Stufe 2) reale,
+/// unterscheidbare Domaenen sieht.
+pub fn manifest_override_domain_refs(manifest: Cv, refs: &[&str]) -> Cv {
+    let Cv::Map(mut entries) = manifest else {
+        panic!("manifest_cv liefert immer eine Map")
+    };
+    entries.retain(|(k, _)| !matches!(k, Cv::Text(s) if s == "domain_refs"));
+    entries.push((
+        Cv::Text("domain_refs".to_string()),
+        Cv::Array(refs.iter().map(|r| Cv::Text((*r).to_string())).collect()),
+    ));
+    Cv::Map(entries)
+}
+
 fn residue_segment(entries: &[(&str, &str)]) -> Cv {
     Cv::map(vec![(
         "residues",
@@ -1599,6 +1619,10 @@ pub fn build_class_registry() -> Sealed {
     let blueprint_ref = build_blueprint_reference_cube();
     let blueprint_eigen = build_blueprint_eigenkorpus();
     let risikomatrix = build_risikomatrix_workbody();
+    // S-E5 §10(f): die drei Familien-Referenz-Cubes + die erste aktive
+    // Norm (R-NRM-1) gehoeren additiv in denselben Katalog — dieselbe
+    // Herkunftsbasis, ueber die auch die Norm ihre `derives`-Nähte fuehrt.
+    let (norm, sealed_norm, _report, family_refs) = build_first_active_norm();
 
     let entries = vec![
         catalog_entry_from_sealed(&welt, "library/seed/kristall_wikimedia_workbody.loom"),
@@ -1611,10 +1635,15 @@ pub fn build_class_registry() -> Sealed {
             &risikomatrix,
             "library/seed/risikomatrix_memo_workbody.loom",
         ),
+        catalog_entry_from_sealed(&family_refs[0], "library/seed/family_ref_d02.loom"),
+        catalog_entry_from_sealed(&family_refs[1], "library/seed/family_ref_d03.loom"),
+        catalog_entry_from_sealed(&family_refs[2], "library/seed/family_ref_d06.loom"),
+        catalog_entry_from_sealed(&sealed_norm, "library/seed/norm_relation_regel.loom"),
     ];
     let doc = loom_cites::class_registry_field(&entries);
+    let doc = cce_bridge::memory::attach_norms_section(doc, &[norm]);
     let m = manifest_cv(
-        "Klassen-Registry (X2/E4c) — zertifizierte core_roots",
+        "Klassen-Registry (X2/E4c + X3/E5 norms/) — zertifizierte core_roots",
         "inspection",
         "PL1",
         false,
@@ -1633,4 +1662,293 @@ pub fn build_class_registry() -> Sealed {
         ],
     )
     .unwrap()
+}
+
+// ---------- Etappe X3/E5 (Karte §2/E5, S-E5): L9b Normic Memory ----------
+//
+// Der Milestone R-NRM-1 braucht ≥3 ECHTE, geschlossene ("full",
+// claims_closed=true) Familien-Referenz-Cubes als ProvenanceSet — nicht
+// Platzhalter. `build_family_reference_workbody` siegelt genau das, aus
+// dem REALEN Referenz-Cube einer Familie-A-Domaene, durch den echten
+// Motor (cce-runner), `domain_refs` auf die konkrete Domaene gesetzt
+// (nicht das generische "dom:document" aus `manifest_cv`) — die
+// BridgeGate-DiversityGate braucht echte, unterscheidbare Domaenen.
+
+/// HBM-Facetten je Familien-Referenz-Cube, ausschliesslich mit
+/// whitelisted Facet-Typen (E3-Disziplin: `entity`/`constraint`
+/// gehoeren zu `cce_hbm::facet::FACET_TYPES`).
+fn family_hbm_content(profile_id: &str) -> Cv {
+    let facets = cce_hbm::facet::extract_facets(
+        &format!("hbm:{profile_id}"),
+        &[
+            &format!("entity: Familien-Referenz-Cube {profile_id}"),
+            "constraint: Kern-Naht-Regel der Domaene muss erfuellt sein",
+        ],
+    );
+    Cv::map(vec![(
+        "facets",
+        Cv::Array(
+            facets
+                .iter()
+                .map(|f| {
+                    Cv::map(vec![
+                        ("facet_type", Cv::Text(f.facet_type.clone())),
+                        ("scope", Cv::Text(f.scope.clone())),
+                    ])
+                })
+                .collect(),
+        ),
+    )])
+}
+
+/// Siegelt einen ECHTEN "full"-Workbody (claims_closed=true, LEDGER mit
+/// `closure_proof=true`) aus dem Referenz-Cube EINER Familie-A-Domaene
+/// (`family_a_domains::d02/d03/d06/...`) — durch den echten Motor
+/// (`cce-runner::Run`), nicht simuliert. `domain_core_gate` wird VOR dem
+/// Siegeln bestaetigt (derselbe Kern-Gate-Aufruf wie in
+/// `family_a_catalog.rs`).
+pub fn build_family_reference_workbody(profile: &cce_materialize::family_a::DocProfile) -> Sealed {
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_runner::runner::Run;
+
+    let crystal = (profile.reference)();
+    assert!(
+        cce_materialize::family_a::domain_core_gate(profile, &crystal).is_pass(),
+        "Referenz-Cube der Domaene {} muss die Kern-Regel erfuellen",
+        profile.id
+    );
+    let rd = RunDescriptor::new(
+        sha256(format!("family-ref:{}", profile.id).as_bytes()),
+        "document",
+        7,
+    );
+    let mut run = Run::submit(crystal.clone(), rd.clone()).expect("Motor-Submit");
+    run.run_to_end(None).expect("Motor-Lauf");
+    let artifact = run
+        .artifact
+        .as_ref()
+        .expect("Referenz-Cube muss real materialisieren (Gates gruen)");
+    let content_class = crystal.canonical_class().0;
+    let byte_digest = artifact.byte_digest();
+    let (_uid, nsb, evidence) = csa_content();
+
+    let doc_meta = Cv::map(vec![
+        ("title", Cv::Text(crystal.title.clone())),
+        ("units", Cv::Uint(crystal.units.len() as u64)),
+        ("class", Cv::Text(content_class.to_hex())),
+    ]);
+    let artifact_cv = Cv::map(vec![
+        (
+            "artifact_id",
+            Cv::Text(format!("artifact:{}-md", profile.id)),
+        ),
+        (
+            "two_digest",
+            Cv::map(vec![
+                ("content_class", Cv::Text(content_class.to_hex())),
+                ("byte_digest", Cv::Text(byte_digest.to_hex())),
+            ]),
+        ),
+    ]);
+    let domain_ref = format!("dom:{}", profile.id);
+    let mut m = manifest_cv(
+        &format!("Familien-Referenz-Cube {}", profile.id),
+        "full",
+        "PL2",
+        true,
+        0,
+        &[],
+        &["read_segment", "project_workcell", "export_artifact"],
+        "cc0",
+    );
+    m = manifest_override_domain_refs(m, &[&domain_ref]);
+
+    let mut segs = vec![
+        seg(KIND_MANIFEST, &m),
+        canon_desc_segment(),
+        seg(KIND_LEDGER, &ledger_segment(true)),
+        seg(KIND_RESIDUE, &residue_segment(&[])),
+        seg(KIND_EVIDENCE, &evidence),
+        seg(
+            KIND_REPLAY_MANIFEST,
+            &loom_replay::replay_manifest_segment(
+                &rd.crystal_digest.to_hex(),
+                rd.seed,
+                &content_class.to_hex(),
+            ),
+        ),
+        seg(KIND_CSA_NSB, &nsb),
+        seg(KIND_HBM, &family_hbm_content(profile.id)),
+        seg(KIND_DOC, &doc_meta),
+        seg(KIND_ARTIFACT, &artifact_cv),
+    ];
+    segs.extend(workcell_segments());
+    seal_canonical("full", &["full"], &segs).unwrap()
+}
+
+/// Eine DRITTE `CitationResolver`-Implementierung (S-E2a I.2, neben
+/// `SeedResolver`/`RegistryResolver` aus E4c): rein speicherbasiert
+/// ueber bereits versiegelte Bytes, die der Aufrufer im Speicher haelt
+/// (kein Dateisystemzugriff noetig, waehrend R-NRM-1 gebaut wird) —
+/// dieselbe Verifikationsstrenge wie die anderen zwei (Digest-
+/// Gegenprobe + volles L0-L2). Beweist erneut, dass CitationGate/
+/// BridgeGate resolver-agnostisch sind. Oeffentlich, damit Zeugen (X3/E5)
+/// eigene Herkunfts-/Erosions-Szenen ueber echte, bereits versiegelte
+/// Bytes bauen koennen, ohne das Dateisystem zu beruehren.
+pub struct InMemoryResolver {
+    by_root: std::collections::BTreeMap<String, Vec<u8>>,
+}
+
+impl InMemoryResolver {
+    pub fn from_sealed(members: &[Sealed]) -> Self {
+        let mut by_root = std::collections::BTreeMap::new();
+        for s in members {
+            by_root.insert(hex34(&s.core_root), s.bytes.clone());
+        }
+        Self { by_root }
+    }
+
+    /// Nur eine TEILMENGE der uebergebenen Sealed-Container aufloesbar
+    /// machen (Index-Auswahl) — fuer Erosions-/Insufficient-Provenance-
+    /// Szenen, in denen ein bestehendes Mitglied "verschwindet".
+    pub fn from_sealed_subset(members: &[Sealed], keep_indices: &[usize]) -> Self {
+        let mut by_root = std::collections::BTreeMap::new();
+        for &i in keep_indices {
+            by_root.insert(hex34(&members[i].core_root), members[i].bytes.clone());
+        }
+        Self { by_root }
+    }
+}
+
+impl loom_cites::CitationResolver for InMemoryResolver {
+    fn resolve(&self, target_core_root_hex: &str) -> Option<loom_cites::VerifiedTarget> {
+        let bytes = self.by_root.get(target_core_root_hex)?;
+        let dec = loom_codec::decode_sealed(bytes).ok()?;
+        if hex34(&dec.footer.core_root) != target_core_root_hex {
+            return None;
+        }
+        let report = loom_verify::verify(bytes);
+        let manifest = dec.frames.iter().find_map(|(e, f)| {
+            if e.kind == KIND_MANIFEST {
+                loom_canon::decode(&f.payload).ok()
+            } else {
+                None
+            }
+        })?;
+        let cites = {
+            let mut out = Vec::new();
+            for (e, f) in &dec.frames {
+                if e.kind == KIND_CL_SUBSTRATE {
+                    if let Ok(cl) = loom_canon::decode(&f.payload) {
+                        out.extend(loom_cites::parse_cites_from_cl_substrate(&cl));
+                    }
+                }
+            }
+            out
+        };
+        let unit_ids = {
+            match loom_mount::open(bytes) {
+                Ok(handle) => match loom_mount::extract_artifact(&handle) {
+                    Ok(artifact_bytes) => {
+                        match cce_materialize::document::parse::parse_markdown(&artifact_bytes) {
+                            Ok(crystal) => crystal.units.into_iter().map(|u| u.id).collect(),
+                            Err(_) => std::collections::BTreeSet::new(),
+                        }
+                    }
+                    Err(_) => std::collections::BTreeSet::new(),
+                },
+                Err(_) => std::collections::BTreeSet::new(),
+            }
+        };
+        Some(loom_cites::VerifiedTarget {
+            core_root_hex: target_core_root_hex.to_string(),
+            verdict: report.verdict,
+            manifest,
+            unit_ids,
+            cites,
+        })
+    }
+}
+
+fn manifest_first_domain_ref(bytes: &[u8]) -> Option<String> {
+    let dec = loom_codec::decode_sealed(bytes).ok()?;
+    let manifest = dec.frames.iter().find_map(|(e, f)| {
+        if e.kind == KIND_MANIFEST {
+            loom_canon::decode(&f.payload).ok()
+        } else {
+            None
+        }
+    })?;
+    match cv_get(&manifest, "domain_refs") {
+        Some(Cv::Array(items)) => items.first().and_then(|v| match v {
+            Cv::Text(s) => Some(s.clone()),
+            _ => None,
+        }),
+        _ => None,
+    }
+}
+
+/// Der Meilenstein R-NRM-1 (S-E5 §9/§10): destilliert die erste aktive
+/// Norm aus DREI echten, geschlossenen Familien-Referenz-Cubes
+/// (D02/D03/D06 — dieselbe `Relation`-Kern-Naht-Regel-FORM, verschiedene
+/// Nahtnamen/Domaenen: "refers"/"derives"/"priced") und siegelt sie als
+/// `.loom`-Workbody der Containerklasse `"norm"`. Gibt zusaetzlich die
+/// drei Herkunfts-Container zurueck (fuer Registry-Katalogisierung und
+/// Zeugen, die die Herkunft selbst pruefen wollen).
+pub fn build_first_active_norm() -> (
+    cce_bridge::BridgeNorm,
+    Sealed,
+    cce_bridge::gate::BridgeGateReport,
+    Vec<Sealed>,
+) {
+    use cce_bridge::distill::{distill, DistillationInput};
+    use cce_bridge::gate::{bridge_gate, BridgeGateContext};
+    use cce_bridge::types::{NexusClass, Scope};
+    use cce_bridge::workbody::seal_norm;
+    use cce_bridge::BridgeVerdict;
+    use cce_core::replay::RunDescriptor;
+    use cce_core::signature::sha256;
+    use cce_materialize::family_a_domains::{d02, d03, d06};
+
+    let members: Vec<Sealed> = vec![
+        build_family_reference_workbody(&d02()),
+        build_family_reference_workbody(&d03()),
+        build_family_reference_workbody(&d06()),
+    ];
+    let candidate_roots: Vec<String> = members.iter().map(|s| hex34(&s.core_root)).collect();
+    let resolver = InMemoryResolver::from_sealed(&members);
+
+    let rd = RunDescriptor::new(sha256(b"l9b-distillation-relation-regel"), "document", 1);
+    let input = DistillationInput {
+        pattern: "Relation-Kern-Naht-Pflicht: jede Subjekt-Einheit braucht eine \
+                  aufloesbare Naht zu einer bestehenden Einheit — wiederkehrend \
+                  ueber die Domaenen D02/D03/D06 (verschiedene Nahtnamen, \
+                  dieselbe Regel-FORM)"
+            .to_string(),
+        nexus_class: NexusClass::StructuralRule,
+        candidate_roots: candidate_roots.clone(),
+        n_support: 3,
+        known_counterexamples: vec![],
+        scope: Scope::Global,
+        kappa_min: 3,
+    };
+    let candidate = distill(input, &resolver, &rd)
+        .expect("Destillation ueber drei geschlossene Familien-Referenz-Cubes muss gelingen");
+
+    let domains: Vec<String> = members
+        .iter()
+        .filter_map(|s| manifest_first_domain_ref(&s.bytes))
+        .collect();
+    let ctx = BridgeGateContext::new(&domains, &[]);
+    let report = bridge_gate(&candidate, &ctx);
+    assert_eq!(
+        report.verdict(),
+        BridgeVerdict::Allow,
+        "R-NRM-1: die erste Norm muss durchs BridgeGate ALLOW erhalten: {report:?}"
+    );
+
+    let (norm, sealed_norm) =
+        seal_norm(&candidate, &report, &[]).expect("Norm-Workbody muss siegeln");
+    (norm, sealed_norm, report, members)
 }

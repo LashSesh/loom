@@ -18,6 +18,18 @@ ALLOWED_CORE_TO_OUTER = {
     # cce-runner/cce-observe ueber den SDK-Port"
     "cce-runner": {"loom-codec", "loom-verify", "loom-format", "loom-canon"},
     "cce-observe": {"loom-codec", "loom-verify", "loom-format", "loom-canon"},
+    # S-E5 §10: cce-bridge braucht den CitationResolver-Port (SeedResolver
+    # + Klassen-Registry aus E4c) sowie den .loom-Kern, um die Norm selbst
+    # als Workbody zu siegeln — explizit benannte Ports, keine Ausnahme vom
+    # Grundsatz, sondern dessen woertliche Umsetzung.
+    "cce-bridge": {
+        "loom-cites",
+        "loom-canon",
+        "loom-format",
+        "loom-codec",
+        "loom-verify",
+        "loom-replay",
+    },
 }
 
 

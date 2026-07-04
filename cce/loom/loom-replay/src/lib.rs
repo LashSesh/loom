@@ -70,6 +70,64 @@ pub fn check_replay_inputs(
     }
 }
 
+/// S-E5 §5/§10(g): additive Erweiterung um die aktivierten `norm_id`s
+/// (`norm_profile`) — Replay verlangt dieselben Norm-Klassen (ein
+/// anderes aktiviertes Set ist ein anderer Lauf). Dieselbe additive
+/// Disziplin wie `replay_manifest_segment_with_inputs` (S-E2a I.5):
+/// bestehende Aufrufer bleiben unveraendert.
+pub fn replay_manifest_segment_with_norms(
+    rd_digest_hex: &str,
+    seed: u64,
+    commit_class_hex: &str,
+    input_digests_hex: &[&str],
+    norm_ids: &[&str],
+) -> Cv {
+    let Cv::Map(mut entries) = replay_manifest_segment_with_inputs(
+        rd_digest_hex,
+        seed,
+        commit_class_hex,
+        input_digests_hex,
+    ) else {
+        unreachable!("replay_manifest_segment_with_inputs liefert immer eine Map")
+    };
+    entries.push((
+        Cv::Text("norm_profile".to_string()),
+        Cv::Array(
+            norm_ids
+                .iter()
+                .map(|n| Cv::Text((*n).to_string()))
+                .collect(),
+        ),
+    ));
+    Cv::Map(entries)
+}
+
+/// S-E5 §5: prueft, dass ALLE erwarteten `norm_id`s im deklarierten
+/// REPLAY_MANIFEST auftauchen — Replay verlangt dieselben aktivierten
+/// Normen (PROD-INV-22-Grundlage).
+pub fn check_norm_profile(manifest: &Cv, expected_norm_ids: &[&str]) -> Result<(), Vec<String>> {
+    let declared: Vec<&str> = match get(manifest, "norm_profile") {
+        Some(Cv::Array(items)) => items
+            .iter()
+            .filter_map(|v| match v {
+                Cv::Text(s) => Some(s.as_str()),
+                _ => None,
+            })
+            .collect(),
+        _ => vec![],
+    };
+    let missing: Vec<String> = expected_norm_ids
+        .iter()
+        .filter(|d| !declared.contains(d))
+        .map(|d| (*d).to_string())
+        .collect();
+    if missing.is_empty() {
+        Ok(())
+    } else {
+        Err(missing)
+    }
+}
+
 #[derive(Debug, PartialEq, Eq)]
 pub enum ReplayVerdict {
     /// Reproduzierte Klasse == deklarierte Klasse.
@@ -157,6 +215,31 @@ mod tests {
         assert_eq!(
             check_replay_inputs(&m, &["sha256:target-a", "sha256:target-b"]),
             Err(vec!["sha256:target-b".to_string()])
+        );
+    }
+
+    #[test]
+    fn with_norms_is_additive_and_old_form_unchanged() {
+        let old = replay_manifest_segment_with_inputs("sha256:rd", 7, "sha256:class", &[]);
+        assert!(get(&old, "norm_profile").is_none());
+        let new =
+            replay_manifest_segment_with_norms("sha256:rd", 7, "sha256:class", &[], &["norm:1"]);
+        assert_eq!(get(&new, "rd_digest"), get(&old, "rd_digest"));
+        match get(&new, "norm_profile") {
+            Some(Cv::Array(items)) => assert_eq!(items.len(), 1),
+            other => panic!("norm_profile fehlt/falscher Typ: {other:?}"),
+        }
+    }
+
+    /// N-NRM-6/PROD-INV-22-Grundlage: Replay verlangt dieselben Normen.
+    #[test]
+    fn check_norm_profile_finds_missing_norms() {
+        let m =
+            replay_manifest_segment_with_norms("sha256:rd", 7, "sha256:class", &[], &["norm:1"]);
+        assert_eq!(check_norm_profile(&m, &["norm:1"]), Ok(()));
+        assert_eq!(
+            check_norm_profile(&m, &["norm:1", "norm:2"]),
+            Err(vec!["norm:2".to_string()])
         );
     }
 }

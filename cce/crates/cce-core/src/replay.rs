@@ -57,6 +57,11 @@ pub struct RunDescriptor {
     /// sind Replay-INPUTS — Replay verlangt dieselben Ziele (der Resolver
     /// darf ein anderer sein, die Klassen nicht). Additiv, Default leer.
     pub input_digests: Vec<Digest>,
+    /// S-E5 §5: die explizit aktivierten `norm_id`s dieses Laufs
+    /// (`norm_profile`) sind RD-Input — Replay verlangt dieselben
+    /// Norm-Klassen (ein anderes aktiviertes Set aendert die RD-Klasse).
+    /// Additiv, Default leer (kein Lauf aktiviert Normen implizit).
+    pub norm_profile: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -76,6 +81,7 @@ impl RunDescriptor {
             domain: domain.to_string(),
             export_profile: "default".to_string(),
             input_digests: Vec::new(),
+            norm_profile: Vec::new(),
         }
     }
 
@@ -87,6 +93,12 @@ impl RunDescriptor {
     /// S-E2a I.5: einen zitierten Ziel-Digest als Replay-Input anhaengen.
     pub fn with_input(mut self, d: Digest) -> Self {
         self.input_digests.push(d);
+        self
+    }
+
+    /// S-E5 §5: eine aktivierte `norm_id` anhaengen (`norm_profile`).
+    pub fn with_norm(mut self, norm_id: impl Into<String>) -> Self {
+        self.norm_profile.push(norm_id.into());
         self
     }
 
@@ -134,6 +146,10 @@ impl Canonicalize for RunDescriptor {
                         .map(|d| CanonValue::Bytes(d.0.to_vec()))
                         .collect(),
                 ),
+            ),
+            (
+                "norm_profile",
+                CanonValue::List(self.norm_profile.iter().map(CanonValue::text).collect()),
             ),
         ])
     }

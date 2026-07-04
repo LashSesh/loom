@@ -85,6 +85,18 @@ fn required_kinds(profile: &str) -> Vec<u16> {
         "source" => base.extend([KIND_CSA_NSB, KIND_EVIDENCE]),
         "hbm" => base.extend([KIND_HBM, KIND_EVIDENCE]),
         "runtime" => base.extend([KIND_LEDGER, KIND_REPLAY_MANIFEST]),
+        // S-E5 §10(e): die Norm-Speicherform braucht CL (Pattern),
+        // EVIDENCE (BridgeGate-Report), LEDGER, RESIDUE und
+        // REPLAY_MANIFEST (Destillations-RD) — kein Motor-Workcell-Pfad
+        // (kein PHC/GATE_REPORTS/RUNTIME_PROFILE), da eine Norm nie durch
+        // den Motor laeuft, sondern durchs BridgeGate promoviert wird.
+        "norm" => base.extend([
+            KIND_CL_SUBSTRATE,
+            KIND_LEDGER,
+            KIND_RESIDUE,
+            KIND_EVIDENCE,
+            KIND_REPLAY_MANIFEST,
+        ]),
         "full" => base.extend([
             KIND_CL_SUBSTRATE,
             KIND_PHC,

@@ -54,8 +54,18 @@ pub const SEG_FLAG_REQUIRED_UNDERSTAND: u16 = 1 << 2;
 
 pub const FLAG_SEALED: u8 = 1 << 0;
 
-/// Container-Klassen/Profile (Teil 2.5).
-pub const PROFILES: [&str; 6] = ["inspection", "workcell", "source", "hbm", "runtime", "full"];
+/// Container-Klassen/Profile (Teil 2.5). S-E5 §2/§10(e) fuegt additiv
+/// "norm" hinzu: die Speicherform des L9b-Normic-Memory-Workbody (eine
+/// Norm IST ein .loom-Workbody, kein Verweis darauf).
+pub const PROFILES: [&str; 7] = [
+    "inspection",
+    "workcell",
+    "source",
+    "hbm",
+    "runtime",
+    "full",
+    "norm",
+];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FormatError {

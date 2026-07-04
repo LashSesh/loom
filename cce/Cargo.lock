@@ -320,6 +320,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "cce-bridge"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "loom-canon",
+ "loom-cites",
+ "loom-codec",
+ "loom-format",
+ "loom-replay",
+ "loom-verify",
+]
+
+[[package]]
 name = "cce-ccc"
 version = "0.1.0"
 dependencies = [
@@ -331,6 +344,7 @@ dependencies = [
 name = "cce-conformance"
 version = "0.1.0"
 dependencies = [
+ "cce-bridge",
  "cce-core",
  "cce-crystal",
  "cce-hbm",
@@ -353,6 +367,7 @@ dependencies = [
  "loom-conformance",
  "loom-format",
  "loom-mount",
+ "loom-replay",
  "loom-verify",
  "nexus-adapter",
  "nexus-adapter-git",
@@ -492,6 +507,7 @@ dependencies = [
 name = "cce-runner"
 version = "0.1.0"
 dependencies = [
+ "cce-bridge",
  "cce-core",
  "cce-crystal",
  "cce-kernel",
@@ -1843,6 +1859,7 @@ dependencies = [
 name = "loom-conformance"
 version = "0.1.0"
 dependencies = [
+ "cce-bridge",
  "cce-core",
  "cce-hbm",
  "cce-materialize",

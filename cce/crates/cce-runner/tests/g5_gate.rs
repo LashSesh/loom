@@ -136,6 +136,80 @@ fn journey_phase_ladder_closes_as_red_scale1() {
     assert!(matches!(close_red(&broken), RedVerdict::Open(_)));
 }
 
+fn sample_active_norm(norm_id: &str) -> cce_bridge::BridgeNorm {
+    cce_bridge::BridgeNorm {
+        norm_id: norm_id.to_string(),
+        nexus_class: cce_bridge::NexusClass::StructuralRule,
+        pattern: "p".to_string(),
+        provenance_set: cce_bridge::ProvenanceSet::new(vec!["aa".repeat(34)]),
+        known_counterexamples: vec![],
+        scope: cce_bridge::Scope::Global,
+        status: cce_bridge::NormStatus::Active,
+        promotion_evidence: "e".to_string(),
+        supersedes: None,
+    }
+}
+
+/// R-NRM-2 (S-E5 §5/§9): ein Lauf mit `norm_profile` wendet die
+/// aktivierte Norm als zusaetzliches Gate an — RD listet die norm_id,
+/// Replay bleibt klassenidentisch bei gleichem Profil.
+#[test]
+fn norm_profile_activation_is_replay_stable() {
+    let adapter = DocumentAdapter;
+    let norm = sample_active_norm("norm:test-1");
+    let mut rd_with_norm = rd();
+    rd_with_norm = rd_with_norm.with_norm(norm.norm_id.clone());
+
+    let mut first = Run::submit(adapter.reference_cube(), rd_with_norm.clone()).unwrap();
+    first.activated_norms.push(norm.clone());
+    first.run_to_end(None).unwrap();
+    assert_eq!(first.status, RunStatus::Closed);
+
+    let mut second = Run::submit(adapter.reference_cube(), rd_with_norm).unwrap();
+    second.activated_norms.push(norm);
+    second.run_to_end(None).unwrap();
+    assert_eq!(second.status, RunStatus::Closed);
+    assert_eq!(
+        first.result_class(),
+        second.result_class(),
+        "gleiches norm_profile ⇒ gleiche Klasse"
+    );
+}
+
+/// N-NRM-6/PROD-INV-22: `norm_profile` nennt eine norm_id, fuer die der
+/// Aufrufer keine aufgeloeste (aktive) Norm mitgibt ⇒ der Lauf lehnt
+/// fail-closed ab (`norm_not_activated`), statt stillschweigend zu
+/// woben.
+#[test]
+fn norm_profile_without_resolved_norm_rejects_the_run() {
+    let adapter = DocumentAdapter;
+    let mut rd_with_norm = rd();
+    rd_with_norm = rd_with_norm.with_norm("norm:unresolved");
+    let mut run = Run::submit(adapter.reference_cube(), rd_with_norm).unwrap();
+    run.run_to_end(None).unwrap();
+    match run.status {
+        RunStatus::Rejected { reason } => assert!(reason.contains("norm_not_activated")),
+        other => panic!("norm_profile ohne aufgeloeste Norm haette rejecten muessen: {other:?}"),
+    }
+}
+
+/// PROD-INV-22 (Kehrseite): eine Norm, die NICHT im `norm_profile`
+/// steht, wirkt nie — selbst wenn der Aufrufer sie in
+/// `activated_norms` mitgibt (A3: strikt opt-in).
+#[test]
+fn norm_not_in_profile_never_activates() {
+    let adapter = DocumentAdapter;
+    let norm = sample_active_norm("norm:not-requested");
+    let mut run = Run::submit(adapter.reference_cube(), rd()).unwrap();
+    run.activated_norms.push(norm);
+    run.run_to_end(None).unwrap();
+    assert_eq!(
+        run.status,
+        RunStatus::Closed,
+        "ohne norm_profile-Eintrag bleibt der Lauf unbeeinflusst"
+    );
+}
+
 /// Die drei Ausfuehrungsformen sind deterministisch (S5-A3).
 #[test]
 fn three_execution_forms_deterministic() {
