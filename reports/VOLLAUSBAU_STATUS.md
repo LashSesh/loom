@@ -9,12 +9,12 @@ Stand: Track A **W16 VOLLSTAENDIG (213/213 PL3)** + **Block 1
 `cce-spec-repo/13_OEKOSYSTEM_EXPANSIONSKARTE.md` ist der Arbeitsplan
 ÜBER diesem Status/dem Masterplan (Ringe E1→E2→(E3∥E4)→E5). E1
 (`reports/X1_bericht.md`), E2 (`reports/E2_bericht.md`), E3
-(`reports/E3_bericht.md`) UND jetzt **E4** (CE-1 Tabellen-Zellentyp +
-loom-sdk/wasm-Viewer + Klassen-Registry; Details + alle Exit-Zeugen in
-`reports/E4_bericht.md`) sind geschlossen. **Damit ist Etappe X2
-(Ringe E2→E3→E4) vollständig abgeschlossen.** Nur E5 bleibt offen —
-gesperrt bis S-E5 (Spec-Lieferung steht laut Karte §4 aus, „der
-Auftraggeber" liefert sie vorab).
+(`reports/E3_bericht.md`), E4 (CE-1 Tabellen-Zellentyp +
+loom-sdk/wasm-Viewer + Klassen-Registry; `reports/E4_bericht.md`) UND
+jetzt **E5** (L9b Normic Memory — `crates/cce-bridge`, Meilenstein
+R-NRM-1, Residuum R-1b GESCHLOSSEN; Details + alle Exit-Zeugen in
+`reports/X3_bericht.md`) sind geschlossen. **Damit sind Etappe X2
+(Ringe E2→E3→E4) UND Etappe X3 (Ring E5) vollständig abgeschlossen.**
 
 ## Domänen (Track A) — 213 gesamt
 
@@ -50,6 +50,7 @@ Auftraggeber" liefert sie vorab).
 | E Skalen | P8 **fertig**: SCALE-2 Dokumentenmappe (Red(2)-Kerntest, MSC 1→2, Adapter 8/8, PL2). **X1(b) fertig:** Mappe buendelt beide Kind-Memos PHYSISCH (je ein CAS_BLOB), Extraktion liefert 2 unabhaengig valide Einzel-Workbodies. **X2/E2 fertig:** SCALE-3 „Projektraum" (2 Mappen + Welt-Kristall + Blueprint-Zelle), MSC(1→2→3) gruen, Schliessung real per SeedResolver+CitationGate nachgewiesen |
 | F Härtung | P6(a/b/c) **fertig**: Ed25519-Signatur ueber core_root (loom-cli sign/verify-sig), OS-Keyring feature-gated. **X1(e) fertig:** Signatur-Registry-Vollform — additive Mehrfachsignaturen (Autor/Pruefer/ReviewGate), `verify-sig --all` prueft die ganze Kette unabhaengig gruen/rot |
 | G Pakete | gesperrt (Build-Hosts fehlen) |
+| H Brückenraum L9b | **X3/E5 fertig (R-1b GESCHLOSSEN):** `crates/cce-bridge` — ProvenanceSet ueber den bestehenden CitationResolver-Port, RD-gebundene Destillation, sechsstufiges BridgeGate (PROD-INV-21 strukturell erzwungen), Norm-Workbody der Containerklasse `"norm"`, `norms/`-Registry-Sektion, Aktivierungs-Hook im Runner (`norm_profile`), Erosion/Widerruf/Lineage. Meilenstein R-NRM-1 real erbracht |
 
 ## Block-Auftrag (aktuell)
 
@@ -142,14 +143,30 @@ Auftraggeber" liefert sie vorab).
    Implementierung — löst dieselbe R-CIT-1/2-Szene aus Ring E2 genauso
    grün auf wie der `SeedResolver`). Details: `reports/E4_bericht.md`.
 
+8. **Etappe X3/Ring E5 — L9b Normic Memory: ABGESCHLOSSEN (R-1b
+   GESCHLOSSEN).** Neues Crate `crates/cce-bridge` (kein Egress, nur
+   benannte Ports): ProvenanceSet über den bestehenden
+   `CitationResolver`-Port, RD-gebundene Destillation, sechsstufiges
+   BridgeGate (ProvenanceGate/DiversityGate/CounterexampleGate mit
+   HITL-Bestätigung/ConflictGate/ScopeGate-Fundamentschutz/
+   DistillationReplayGate — PROD-INV-21 strukturell erzwungen, nicht
+   nur konventionell), Norm-Workbody der neuen Containerklasse
+   `"norm"` (`loom-format`/`loom-verify` additiv erweitert),
+   `norms/`-Sektion der Klassen-Registry (E4c) mit `query`,
+   Aktivierungs-Hook im Runner (`norm_profile`, RD-Input,
+   Replay-pflichtig, strikt opt-in), Erosion/Widerruf/Lineage.
+   Meilenstein R-NRM-1: die erste aktive Norm, destilliert aus drei
+   echten, geschlossenen Familien-Referenz-Cubes (D02/D03/D06),
+   CitationGate-grün. Alle 12 Zeugen (R-NRM-1..4, N-NRM-1..8) +
+   PROD-INV-21..23 real und grün. Details: `reports/X3_bericht.md`.
+
 Damit sind alle drei angeordneten Bloecke UND **Etappe X2 (Ringe
-E2→E3→E4) vollständig** abgeschlossen. Track A bleibt vollständig
-(213/213 PL3). `.docx`-Export, zstd-Transportprofil, blake3-Zweitprofil,
-SCALE-2-Vollmaterialisierung, die `cites`-Naht/SCALE-3, HBM auf
-Eigenkorpus, CE-1/loom-sdk/wasm-Viewer UND die Klassen-Registry sind
-jetzt GESCHLOSSEN. Offen bleiben: PL3→PL4-Reifepfade sowie Ring E5 der
-Ökosystem-Expansionskarte (L9b Normic Memory — gesperrt bis S-E5, Karte
-§4). Host-gebunden gesammelt und bewusst nicht weiter umgangen: GGUF-/
-LLM-Anbindung, OS-Keyring-Live-Test, macOS/Windows-Pakete (Track G),
-GPU-Klickpfad mit gerenderten Glyphen — je einen Build-/Desktop-/
-GPU-Host, bis dahin gesperrt.
+E2→E3→E4) sowie Etappe X3 (Ring E5) vollständig** abgeschlossen. Track A
+bleibt vollständig (213/213 PL3). `.docx`-Export, zstd-Transportprofil,
+blake3-Zweitprofil, SCALE-2-Vollmaterialisierung, die `cites`-Naht/
+SCALE-3, HBM auf Eigenkorpus, CE-1/loom-sdk/wasm-Viewer, die Klassen-
+Registry UND jetzt L9b Normic Memory (R-1b) sind GESCHLOSSEN. Offen
+bleiben: PL3→PL4-Reifepfade. Host-gebunden gesammelt und bewusst nicht
+weiter umgangen: GGUF-/LLM-Anbindung, OS-Keyring-Live-Test,
+macOS/Windows-Pakete (Track G), GPU-Klickpfad mit gerenderten Glyphen —
+je einen Build-/Desktop-/GPU-Host, bis dahin gesperrt.

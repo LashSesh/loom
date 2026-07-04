@@ -239,3 +239,74 @@ Gegenprobe. Sechs neue Residuen (R-Agent-9..12 minus die durch R-Agent-9
 geschlossene) sind sichtbar gefuehrt, keines blockiert den naechsten
 Schritt. Etappe X2 ist damit vollstaendig abgeschlossen; nur Ring E5
 (L9b Normic Memory) bleibt gesperrt bis zur Spec-Lieferung S-E5.
+
+---
+
+## Nachträge Etappe X3/Ring E5 (S-E5, L9b Normic Memory)
+
+R-Agent-13: das Pattern eines NormCandidate ist caller-geliefert, nicht
+algorithmisch aus HBM-Blueprints gemint
+Fundstelle: reports/X3_bericht.md (Einheit c, Destillationslauf)
+Frage/Konflikt: S-E5 §7 nennt HBM-Blueprints als "optionale
+Pattern-Quelle" fuer NormCandidates. Diese Bauphase liest §7 so, dass
+L9b selbst NIE Pattern mined — es gatet/promoviert nur (dieselbe
+Trennung wie "Kandidat ≠ Norm"). `cce_bridge::distill::distill()`
+nimmt das Pattern deshalb als Parameter entgegen, `cce-bridge` haengt
+bewusst NICHT von `cce-hbm` ab (keine neue Kopplung fuer eine
+Faehigkeit, die architektonisch bei der Integrationsschicht liegt).
+Vorläufige Behandlung: der Meilenstein R-NRM-1 authored das Pattern
+direkt in `loom_conformance::build_first_active_norm` (textuell
+beschreibt es die real beobachtete, wiederkehrende Relation-Kern-
+Naht-Regel ueber D02/D03/D06) statt es aus einem echten HBM-Blueprint-
+Lauf zu extrahieren. Eine echte HBM→L9b-Pattern-Pipeline (z. B. ein
+zertifizierter Blueprint als Pattern-Textquelle) waere ein natuerlicher
+Folgeauftrag, sobald ein Anwendungsfall danach verlangt.
+Blockiert: nichts — §7 verlangt nur, dass HBM-Pfade NIE direkt eine
+aktive Norm erzeugen (kein HBM-Code wurde dafuer geaendert).
+
+R-Agent-14: ScopeGate ist String-/Stichwort-basiert (v1), keine
+Semantikanalyse
+Fundstelle: reports/X3_bericht.md (Einheit d, BridgeGate Stufe 5)
+Frage/Konflikt: §4 verlangt, dass ein Pattern, das ein Gate/Verbot/Tor/
+eine Invariante lockern wuerde, strukturell ausgeschlossen ist. Eine
+vollstaendige Semantikanalyse von freiem Fliesstext ist aus dem Bau
+heraus nicht leistbar; `violates_scope_whitelist` scannt stattdessen
+eine feste Stichwort-Liste (z. B. "gate deaktivieren", "capability_lock
+entfernen").
+Vorläufige Behandlung: bewusst konservativ (lieber ein falsches Reject
+als ein durchgerutschtes Lockerungs-Pattern) — dokumentiert als v1,
+nicht als vollstaendige Loesung. Erweiterung der Stichwort-Liste (oder
+ein strukturierteres Pattern-Format statt freiem Text) ist ein
+natuerlicher spaeterer Schritt, kein aktueller Blocker (alle drei
+N-NRM-3/PROD-INV-23-Zeugen sind mit der aktuellen Liste real gruen).
+Blockiert: nichts.
+
+---
+
+## Geschlossene Residuen (Ring E5)
+
+Keine der Vorring-Residuen (R-Agent-9..12) wird durch Ring E5
+geschlossen — sie betreffen andere Bauteile (SCALE-3-Blueprint,
+Replay-Inputs, wasm-Werkzeuge, Signaturen). Ring E5 eroeffnet zwei neue
+(R-Agent-13, R-Agent-14, s. oben).
+
+---
+
+## R-1b — GESCHLOSSEN (Etappe X3/Ring E5)
+
+**R-1b (Nexus-Bridge L9b, `cce-spec-repo/07_TOTAL_RESIDUE_TO_CLOSURE_
+REGISTER.md` #11): GESCHLOSSEN.** Mit S-E5 (`15_L9B_NORMIC_MEMORY_
+SPEC.md`) und Ring E5 (Etappe X3) ist L9b vollstaendig gebaut: Crate
+`cce-bridge` (ProvenanceSet, RD-gebundene Destillation, sechsstufiges
+BridgeGate, Norm-Workbody der Containerklasse `"norm"`, `norms/`-
+Registry-Sektion, Aktivierungs-Hook im Runner, Erosion/Widerruf/
+Lineage). Meilenstein R-NRM-1 real erbracht: die erste aktive Norm,
+destilliert aus drei echten, geschlossenen Familien-Referenz-Cubes,
+als zertifizierter `.loom` mit beweisbarer, CitationGate-gruener
+Herkunft. Alle 12 Zeugen (R-NRM-1..4, N-NRM-1..8) + PROD-INV-21..23 real
+und gruen (`conformance/tests/e5_l9b_normic_memory.rs`,
+`crates/cce-runner/tests/g5_gate.rs`). Ausgangs-Gate X3 erfuellt
+(Details: `reports/X3_bericht.md`). Dieses vorherige "port_only"-
+Register-Eintrag (Typ-Stubs, keine Wirkung) ist damit durch einen
+echten, gateten, replay-pflichtigen Bau ersetzt — `spec/` selbst bleibt
+unangetastet (das Register dort wird NICHT editiert, s. R-Agent-1).
