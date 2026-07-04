@@ -814,3 +814,68 @@ fn p1_cloud_openai_egress_blocked_before_provider_without_open_lock() {
         other => panic!("erwartet Gate-Halt VOR Egress, war {other:?}"),
     }
 }
+
+// ---------- Betriebsverifikation P1 (echter Egress, KEIN Bau-Zeuge) ----------
+//
+// Laeuft NIE im Default-CI: `cargo test --workspace` / `bash
+// ci/run_ci.sh` bauen ohne das Feature `http`, dieser Test existiert
+// dort nicht einmal (cfg-Gate). Selbst mit `--features http` laeuft er
+// nur explizit mit `--ignored` (Konvention):
+//
+//   cargo test -p cce-conformance --features http -- --ignored \
+//       p1_betriebsverifikation
+//
+// Voraussetzung: `OPENAI_API_KEY` in der Prozessumgebung gesetzt — echter,
+// bezahlter Egress gegen https://api.openai.com. Der Schluessel wird hier
+// nie gelesen/geloggt/ausgegeben (das tut ausschliesslich `infer()`,
+// unveraendert); dieser Test prueft nur das Ergebnis des unveraenderten
+// Gateway-Laufs.
+#[cfg(feature = "http")]
+#[test]
+#[ignore]
+fn p1_betriebsverifikation_echter_openai_egress_nach_voller_gate_kette() {
+    use cce_inference::providers::openai::CloudModelProviderOpenAI;
+    // Echtes, guenstiges Chat-Completions-Modell — bewusst NICHT der
+    // Platzhalter "gpt-test" aus den obigen Bau-Zeugen.
+    let provider = CloudModelProviderOpenAI::new("gpt-4o-mini");
+    let req = InferenceRequest::example("p1-betriebsverifikation");
+    let lock = open_egress_lock();
+    let mut rec = InferenceRecorder::default();
+    let out = run_inference(
+        &provider,
+        &req,
+        &boundary(),
+        "no_pii",
+        Some(&lock),
+        0,
+        "draft",
+        &mut rec,
+    );
+    match out {
+        GatewayOutcome::Candidate(boxed) => {
+            let (candidate, evidence) = *boxed;
+            // (a) die volle Vor-Egress-Gate-Kette lief NACHWEISLICH durch,
+            // BEVOR der Egress zaehlt: zehn Gate-Reports, alle Pass.
+            assert_eq!(evidence.egress_gate_reports.len(), 10);
+            assert!(evidence
+                .egress_gate_reports
+                .iter()
+                .all(|r| r.verdict == cce_core::gate::GateVerdict::Pass));
+            // (b) eine echte, inhaltlich nicht-leere Antwort kam zurueck
+            // und ist korrekt als CandidateOutput (ResponseOutcome::Output)
+            // abgebildet — kein Fallback, kein stiller Leerinhalt.
+            assert!(!candidate.content.trim().is_empty());
+            // Nie den Inhalt selbst ausgeben — nur das Faktum + Groessen,
+            // damit kein potenziell sensibler Antworttext in Testausgabe/
+            // Logs landet.
+            eprintln!(
+                "Betriebsverifikation P1: OK — Modell=gpt-4o-mini, {} Zeichen Antwort, \
+                 {} Gate-Reports (alle Pass), {} Tokens",
+                candidate.content.len(),
+                evidence.egress_gate_reports.len(),
+                evidence.cost_tokens
+            );
+        }
+        other => panic!("erwartet echten Candidate-Output, war {other:?}"),
+    }
+}
