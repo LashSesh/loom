@@ -324,6 +324,7 @@ name = "cce-bridge"
 version = "0.1.0"
 dependencies = [
  "cce-core",
+ "cce-hbm",
  "loom-canon",
  "loom-cites",
  "loom-codec",

@@ -18,3 +18,9 @@ loom-format = { path = "../../loom/loom-format" }
 loom-codec = { path = "../../loom/loom-codec" }
 loom-verify = { path = "../../loom/loom-verify" }
 loom-replay = { path = "../../loom/loom-replay" }
+# Dokument 16 §2a: cce-hbm ist die (optionale, S-E5 §10 benannte)
+# Pattern-Quelle — `extract::blueprint_to_pattern` liest echte
+# `BlueprintCandidate`-Facetten. cce-hbm haengt nicht von cce-bridge ab
+# (kein Zyklus, reine cce->cce-Kante, keine ALLOWED_CORE_TO_OUTER-
+# Ausnahme noetig — die betrifft nur cce->loom/nexus/cockpit).
+cce-hbm = { path = "../cce-hbm" }

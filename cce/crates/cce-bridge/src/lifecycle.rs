@@ -213,7 +213,7 @@ pub fn lineage_chain<'a>(norms: &'a [BridgeNorm], norm_id: &str) -> Vec<&'a Brid
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{NexusClass, ProvenanceSet, Scope};
+    use crate::types::{ProvenanceSet, Scope};
     use loom_canon::Cv as CvT;
     use loom_cites::VerifiedTarget;
     use loom_verify::Verdict;
@@ -245,8 +245,9 @@ mod tests {
     fn base_norm() -> BridgeNorm {
         BridgeNorm {
             norm_id: "norm:1".to_string(),
-            nexus_class: NexusClass::StructuralRule,
-            pattern: "p".to_string(),
+            pattern: crate::pattern::Pattern::StructuralRule(
+                crate::pattern::DomainRuleForm::UniqueSubjects,
+            ),
             provenance_set: ProvenanceSet::new(vec!["a1".repeat(34), "a2".repeat(34)]),
             known_counterexamples: vec![],
             scope: Scope::Global,

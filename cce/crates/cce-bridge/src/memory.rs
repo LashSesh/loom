@@ -6,14 +6,15 @@
 //! funktionsfaehig (fehlt `norms`, ist das Ergebnis leer).
 
 use crate::cv_util::cv_get;
+use crate::pattern::Pattern;
 use crate::types::{BridgeNorm, CounterExample, NexusClass, NormStatus, ProvenanceSet, Scope};
 use loom_canon::Cv;
 
 fn norm_to_cv(norm: &BridgeNorm) -> Cv {
     Cv::map(vec![
         ("norm_id", Cv::Text(norm.norm_id.clone())),
-        ("nexus_class", Cv::Text(norm.nexus_class.as_str().into())),
-        ("pattern", Cv::Text(norm.pattern.clone())),
+        ("nexus_class", Cv::Text(norm.nexus_class().as_str().into())),
+        ("pattern", norm.pattern.to_cv()),
         (
             "provenance_set",
             Cv::Array(
@@ -60,14 +61,7 @@ fn norm_from_cv(v: &Cv) -> Option<BridgeNorm> {
         Some(Cv::Text(s)) => s.clone(),
         _ => return None,
     };
-    let nexus_class = match cv_get(v, "nexus_class") {
-        Some(Cv::Text(s)) => NexusClass::parse(s)?,
-        _ => return None,
-    };
-    let pattern = match cv_get(v, "pattern") {
-        Some(Cv::Text(s)) => s.clone(),
-        _ => return None,
-    };
+    let pattern = Pattern::from_cv(cv_get(v, "pattern")?)?;
     let provenance_set = match cv_get(v, "provenance_set") {
         Some(Cv::Array(items)) => ProvenanceSet::new(
             items
@@ -118,7 +112,6 @@ fn norm_from_cv(v: &Cv) -> Option<BridgeNorm> {
     };
     Some(BridgeNorm {
         norm_id,
-        nexus_class,
         pattern,
         provenance_set,
         known_counterexamples,
@@ -161,7 +154,7 @@ pub fn query<'a>(
 ) -> Vec<&'a BridgeNorm> {
     norms
         .iter()
-        .filter(|n| &n.scope == scope && class.map(|c| c == n.nexus_class).unwrap_or(true))
+        .filter(|n| &n.scope == scope && class.map(|c| c == n.nexus_class()).unwrap_or(true))
         .collect()
 }
 
@@ -170,10 +163,28 @@ mod tests {
     use super::*;
 
     fn sample_norm(scope: Scope, class: NexusClass) -> BridgeNorm {
+        let pattern = match class {
+            NexusClass::StructuralRule => {
+                Pattern::StructuralRule(crate::pattern::DomainRuleForm::UniqueSubjects)
+            }
+            NexusClass::SeamPattern => Pattern::SeamPattern {
+                seam: "refers".to_string(),
+                recommendation: "r".to_string(),
+            },
+            NexusClass::ClosureProfile => Pattern::ClosureProfile {
+                added_gate_ids: vec!["G-Neu".to_string()],
+            },
+            NexusClass::VocabularyNorm => Pattern::VocabularyNorm {
+                term: "t".to_string(),
+                definition: "d".to_string(),
+            },
+            NexusClass::ProcessNorm => Pattern::ProcessNorm {
+                sequence: vec!["a".to_string()],
+            },
+        };
         BridgeNorm {
             norm_id: "norm:1".to_string(),
-            nexus_class: class,
-            pattern: "p".to_string(),
+            pattern,
             provenance_set: ProvenanceSet::new(vec!["aa".repeat(34)]),
             known_counterexamples: vec![],
             scope,

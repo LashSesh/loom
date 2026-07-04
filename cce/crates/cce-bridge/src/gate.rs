@@ -3,6 +3,7 @@
 //! NIEMALS automatisch zur Norm — nur ein `Allow` hier erlaubt den
 //! Norm-Workbody-Bau (`workbody::seal_norm`).
 
+use crate::pattern::Pattern;
 use crate::types::{residue, BridgeNorm, BridgeVerdict, NormCandidate};
 use cce_core::replay::HitlDecision;
 
@@ -11,32 +12,29 @@ use cce_core::replay::HitlDecision;
 /// keine neue Interaktionsform.
 pub const COUNTEREXAMPLE_CONFIRMATION_GATE: &str = "counterexample-confirmation";
 
-/// §4: Fundament-Schutz — ein Pattern, das eines dieser Stichworte
-/// enthaelt, beansprucht per Konstruktion eine Wirkung auf Egress,
-/// Capability-Locks, Verdikt-Schreibwege, Score-Semantik oder
-/// Gate-Schwellen NACH UNTEN — genau das schliesst §4 aus. String-
-/// Scan statt Semantikanalyse ist v1 bewusst konservativ (lieber ein
-/// falsches Reject als ein durchgerutschtes Lockerungs-Pattern).
-const FORBIDDEN_PATTERN_MARKERS: &[&str] = &[
-    "egress",
-    "capability_lock entfernen",
-    "capability-lock entfernen",
-    "verdikt aendern",
-    "verdikt ändern",
-    "score-schwelle senken",
-    "schwelle senken",
-    "gate deaktivieren",
-    "gate aussetzen",
-    "invariante aufheben",
-    "invariante lockern",
-    "verbot aufheben",
-];
-
-fn violates_scope_whitelist(pattern: &str) -> bool {
-    let lower = pattern.to_lowercase();
-    FORBIDDEN_PATTERN_MARKERS
-        .iter()
-        .any(|marker| lower.contains(marker))
+/// Dokument 16 §2b (ScopeGate v2, schliesst R-Agent-14): die Whitelist
+/// (§4) ist jetzt eine KONSTRUKTIONS-, keine Texteigenschaft —
+/// `StructuralRule`/`SeamPattern`/`VocabularyNorm`/`ProcessNorm` koennen
+/// per Typ gar nicht erst etwas Lockerndes ausdruecken. Einzige
+/// verbleibende, genuin gefaehrliche Form ist `ClosureProfile`
+/// (Zusatz-Gates) — sie darf keinen bestehenden Fundament-Gate-Namen
+/// "kapern" (das waere eine Umbenennung/Ersetzung, keine echte
+/// Neuheit, und damit dem Wortlaut nach ein Versuch, ein bestehendes
+/// Gate zu ersetzen).
+fn violates_scope_whitelist(pattern: &Pattern) -> bool {
+    match pattern {
+        Pattern::ClosureProfile { added_gate_ids } => {
+            let mandatory: std::collections::BTreeSet<String> = cce_core::gate::mandatory_gates()
+                .into_iter()
+                .map(|g| g.id)
+                .collect();
+            added_gate_ids.iter().any(|g| mandatory.contains(g))
+        }
+        Pattern::StructuralRule(_)
+        | Pattern::SeamPattern { .. }
+        | Pattern::VocabularyNorm { .. }
+        | Pattern::ProcessNorm { .. } => false,
+    }
 }
 
 pub struct BridgeGateContext<'a> {
@@ -158,7 +156,7 @@ pub fn bridge_gate(candidate: &NormCandidate, ctx: &BridgeGateContext) -> Bridge
     // Widerspruch).
     let conflict = ctx.existing_active_norms.iter().any(|n| {
         n.scope == candidate.scope
-            && n.nexus_class == candidate.nexus_class
+            && n.nexus_class() == candidate.nexus_class()
             && n.pattern != candidate.pattern
     });
     if conflict {
@@ -187,12 +185,14 @@ pub fn bridge_gate(candidate: &NormCandidate, ctx: &BridgeGateContext) -> Bridge
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{CounterExample, NexusClass, ProvenanceSet, Scope};
+    use crate::pattern::DomainRuleForm;
+    use crate::types::{CounterExample, ProvenanceSet, Scope};
 
     fn base_candidate() -> NormCandidate {
         NormCandidate {
-            pattern: "wiederkehrende Relation-Regel ueber Familien".to_string(),
-            nexus_class: NexusClass::StructuralRule,
+            pattern: Pattern::StructuralRule(DomainRuleForm::Relation {
+                seam: "refers".to_string(),
+            }),
             provenance_set: ProvenanceSet::new(vec![
                 "a1".repeat(34),
                 "a2".repeat(34),
@@ -273,8 +273,7 @@ mod tests {
         let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
         let existing = vec![BridgeNorm {
             norm_id: "norm:other".to_string(),
-            nexus_class: NexusClass::StructuralRule,
-            pattern: "eine ANDERE Regel, gleicher Scope".to_string(),
+            pattern: Pattern::StructuralRule(DomainRuleForm::UniqueSubjects),
             provenance_set: ProvenanceSet::new(vec!["b1".repeat(34)]),
             known_counterexamples: vec![],
             scope: Scope::Global,
@@ -289,17 +288,39 @@ mod tests {
         assert_eq!(report.failed_stage(), Some("ConflictGate"));
     }
 
-    /// N-NRM-3: ein Pattern, das ein Gate/eine Invariante lockern will,
-    /// ist per Konstruktion ausgeschlossen ⇒ reject.
+    /// N-NRM-3/Dokument-16-ScopeGate-v2: ein `ClosureProfile`, das einen
+    /// BESTEHENDEN Fundament-Gate-Namen kapert, ist per Konstruktion
+    /// erkennbar ⇒ reject. Muss nach der Typisierung weiter rot sein.
     #[test]
     fn scope_violating_pattern_is_rejected() {
+        let mandatory_id = cce_core::gate::mandatory_gates()
+            .first()
+            .expect("mindestens ein Fundament-Gate existiert")
+            .id
+            .clone();
         let mut candidate = base_candidate();
-        candidate.pattern = "Gate deaktivieren fuer PL2-Laeufe".to_string();
+        candidate.pattern = Pattern::ClosureProfile {
+            added_gate_ids: vec![mandatory_id],
+        };
         let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
         let ctx = BridgeGateContext::new(&domains, &[]);
         let report = bridge_gate(&candidate, &ctx);
         assert_eq!(report.verdict(), BridgeVerdict::Reject);
         assert_eq!(report.failed_stage(), Some("ScopeGate"));
+    }
+
+    /// Ein `ClosureProfile`, das nur ECHT NEUE Gate-IDs benennt, ist
+    /// zulaessig (reine Verschaerfung, keine Kaperung).
+    #[test]
+    fn closure_profile_with_genuinely_new_gate_ids_passes_scope_gate() {
+        let mut candidate = base_candidate();
+        candidate.pattern = Pattern::ClosureProfile {
+            added_gate_ids: vec!["G-Zusatz-Pruefung-Neu".to_string()],
+        };
+        let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
+        let ctx = BridgeGateContext::new(&domains, &[]);
+        let report = bridge_gate(&candidate, &ctx);
+        assert_eq!(report.verdict(), BridgeVerdict::Allow);
     }
 
     /// N-NRM-8: eine unabhaengige Reproduktion, die vom Original abweicht
@@ -308,7 +329,7 @@ mod tests {
     fn distillation_replay_mismatch_is_rejected() {
         let candidate = base_candidate();
         let mut reproduced = base_candidate();
-        reproduced.pattern = "abweichendes Pattern".to_string();
+        reproduced.pattern = Pattern::StructuralRule(DomainRuleForm::UniqueSubjects);
         let domains = vec!["dom:a".to_string(), "dom:b".to_string()];
         let mut ctx = BridgeGateContext::new(&domains, &[]);
         ctx.replay_reproduction = Some(&reproduced);

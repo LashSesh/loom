@@ -1889,13 +1889,46 @@ fn manifest_first_domain_ref(bytes: &[u8]) -> Option<String> {
     }
 }
 
+/// Dokument 16 §2a (schliesst R-Agent-13): ein echter, kleiner HBM-Lauf
+/// (`cce-hbm`, Motor-Port) ueber die drei Familien-Kern-Regeln
+/// D02/D03/D06 — liefert einen zertifizierten `BlueprintCandidate`, aus
+/// dem `cce_bridge::extract::blueprint_to_pattern` das Pattern
+/// beweisbar EXTRAHIERT statt vom Aufrufer geraten zu bekommen.
+pub fn build_norm_source_blueprint() -> cce_hbm::candidate::BlueprintCandidate {
+    use cce_materialize::family_a_domains::{d02, d03, d06};
+
+    let lines: Vec<String> = [d02(), d03(), d06()]
+        .iter()
+        .map(|p| domain_rule_fact(p.id, &p.rule))
+        .collect();
+    let input = cce_hbm::pipeline::MiningInput {
+        corpus_id: "norm-source:d02-d03-d06".to_string(),
+        lines: lines.clone(),
+        weights: cce_hbm::score::ScoreWeights::default(),
+        theta_d: 0,
+        expansion_budget: lines.len() + 8,
+    };
+    let out = cce_hbm::pipeline::run_pipeline(&input)
+        .expect("Gate_A darf am kleinen Norm-Quellkorpus nie halten");
+    out.candidates
+        .into_iter()
+        .find(|c| {
+            c.status == cce_hbm::candidate::CandidateStatus::Pass
+                && cce_bridge::extract::blueprint_to_pattern(c).is_some()
+        })
+        .expect("mindestens ein zertifizierter Kandidat muss ein Pattern liefern")
+}
+
 /// Der Meilenstein R-NRM-1 (S-E5 §9/§10): destilliert die erste aktive
 /// Norm aus DREI echten, geschlossenen Familien-Referenz-Cubes
 /// (D02/D03/D06 — dieselbe `Relation`-Kern-Naht-Regel-FORM, verschiedene
 /// Nahtnamen/Domaenen: "refers"/"derives"/"priced") und siegelt sie als
-/// `.loom`-Workbody der Containerklasse `"norm"`. Gibt zusaetzlich die
-/// drei Herkunfts-Container zurueck (fuer Registry-Katalogisierung und
-/// Zeugen, die die Herkunft selbst pruefen wollen).
+/// `.loom`-Workbody der Containerklasse `"norm"`. Das Pattern kommt seit
+/// Dokument 16 §2a beweisbar aus echter HBM-Eigenarbeit
+/// (`build_norm_source_blueprint` + `blueprint_to_pattern`), nicht mehr
+/// vom Aufrufer erfunden. Gibt zusaetzlich die drei Herkunfts-Container
+/// zurueck (fuer Registry-Katalogisierung und Zeugen, die die Herkunft
+/// selbst pruefen wollen).
 pub fn build_first_active_norm() -> (
     cce_bridge::BridgeNorm,
     Sealed,
@@ -1903,8 +1936,9 @@ pub fn build_first_active_norm() -> (
     Vec<Sealed>,
 ) {
     use cce_bridge::distill::{distill, DistillationInput};
+    use cce_bridge::extract::blueprint_to_pattern;
     use cce_bridge::gate::{bridge_gate, BridgeGateContext};
-    use cce_bridge::types::{NexusClass, Scope};
+    use cce_bridge::types::Scope;
     use cce_bridge::workbody::seal_norm;
     use cce_bridge::BridgeVerdict;
     use cce_core::replay::RunDescriptor;
@@ -1919,14 +1953,13 @@ pub fn build_first_active_norm() -> (
     let candidate_roots: Vec<String> = members.iter().map(|s| hex34(&s.core_root)).collect();
     let resolver = InMemoryResolver::from_sealed(&members);
 
+    let blueprint = build_norm_source_blueprint();
+    let pattern = blueprint_to_pattern(&blueprint)
+        .expect("Blueprint wurde bereits auf blueprint_to_pattern().is_some() gefiltert");
+
     let rd = RunDescriptor::new(sha256(b"l9b-distillation-relation-regel"), "document", 1);
     let input = DistillationInput {
-        pattern: "Relation-Kern-Naht-Pflicht: jede Subjekt-Einheit braucht eine \
-                  aufloesbare Naht zu einer bestehenden Einheit — wiederkehrend \
-                  ueber die Domaenen D02/D03/D06 (verschiedene Nahtnamen, \
-                  dieselbe Regel-FORM)"
-            .to_string(),
-        nexus_class: NexusClass::StructuralRule,
+        pattern,
         candidate_roots: candidate_roots.clone(),
         n_support: 3,
         known_counterexamples: vec![],

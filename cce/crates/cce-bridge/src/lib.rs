@@ -9,9 +9,20 @@
 //!
 //! Kein Egress: "Bridge" ist die Bruecke zwischen Arbeiten und
 //! Gedaechtnis, nicht zum Netz. Alle Abhaengigkeiten sind interne Ports
-//! (cce-core, loom-cites, der .loom-Kern) — keine externe Kiste.
+//! (cce-core, loom-cites, der .loom-Kern, cce-hbm als optionale
+//! Pattern-Quelle) — keine externe Kiste.
+//!
+//! Dokument 16 §2: `pattern` ist eine TYPISIERTE Form (`pattern::
+//! Pattern`), keine freie Zeichenkette mehr — die Fundament-Schutz-
+//! Whitelist (§4) ist damit eine Konstruktions-, keine Texteigenschaft
+//! (`extract::blueprint_to_pattern` liefert sie aus echten HBM-
+//! Blueprint-Facetten, nie geraten).
 
 pub mod types;
+
+pub mod pattern;
+
+pub mod extract;
 
 mod cv_util;
 
@@ -29,6 +40,7 @@ pub mod activation;
 
 pub mod lifecycle;
 
+pub use pattern::{DomainRuleForm, Pattern};
 pub use types::{
     BridgeNorm, BridgeVerdict, CounterExample, NexusClass, NormCandidate, NormStatus,
     ProvenanceSet, Scope,

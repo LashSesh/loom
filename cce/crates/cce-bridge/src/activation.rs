@@ -63,13 +63,14 @@ pub fn activate(norm: &BridgeNorm, profile: &NormProfile) -> Result<String, Acti
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{NexusClass, ProvenanceSet, Scope};
+    use crate::types::{ProvenanceSet, Scope};
 
     fn active_norm() -> BridgeNorm {
         BridgeNorm {
             norm_id: "norm:x".to_string(),
-            nexus_class: NexusClass::StructuralRule,
-            pattern: "p".to_string(),
+            pattern: crate::pattern::Pattern::StructuralRule(
+                crate::pattern::DomainRuleForm::UniqueSubjects,
+            ),
             provenance_set: ProvenanceSet::new(vec!["aa".repeat(34)]),
             known_counterexamples: vec![],
             scope: Scope::Global,
