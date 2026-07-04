@@ -348,6 +348,7 @@ dependencies = [
  "cce-bridge",
  "cce-core",
  "cce-crystal",
+ "cce-dogfood",
  "cce-hbm",
  "cce-inference",
  "cce-library",
@@ -416,9 +417,11 @@ name = "cce-dogfood"
 version = "0.1.0"
 dependencies = [
  "cce-core",
+ "cce-inference",
  "cce-phaseblock",
  "cce-swe",
  "cce-toolgateway",
+ "loom-verify",
 ]
 
 [[package]]

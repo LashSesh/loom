@@ -42,6 +42,12 @@ ALLOWED_CORE_TO_OUTER = {
         "loom-verify",
         "loom-replay",
     },
+    # Dokument 19 §6/§8 (P3): der eine reale Betriebsverifikationslauf
+    # (R-DOG-1, #[ignore]) siegelt selbst einen RepoWorkbody ueber
+    # cce_swe::workbody und prueft ihn direkt mit loom_verify::verify --
+    # nur als dev-dependency fuer genau diesen Zeugen, kein Laufzeitpfad
+    # des Blatt-Crates selbst.
+    "cce-dogfood": {"loom-verify"},
 }
 
 

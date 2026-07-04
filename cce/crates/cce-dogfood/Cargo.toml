@@ -15,6 +15,14 @@ cce-core = { path = "../cce-core" }
 cce-phaseblock = { path = "../cce-phaseblock" }
 cce-toolgateway = { path = "../cce-toolgateway" }
 cce-swe = { path = "../cce-swe" }
+# Nur fuer den einen echten R-DOG-1-Betriebsverifikationslauf
+# (#[ignore], s. tests/r_dog_1_betriebsverifikation.rs): die echte
+# Kanzel (P1, unveraendertes Gateway) braucht cce-inference direkt, um
+# einen realen CloudModelProviderOpenAI zu konstruieren.
+cce-inference = { path = "../cce-inference" }
+
+[dev-dependencies]
+loom-verify = { path = "../../loom/loom-verify" }
 
 [features]
 # Reicht nur durch -- reale Prozess-Aufrufe bleiben cce-toolgateways
