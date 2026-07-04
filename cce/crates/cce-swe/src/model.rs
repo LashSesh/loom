@@ -381,4 +381,11 @@ mod tests {
         let diff = "@@ -1,3 +1,3 @@\n a\n-X\n+y\n c\n";
         assert!(apply_unified_diff(original, diff).is_err());
     }
+    #[test]
+    fn apply_unified_diff_handles_multiple_hunks() {
+        let original = "line 1\nline 2\nline 3\nline 4\n";
+        let diff = "@@ -1,4 +1,4 @@\n line 1\n-line 2\n+modified line 2\n line 3\n@@ -4,1 +4,1 @@\n-line 4\n+modified line 4\n";
+        let patched = apply_unified_diff(original, diff).expect("Diff wendet an");
+        assert_eq!(patched, "line 1\nmodified line 2\nline 3\nmodified line 4\n");
+    }
 }
