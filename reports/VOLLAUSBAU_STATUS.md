@@ -1,4 +1,4 @@
-# Vollausbau-Status (eine Seite, Klartext) — Stand nach Etappe P4 (K9 erfüllt)
+# Vollausbau-Status (eine Seite, Klartext) — Stand nach Programm „Volle Kraft" (Dok 23: Track A + P5 bis STOPP + C1–C4)
 
 **Track A (213/213 Domänen auf PL3, D01=PL4) + Blocks 1–3 (Belegpflicht
 UX, Kanzel↔Modell+GUI-Feindesign, JSON→CSU-Extraktor+Welt-Crystal) +
@@ -36,6 +36,9 @@ Werkzeug-Gates, Kern-Kette bis PhaseBlock, RepoWorkbody-Containerklasse
 | P4 | **crate `cce-benchmark`** (Vergleichsläufe, K9): FairnessGate + ComparisonSealGate, Container-Klasse `"benchmark"`; R-BENCH-1 (Coding) + R-BENCH-2 (Dokument) real: ungegatet vs. CCE, dasselbe Modell — D4/D5 Parität (kostenlos), D1/D2/D3/D6 kategorisch nur CCE; beide Benchmark-Workbodies `verify == Valid` | `reports/P4_vergleichslaeufe_bericht.md` |
 | P2-Ext | **Agent-Grounding** (Dok 21, in `cce-swe`): RuleAtom/DecisionSlot/GroundingPacket + DeltaBudget-/ContextBudget-/RuleComplianceGate; R-GND-1..4, N-GND-1..2 + Wert-Beweis (Grounding fängt, was P2-Gates allein passieren ließen) | `reports/residuen.md` (Nachtrag) |
 | P4-Ext | **Dritter Arm** (Dok 22, in `cce-benchmark`): ExternalToolResult, ThreeArmComparisonMatrix, packet_digest-Fairness (strukturell eingefaltet + explizit geprüft); Bausteine + Zeugen hermetisch GRUEN. **Echter Lauf gegen Cursor/Copilot/Bolt: zurückgestellt (Dok 23) — offen, optional, blockiert nichts** | `reports/residuen.md` (Nachtrag) |
+| A (Dok 23) | **Augen:** Windows-Cross-Build ERFOLG — `dist/cce-windows.zip` (cockpit.exe GUI-Subsystem, loom.exe, Saat, ERSTSTART drei Schritte null Terminal); Linux-Paket + ERSTSTART; macOS ehrlich host-gebunden | `reports/A_augen_bericht.md` |
+| P5 (Dok 23) | **RepoIntelligence** (`cce-repointel`, Klasse `"blueprint"`): fremdes Repo → unveränderte CSA-Kette → unveränderte HBM-Kette → GroundingPacket → Bauplan-Workbody mit cites auf Quell-Evidence, replay-identisch; hermetisch GRUEN **bis zum STOPP** — R-RIG-1 wartet auf Repo-Freigabe | `reports/P5_repointelligence_bericht.md` |
+| C (Dok 23) | **Politur:** gpt-4o-Zweitmanifest (konservativ, umschaltbar), Kanzel-Prompt-Bibliothek (IG-R4 GESCHLOSSEN, gepinnter Asset-Digest), Register konsolidiert, R-Agent-10 geschlossen (Replay-Inputs-Use-Case) | `reports/C_politur_bericht.md` |
 
 **R-CYC-1-Stand: GRUEN, dauerhaft im Waechter** (`conformance/tests/
 x4_r_cyc_1.rs`) — Quelle→Arbeit→Verbund→Selbstbezug→Gedaechtnis→
@@ -49,11 +52,11 @@ ist ab jetzt der oberste Kerntest der Plattform.
 |---|---|
 | A Domänen | 213/213 PL3 (D01 PL4) |
 | B Erlebbarkeit | wgpu-Klick-Durchlauf + GUI-Feindesign (LC-R5) fertig; GPU-Klickpfad mit Glyphen host-gebunden |
-| C Intelligenz | LocalExtractiveModel produktiv angeschlossen; CloudModelProviderOpenAI real gebaut (P1) UND real gegen `gpt-4o-mini` betriebsverifiziert; Dauerbetrieb bleibt Feature `http` + `OPENAI_API_KEY` |
+| C Intelligenz | LocalExtractiveModel produktiv angeschlossen; CloudModelProviderOpenAI real gebaut (P1) UND real gegen `gpt-4o-mini` betriebsverifiziert; **Zweitmanifest `gpt-4o` mit konservativem Budget, umschaltbar via `CCE_KANZEL_MODEL` (Dok 23 C1)**; Kanzel-Prompt-Bibliothek als geprüftes Asset (C2, IG-R4 GESCHLOSSEN); Dauerbetrieb bleibt Feature `http` + `OPENAI_API_KEY` |
 | D Weltzugang | Wikimedia live+Fixture, JSON→CSU-Extraktor, erstes Welt-Crystal |
 | E Skalen | SCALE-1..3 real geschlossen (MSC bis R-CYC-1 Station 3); SCALE-4..8 typisiert, ungebaut |
 | F Härtung | Ed25519-Signatur-Registry-Vollform, CDDL-Schemata, Fuzz-Harness+Threat-Model |
-| G Pakete | gesperrt (Build-Hosts fehlen) |
+| G Pakete | **Windows-Cross-Build ERFOLG (Dok 23 A1): `dist/cce-windows.zip` committet** (cockpit.exe GUI + loom.exe + Saat + ERSTSTART, drei Schritte null Terminal); Linux-Paket aufgefrischt (A2, + ERSTSTART); macOS bleibt ehrlich host-gebunden (A3). Verbleibend: erster Klickpfad-Beweis auf echter Windows-Hardware |
 | H Brückenraum L9b | `cce-bridge` vollstaendig, R-1b GESCHLOSSEN |
 | I SWE-Tiefe | `cce-swe` real gebaut (P2): fs_write/git/build/test im ToolGateway, sechs Werkzeug-Gates, Kern-Kette bis PhaseBlock, RepoWorkbody `"repo"`; Dauerbetrieb (echte Subprozesse) bleibt Feature `process` |
 | J Dogfooding | `cce-dogfood` (P3): R-DOG-1 real am eigenen Repo erbracht (`dogfood/p3-001`, ungemergt); Schutzzone/BranchIsolation/MergeExclusion strukturell |
@@ -64,10 +67,12 @@ ist ab jetzt der oberste Kerntest der Plattform.
 GGUF-/lokale-LLM-Anbindung: **teilaufgelöst** — `CloudModelProviderOpenAI`
 deckt „Frontier-Intelligenz real" strukturell ab, sobald ein Betreiber
 Feature `http` + `OPENAI_API_KEY` setzt (reine Betriebsentscheidung,
-s. `reports/P1_bericht.md`). Weiterhin host-gebunden: OS-Keyring-Live-Test
-· macOS/Windows-Pakete (Track G) · GPU-Klickpfad mit gerenderten Glyphen.
-Je ein Build-/Desktop-/GPU-Host nötig — bis dahin bewusst gesperrt,
-nicht umgangen.
+s. `reports/P1_bericht.md`). **Windows-Paket: teilaufgelöst (Dok 23 A1)**
+— `dist/cce-windows.zip` existiert als Cross-Build; host-gebunden bleibt
+nur der erste Klickpfad-Beweis auf echter Windows-Hardware. Weiterhin
+host-gebunden: OS-Keyring-Live-Test · macOS-Paket (Apple-SDK/Signierung)
+· GPU-Klickpfad mit gerenderten Glyphen. Je ein Desktop-/GPU-Host nötig
+— bis dahin bewusst gesperrt, nicht umgangen.
 
 ## PL4-Reifepfade (offen, kein Baumangel)
 

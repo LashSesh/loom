@@ -365,7 +365,7 @@ Datei selbst zu ändern.
 | R-Agent-7 | `xdotool`-Zeichenumkehr-Artefakt der Testkette | OFFEN — harmlos, Testketten-Artefakt |
 | R-Agent-8 | LibreOffice-Headless-Konvertierung in der Sandbox kaputt | OFFEN — Umgebungsgrenze, `python-docx` als Gegenbeweis |
 | R-Agent-9 | SCALE-3-Blueprint-Zelle war struktureller Platzhalter | **GESCHLOSSEN** (Ring E3) |
-| R-Agent-10 | I.5 Replay-Inputs additiv, kein Use-Case | OFFEN — kein Use-Case bisher |
+| R-Agent-10 | I.5 Replay-Inputs additiv, kein Use-Case | **GESCHLOSSEN** (Programm 23 C4: erster realer Use-Case — der P5-Bauplan-Workbody bindet via `replay_manifest_segment_with_inputs` die `raw_hash`es seiner Beobachtungs-Bytes als `input_digests`; der Replay-Vertrag benennt damit exakt die Eingabe der Destillation) |
 | R-Agent-11 | `wasm-bindgen-cli`/`playwright` sind lokale Sandbox-Werkzeuge | OFFEN — bewusst, regenerierbar |
 | R-Agent-12 | Klassen-Registry-Signaturenfeld stets leer | OFFEN — kein signierter Seed existiert |
 | R-Agent-13 | Pattern-Herkunft war caller-geliefert | **GESCHLOSSEN** (Etappe X4 §2a) |
@@ -417,7 +417,7 @@ Einarbeitung — keiner blockiert den Bau).
 | CSA-R3 | ConnectorAdapter-OAuth-Vollform (= Register-07 #7, = R-16) | OFFEN — Betriebsschritt |
 | IG-R1 | Live-Cloud-Provider (= Register-07 #4) | **GESCHLOSSEN** (P1, `CloudModelProviderOpenAI` real gebaut hinter unveraendertem Gateway); realer Betrieb bleibt WO-4/5-Entscheidung (Feature `http` + `OPENAI_API_KEY` sind im Bau AUS/nicht gesetzt) |
 | IG-R3 | ExternalAgent produktiv (= Register-07 #5) | OFFEN — Betriebsschritt |
-| IG-R4 | Kanzel-Prompt-Bibliothek | OFFEN — Reifepfad |
+| IG-R4 | Kanzel-Prompt-Bibliothek | **GESCHLOSSEN** (Programm 23 C2: `cce-inference/src/contracts.rs` — drei versionierte `system_contract`-Vorlagen je Einsatz [Wunsch-Formung/Erklärung/Reparaturvorschlag] als geprüfte Assets mit deterministischem Bibliotheks-Digest; Kanzel bezieht den Wunsch-Formungs-Vertrag aus der Bibliothek, byte-identisch zum P1-Inline-Text — Zeuge `c2_kanzel_prompt_library_is_checked_asset_and_wired`) |
 | S15-R1 | SCALE-2..8-Kerntests (= Register-07 #10, = R-10) | TEILWEISE GESCHLOSSEN — SCALE-1..3 real geschlossen (X1b, E2, R-CYC-1 Station 3); SCALE-4..8 bleiben typisierte, ungebaute Stufen |
 
 ### Weitere bare R-N/R-NN (aus der Bauzeit vor diesem Fortsetzungs-Abschnitt)
@@ -601,6 +601,19 @@ für einen Fremdarm.
 | Nummer | Gegenstand | Endstatus |
 |---|---|---|
 | R-BENCH-EXT-1/2 (realer Lauf) | echter Vergleich gegen Cursor/Copilot/Bolt mit identischem GroundingPacket-Digest | OFFEN, OPTIONAL — Auftraggeber-Entscheidung (Dokument 23): zurückgestellt, Bedienlast läge beim Menschen; jederzeit nachholbar, blockiert nichts. K9 gilt in der P4-Fassung; der wörtliche Marktvergleich bleibt sichtbar offen — kein Overclaim |
+
+## Programm „Volle Kraft" (Dokument 23) — Track-Stände
+
+| Track | Gegenstand | Endstatus |
+|---|---|---|
+| A1 Windows | Cross-Build x86_64-pc-windows-gnu (cockpit-app + loom-CLI) | **GESCHLOSSEN — ERFOLG.** `dist/cce-windows.zip` committet (cockpit.exe GUI-Subsystem + loom.exe + Saat-Bibliothek + ERSTSTART.txt). Verbleibender Betriebsbeweis: erster Doppelklick auf echter Windows-Hardware (sichtbar in der ERSTSTART-Claim-Schranke; Host-Termin) — `reports/A_augen_bericht.md` |
+| A2 Linux | Paket aufgefrischt (`ci/package.sh` + ERSTSTART) | **GESCHLOSSEN** (target/package, reproduzierbar) |
+| A3 macOS | ehrlich host-gebunden | OFFEN — Host-Termin (Apple-SDK/Signierung), kein Cross-Hack |
+| B / P5 | RepoIntelligence (`cce-repointel`, Klasse `"blueprint"`) | **GEBAUT BIS ZUM STOPP** — hermetische Zeugen GRUEN (R-RIG-STRUCT/-REPLAY, N-RIG-1/2, Wert-Beweis); R-RIG-1 (realer Lauf) WARTET auf die Repo-Freigabe (`reports/P5_repointelligence_bericht.md`) |
+| C1 | Kanzel-Zweitmanifest gpt-4o (konservatives Budget, umschaltbar via `CCE_KANZEL_MODEL`, Default gpt-4o-mini) | **GESCHLOSSEN** (Zeugen `c1_*` im Inference-Katalog) |
+| C2 | Kanzel-Prompt-Bibliothek (= IG-R4, s. oben) | **GESCHLOSSEN** |
+| C3 | Register-Konsolidierung | **GESCHLOSSEN** (dieser Abschnitt + VOLLAUSBAU_STATUS) |
+| C4 | 2 kleinste Registerpunkte eigenen Ermessens | **GESCHLOSSEN**: R-Agent-10 (Replay-Inputs-Use-Case, s. oben) + Digest-Pinning der C2-Bibliothek (gepinnter Asset-Digest im Wächter). Begründung der Wahl: beide host-frei, netz-frei, je eine Einheit, und beide härten unmittelbar die neuen P5-/C2-Bausteine |
 
 ---
 

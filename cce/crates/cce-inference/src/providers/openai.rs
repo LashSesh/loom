@@ -34,6 +34,34 @@ impl CloudModelProviderOpenAI {
             model_id: model_id.to_string(),
         }
     }
+
+    /// C1 (Dokument 23): das DEFAULT-Kanzelmodell — `gpt-4o-mini` mit
+    /// den unveraenderten P1-Standardbudgets.
+    pub fn gpt_4o_mini() -> Self {
+        Self::new("gpt-4o-mini")
+    }
+
+    /// C1 (Dokument 23): das ZWEITMANIFEST — `gpt-4o` (staerkeres
+    /// Formen) mit KONSERVATIVEM Budget: `manifest()` halbiert
+    /// cost/token/rate gegenueber dem Default (staerkeres Modell,
+    /// engere Leine). Keine neue Architektur — derselbe Provider,
+    /// dasselbe Gateway, dieselbe Gate-Kette.
+    pub fn gpt_4o() -> Self {
+        Self::new("gpt-4o")
+    }
+
+    /// Die Umschalt-Naht (C1: „umschaltbar, gpt-4o-mini bleibt
+    /// Default"): `CCE_KANZEL_MODEL=gpt-4o` waehlt das Zweitmanifest;
+    /// JEDER andere Wert und ungesetzt ergibt den Default. Die Naht
+    /// waehlt nur zwischen den ZWEI manifestierten Modellen — kein
+    /// freier Modell-String aus der Umgebung (Provider-Registry-
+    /// Disziplin: nur manifestierte Provider).
+    pub fn from_env_default() -> Self {
+        match std::env::var("CCE_KANZEL_MODEL").as_deref() {
+            Ok("gpt-4o") => Self::gpt_4o(),
+            _ => Self::gpt_4o_mini(),
+        }
+    }
 }
 
 impl ModelProvider for CloudModelProviderOpenAI {
@@ -41,6 +69,15 @@ impl ModelProvider for CloudModelProviderOpenAI {
         let mut m =
             ModelManifest::complete("cloud-openai", ProviderClass::CloudModel, &self.model_id);
         m.provider_terms_ref = Some("terms:known_compatible:openai".to_string());
+        if self.model_id == "gpt-4o" {
+            // C1: konservatives Budget fuer das staerkere Modell —
+            // halbe Kosten-/Token-/Rate-Budgets gegenueber dem Default
+            // (`ModelManifest::complete`), VOR-Egress durchgesetzt vom
+            // unveraenderten model_budget_gate/model_rate_gate.
+            m.cost_budget = Some(500);
+            m.token_budget = Some(50_000);
+            m.rate_limit = Some(5);
+        }
         m
     }
 

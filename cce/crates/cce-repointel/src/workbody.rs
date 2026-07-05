@@ -509,6 +509,10 @@ pub fn seal_blueprint_workbody(
 
     // REPLAY_MANIFEST: RD = die deterministische Beobachtung; die
     // Klasse ist `blueprint_class_digest` (zwei Laeufe ⇒ identisch).
+    // INPUT-GEBUNDEN (I.5, schliesst R-Agent-10 mit dem ersten realen
+    // Use-Case): `input_digests` traegt die raw_hashes der
+    // Beobachtungs-Bytes — der Replay-Vertrag benennt damit EXAKT die
+    // Eingabe, aus der der Bauplan destilliert wurde.
     let rd_hex = sha256(
         format!(
             "repointel\u{1f}{}\u{1f}{}\u{1f}structural_kv_v1",
@@ -517,7 +521,19 @@ pub fn seal_blueprint_workbody(
         .as_bytes(),
     )
     .to_hex();
-    let replay = loom_replay::replay_manifest_segment(&rd_hex, 0, &class_digest.to_hex());
+    let input_digests: Vec<String> = ingested
+        .nsb
+        .evidence_packs
+        .iter()
+        .map(|p| p.raw_hash.to_hex())
+        .collect();
+    let input_refs: Vec<&str> = input_digests.iter().map(String::as_str).collect();
+    let replay = loom_replay::replay_manifest_segment_with_inputs(
+        &rd_hex,
+        0,
+        &class_digest.to_hex(),
+        &input_refs,
+    );
 
     seal_canonical(
         "blueprint",
