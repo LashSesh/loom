@@ -609,7 +609,7 @@ für einen Fremdarm.
 | A1 Windows | Cross-Build x86_64-pc-windows-gnu (cockpit-app + loom-CLI) | **GESCHLOSSEN — ERFOLG.** `dist/cce-windows.zip` committet (cockpit.exe GUI-Subsystem + loom.exe + Saat-Bibliothek + ERSTSTART.txt). Verbleibender Betriebsbeweis: erster Doppelklick auf echter Windows-Hardware (sichtbar in der ERSTSTART-Claim-Schranke; Host-Termin) — `reports/A_augen_bericht.md` |
 | A2 Linux | Paket aufgefrischt (`ci/package.sh` + ERSTSTART) | **GESCHLOSSEN** (target/package, reproduzierbar) |
 | A3 macOS | ehrlich host-gebunden | OFFEN — Host-Termin (Apple-SDK/Signierung), kein Cross-Hack |
-| B / P5 | RepoIntelligence (`cce-repointel`, Klasse `"blueprint"`) | **GEBAUT BIS ZUM STOPP** — hermetische Zeugen GRUEN (R-RIG-STRUCT/-REPLAY, N-RIG-1/2, Wert-Beweis); R-RIG-1 (realer Lauf) WARTET auf die Repo-Freigabe (`reports/P5_repointelligence_bericht.md`) |
+| B / P5 | RepoIntelligence (`cce-repointel`, Klasse `"blueprint"`) | **GESCHLOSSEN — R-RIG-1 REAL ERBRACHT** (Freigabe „Ja" → numkit): source Valid, Bauplan ValidWithResidues, 3 belegte Regeln, 31 zertifizierte Blueprints, 1 sichtbar offene Entscheidung; Replay-identisch über zwei unabhängige Prozessläufe; hermetische Zeugen GRUEN (`reports/P5_repointelligence_bericht.md`) |
 | C1 | Kanzel-Zweitmanifest gpt-4o (konservatives Budget, umschaltbar via `CCE_KANZEL_MODEL`, Default gpt-4o-mini) | **GESCHLOSSEN** (Zeugen `c1_*` im Inference-Katalog) |
 | C2 | Kanzel-Prompt-Bibliothek (= IG-R4, s. oben) | **GESCHLOSSEN** |
 | C3 | Register-Konsolidierung | **GESCHLOSSEN** (dieser Abschnitt + VOLLAUSBAU_STATUS) |

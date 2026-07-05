@@ -1,5 +1,5 @@
 # Etappe P5 — RepoIntelligence: das Repo beweisbar verstehen
-(Dokument 23 Track B; Stand: gebaut bis zum benannten STOPP)
+(Dokument 23 Track B; Stand: ABGESCHLOSSEN — R-RIG-1 real erbracht)
 
 Eingang: Track A abgeschlossen (`reports/A_augen_bericht.md`).
 Dokument 23 Track B wörtlich: CCE liest ein *fremdes* Repo über die
@@ -87,30 +87,46 @@ ci/check_acyclic.py` (**59** Workspace-Crates, DAG, Schichten sauber —
 Ausnahme-Disziplin wie cce-bridge/cce-swe/cce-benchmark) ·
 `bash ci/run_ci.sh` — alles GRUEN, Alt-Zeugen unverändert.
 
-## STOPP (Dokument 23 Track B): Vorschlag für den echten Lauf R-RIG-1
+## R-RIG-1 — der eine reale Lauf (nach STOPP-Freigabe: „Ja" → numkit)
 
-**Vorschlag: der projekteigene `numkit`-Testling als Erstziel** — laut
-Dokument 23 ausdrücklich zulässig und lizenzfrei unbedenklich; es ist
-dasselbe Paket, das P4/P4-Ext als Vergleichsgegenstand nutzt (drei
-Dateien: Cargo.toml, src/lib.rs mit `max_of`, tests/it.rs). Der
-`#[ignore]`-Betriebs-Harness liegt bereit
-(`crates/cce-repointel/tests/r_rig_betriebsverifikation.rs`):
+Nach dem benannten STOPP wurde **numkit** als Erstziel vorgeschlagen
+und vom Auftraggeber ausdrücklich freigegeben. Der Lauf
+(`cargo test -p cce-repointel --test r_rig_betriebsverifikation --
+--ignored --nocapture`):
 
-```
-cargo test -p cce-repointel --test r_rig_betriebsverifikation -- --ignored --nocapture
-```
+| Feststellung | Wert |
+|---|---|
+| Ziel | `/tmp/cce-rig-1-numkit` — 3 Dateien, ECHTE fs-Reads (kein Fixture-Bypass) |
+| Commit-Achse | `tree:f2b51faa2e626864d05c8b7126d1ce58ca8f7ad7ecb7027147b727101a1e2fc0` (ehrlich als Baum-Digest gekennzeichnet — numkit ist kein git-Repo; ein git-Ziel trüge den HEAD-SHA) |
+| deklarierte Lizenz | `cc0` — CSA-Policy grün |
+| Quell-Container | `verify == Valid` |
+| Bauplan-Container | `verify == ValidWithResidues` — das EHRLICHE Verdikt: die offene LICENSE-Frage steht sichtbar im RESIDUE-Segment |
+| `packet_digest` | `f24b3d01c712b07e7bb985bf5951b10323f6978b218ad9eac06c093aa810a99d` |
+| `blueprint_class` | `de4fcef9ea34deb6a32a7db0dbc8a57c1adb47b4d295b14f231222c1ef098a81` |
+| Regeln | 3, ALLE belegt (keep-unsafe-free, keep-unwrap-free-src, keep-panic-free-src — evidence_ref auf die commit-gebundenen CSU-Felder), keine Herabstufung |
+| offene Entscheidungen | 1 — `license-clarification` (keine LICENSE-Datei beobachtet), sichtbar als `rig:repointel_decision_left_open` |
+| zertifizierte Blueprints | 31 |
+| Artefakte | `source.loom` (3 156 B) + `blueprint.loom` (13 020 B), NUR nach `/tmp/cce-rig-1-out` |
 
-- materialisiert numkit nach /tmp und liest es mit ECHTEN fs-Reads;
-- Commit-Achse ehrlich als `tree:<sha256 über sortierte Datei-Digests>`
-  gekennzeichnet (numkit ist kein git-Repo; für ein echtes git-Ziel
-  trüge hier der HEAD-SHA);
-- fährt die volle Kette, verifiziert beide Körper, schreibt
-  `source.loom` + `blueprint.loom` NUR nach /tmp und druckt
-  packet_digest / blueprint_class / Regeln / offene Entscheidungen.
+**Replay-Beweis über Prozessgrenzen:** ein ZWEITER, unabhängiger
+Harness-Lauf (neuer Prozess, neue Materialisierung, neue fs-Reads)
+ergab **identischen `packet_digest` UND identische `blueprint_class`**
+— zusätzlich zur ketteninternen Replay-Selbstprüfung, die in jedem
+Lauf einen vollständigen Zweitdurchlauf erzwingt.
 
-Ein externes MIT-Repo als ZWEITZIEL bleibt möglich (der Harness nimmt
-`CCE_RIG_TARGET_DIR`/`CCE_RIG_REPO_ID`/`CCE_RIG_LICENSE`), aber laut
-Dokument 23 nur nach ausdrücklicher Freigabe.
+**Gegenprobe mit dem ausgelieferten Werkzeug:** die frisch gebaute
+`loom`-CLI verifiziert `/tmp/cce-rig-1-out/blueprint.loom` zu
+`ValidWithResidues`. Ehrlicher Nebenbefund: ein VERALTETES
+`loom`-Binary (gebaut vor der Klassen-Einführung) weist denselben
+Container mit `profile_unknown` ZURÜCK — genau das gewollte
+fail-closed-Verhalten alter Prüfer gegenüber neuen Klassen, kein
+stilles Teilverstehen.
 
-**Es wartet:** die Freigabe des Ziel-Repos. Bis dahin läuft kein
-realer R-RIG-1.
+**Damit ist die Track-B-Aussage real erbracht:** CCE hat ein fremdes
+Repo über die unveränderten CSA-Tore gelesen, sein Strukturverständnis
+über die unveränderte HBM-Kette destilliert, daraus ein belegtes,
+sofort nutzbares Regelwerk (Dokument 21) kompiliert und beides als
+prüfbare, replay-identische `.loom`-Körper versiegelt — inklusive der
+sichtbaren Wahrheit über das, was OFFEN bleibt. Ein externes MIT-Repo
+als Zweitziel bleibt möglich (Harness nimmt `CCE_RIG_TARGET_DIR`),
+laut Dokument 23 nur nach Freigabe.
