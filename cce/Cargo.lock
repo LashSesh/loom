@@ -375,6 +375,7 @@ dependencies = [
  "cce-observe",
  "cce-phaseblock",
  "cce-phc",
+ "cce-repointel",
  "cce-runner",
  "cce-spiral",
  "cce-store",
@@ -536,6 +537,29 @@ version = "0.1.0"
 dependencies = [
  "cce-core",
  "cce-crystal",
+]
+
+[[package]]
+name = "cce-repointel"
+version = "0.1.0"
+dependencies = [
+ "cce-core",
+ "cce-hbm",
+ "cce-swe",
+ "loom-canon",
+ "loom-cites",
+ "loom-codec",
+ "loom-format",
+ "loom-replay",
+ "loom-verify",
+ "nexus-adapter",
+ "nexus-adapter-git",
+ "nexus-core",
+ "nexus-evidence",
+ "nexus-fetch",
+ "nexus-ledger",
+ "nexus-policy",
+ "nexus-validate",
 ]
 
 [[package]]

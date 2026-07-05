@@ -3,25 +3,35 @@
 
 use cce_core::residue::{Residue, ResidueKind, Severity};
 
-pub const ALL_BENCHMARK_RESIDUES: [&str; 4] = [
+pub const ALL_BENCHMARK_RESIDUES: [&str; 6] = [
     "benchmark_fairness_digest_mismatch",
     "benchmark_fairness_order_violation",
     "benchmark_arms_incomplete",
     "benchmark_matrix_incomplete",
+    // Dokument 22 (P4-Ext): der dritte Arm.
+    "benchmark_packet_digest_mismatch",
+    "task_class_unsupported_by_tool",
 ];
 
-/// Alle Blocking — jede Fairness-/Vollstaendigkeitsverletzung ist eine
-/// harte Grenze (die Matrix darf NICHT gebaut werden, §4).
+/// Die Fairness-/Vollstaendigkeitsverletzungen sind Blocking (die Matrix
+/// darf NICHT gebaut werden, §4). Einzige Ausnahme (Dok 22 §4):
+/// `task_class_unsupported_by_tool` ist Warning — ein Fremdwerkzeug, das
+/// eine Aufgabenklasse schlicht nicht unterstuetzt, wird als sichtbares
+/// Residuum GEFUEHRT, nicht erzwungen (R-BENCH-EXT-2).
 pub fn benchmark_residue(kind: &str, detail: &str) -> Residue {
     debug_assert!(
         ALL_BENCHMARK_RESIDUES.contains(&kind),
         "unbekanntes Benchmark-Residuum"
     );
+    let severity = match kind {
+        "task_class_unsupported_by_tool" => Severity::Warning,
+        _ => Severity::Blocking,
+    };
     Residue::new(
         &format!("bench:{kind}"),
         "cce-benchmark",
         ResidueKind::named(kind),
-        Severity::Blocking,
+        severity,
         detail,
     )
 }
@@ -31,10 +41,22 @@ mod tests {
     use super::*;
 
     #[test]
-    fn four_residues_all_constructible() {
+    fn all_benchmark_residues_constructible() {
         for k in ALL_BENCHMARK_RESIDUES {
             let r = benchmark_residue(k, "test");
             assert!(r.id.contains(k));
         }
+    }
+
+    #[test]
+    fn unsupported_task_class_is_warning_others_blocking() {
+        assert_eq!(
+            benchmark_residue("task_class_unsupported_by_tool", "x").severity,
+            Severity::Warning
+        );
+        assert_eq!(
+            benchmark_residue("benchmark_packet_digest_mismatch", "x").severity,
+            Severity::Blocking
+        );
     }
 }

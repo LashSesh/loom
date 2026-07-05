@@ -48,6 +48,8 @@ members = [
     "crates/cce-dogfood",
     # Vergleichslaeufe (Dokument 20, P4)
     "crates/cce-benchmark",
+    # RepoIntelligence (Dokument 23 Track B, P5)
+    "crates/cce-repointel",
     # L9b Normic Memory (S-E5, Ring E5)
     "crates/cce-bridge",
     # .loom-Container (LOOM Teil 11)

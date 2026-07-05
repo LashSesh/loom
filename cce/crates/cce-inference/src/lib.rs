@@ -10,6 +10,7 @@
 //! Gates, nie Urteile/Commits/Ledger-Schreiber. IG-A4: Confidence ist
 //! nie ein Gate. IG-A5: Deklaration ≠ Aktivierung.
 
+pub mod contracts;
 pub mod evidence;
 pub mod gates;
 pub mod gateway;

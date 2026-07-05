@@ -879,3 +879,101 @@ fn p1_betriebsverifikation_echter_openai_egress_nach_voller_gate_kette() {
         other => panic!("erwartet echten Candidate-Output, war {other:?}"),
     }
 }
+
+// ===================================================================
+// Track C (Dokument 23): C1 Kanzel-Zweitmanifest + C2 Prompt-Bibliothek
+// ===================================================================
+
+/// C1: das gpt-4o-ZWEITMANIFEST ist vollstaendig UND traegt das
+/// KONSERVATIVE Budget — cost/token/rate strikt UNTER dem Default des
+/// gpt-4o-mini-Manifests (staerkeres Modell, engere Leine). Beide
+/// laufen hinter demselben unveraenderten Gateway.
+#[test]
+fn c1_gpt_4o_second_manifest_complete_with_conservative_budget() {
+    use cce_inference::providers::openai::CloudModelProviderOpenAI;
+    let mini = CloudModelProviderOpenAI::gpt_4o_mini().manifest();
+    let big = CloudModelProviderOpenAI::gpt_4o().manifest();
+
+    // Beide Manifeste vollstaendig (18 Pflichtfelder).
+    assert!(mini.validate().is_ok());
+    assert!(big.validate().is_ok());
+    assert_eq!(mini.model_id, "gpt-4o-mini");
+    assert_eq!(big.model_id, "gpt-4o");
+
+    // Konservatives Budget: strikt unter dem Default-Manifest.
+    assert!(big.cost_budget.unwrap() < mini.cost_budget.unwrap());
+    assert!(big.token_budget.unwrap() < mini.token_budget.unwrap());
+    assert!(big.rate_limit.unwrap() < mini.rate_limit.unwrap());
+
+    // Gleiche Terms-/Privacy-/Replay-Disziplin wie das Default-Manifest.
+    assert_eq!(big.provider_terms_ref, mini.provider_terms_ref);
+    assert_eq!(big.privacy_mode, mini.privacy_mode);
+    assert_eq!(
+        big.replay_policy,
+        cce_inference::manifest::ReplayPolicy::Recorded
+    );
+}
+
+/// C1: die Umschalt-Naht — ungesetzt (und jeder unbekannte Wert)
+/// ergibt den DEFAULT gpt-4o-mini; NUR `CCE_KANZEL_MODEL=gpt-4o`
+/// waehlt das Zweitmanifest. Kein freier Modell-String aus der
+/// Umgebung (nur manifestierte Provider).
+#[test]
+fn c1_env_switch_defaults_to_mini_only_known_value_switches() {
+    use cce_inference::providers::openai::CloudModelProviderOpenAI;
+    // Hinweis: Testprozess-lokale Env-Mutation; kein anderer Zeuge
+    // dieses Katalogs liest CCE_KANZEL_MODEL.
+    std::env::remove_var("CCE_KANZEL_MODEL");
+    assert_eq!(
+        CloudModelProviderOpenAI::from_env_default().model_id,
+        "gpt-4o-mini"
+    );
+    std::env::set_var("CCE_KANZEL_MODEL", "gpt-4o");
+    assert_eq!(
+        CloudModelProviderOpenAI::from_env_default().model_id,
+        "gpt-4o"
+    );
+    // Unbekannter Wert faellt sichtbar auf den Default zurueck —
+    // KEIN freier Modell-String erreicht das Manifest.
+    std::env::set_var("CCE_KANZEL_MODEL", "irgendwas-anderes");
+    assert_eq!(
+        CloudModelProviderOpenAI::from_env_default().model_id,
+        "gpt-4o-mini"
+    );
+    std::env::remove_var("CCE_KANZEL_MODEL");
+}
+
+/// C2 (IG-R4): die Kanzel-Prompt-Bibliothek ist ein GEPRUEFTES Asset —
+/// drei versionierte Vorlagen (Wunsch-Formung / Erklaerung /
+/// Reparaturvorschlag), deterministischer Bibliotheks-Digest, und die
+/// Kanzel bezieht ihren system_contract AUS der Bibliothek
+/// (byte-identisch zum bisherigen Inline-Text — kein
+/// Verhaltenswechsel, Alt-Zeugen unberuehrt).
+#[test]
+fn c2_kanzel_prompt_library_is_checked_asset_and_wired() {
+    use cce_inference::contracts::{library_digest, system_contract_for, KANZEL_CONTRACTS};
+    use cce_inference::kanzel::Kanzel;
+
+    // Drei Einsaetze, alle versioniert.
+    assert_eq!(KANZEL_CONTRACTS.len(), 3);
+    for c in &KANZEL_CONTRACTS {
+        assert_eq!(c.version, "1.0.0");
+    }
+
+    // Der Waechter PINNT den Bibliotheks-Digest byte-genau: eine STILLE
+    // Aenderung irgendeiner Vorlage bricht diesen Zeugen sichtbar.
+    // (Bewusste Aenderungen erhoehen die Version und pinnen den neuen
+    // Wert — derselbe Zwei-Schritt wie bei den .loom-Seeds.)
+    assert_eq!(
+        library_digest().to_hex(),
+        "6ffabe47c697af6d1e5c674636d9ed097b4cfdaff2fc9b8bd97d7fa97144c138",
+        "Kanzel-Prompt-Bibliothek v1: gepinnter Asset-Digest"
+    );
+
+    // Die Kanzel bezieht den Wunsch-Formungs-Vertrag AUS der Bibliothek,
+    // byte-identisch zum historischen Inline-Text (P1-Stand).
+    let req = Kanzel.form_wish_request("wunsch", "proj-1");
+    let vorlage = system_contract_for("wunsch_formung").expect("vorhanden");
+    assert_eq!(req.system_contract, vorlage.text);
+    assert_eq!(req.system_contract, "annahmen als modellgeformt markieren");
+}

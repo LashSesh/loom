@@ -49,6 +49,7 @@ loom-replay = { path = "../loom/loom-replay" }
 cce-swe = { path = "../crates/cce-swe" }
 cce-dogfood = { path = "../crates/cce-dogfood" }
 cce-benchmark = { path = "../crates/cce-benchmark" }
+cce-repointel = { path = "../crates/cce-repointel" }
 
 # Betriebsverifikation P1 (echter Egress, #[ignore]): reicht das
 # `http`-Feature NUR durch, aktiviert selbst nichts im Default-Bau.
@@ -84,3 +85,16 @@ path = "dogfood/dogfood_catalog.rs"
 [[test]]
 name = "benchmark_catalog"
 path = "benchmark/benchmark_catalog.rs"
+
+# Agent-Grounding-Zeugen (Dokument 21, P2-Ext) unter conformance/grounding/
+[[test]]
+name = "grounding_catalog"
+path = "grounding/grounding_catalog.rs"
+
+# RepoIntelligence-Zeugen (Dokument 23 Track B, P5) unter
+# conformance/repointel/ -- volle Kette hermetisch in der Default-CI;
+# der eine reale Lauf (R-RIG-1) lebt separat als #[ignore]-Harness in
+# crates/cce-repointel/tests/ und folgt erst nach der STOPP-Freigabe.
+[[test]]
+name = "repointel_catalog"
+path = "repointel/repointel_catalog.rs"

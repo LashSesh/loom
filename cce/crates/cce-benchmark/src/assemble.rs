@@ -5,10 +5,16 @@
 //! (§7), nicht hier — diese Funktion nimmt die fertigen Arm-Ergebnisse
 //! entgegen und stellt sie fair gegenueber.
 
-use crate::gates::{comparison_seal_gate, fairness_gate, matrix_complete_gate, InfVerdict};
-use crate::matrix::build_matrix;
-use crate::model::{BenchmarkTaskPackage, CceRunResult, ComparisonMatrix, RawRunResult};
-use crate::workbody::{seal_benchmark_workbody, WorkbodyError};
+use crate::gates::{
+    comparison_seal_gate, fairness_gate, matrix_complete_gate, three_arm_fairness_gate, InfVerdict,
+};
+use crate::matrix::{build_matrix, build_three_arm_matrix, ThreeArmComparisonMatrix};
+use crate::model::{
+    BenchmarkTaskPackage, CceRunResult, ComparisonMatrix, ExternalToolResult, RawRunResult,
+};
+use crate::residues::benchmark_residue;
+use crate::workbody::{seal_benchmark_workbody, seal_three_arm_benchmark_workbody, WorkbodyError};
+use cce_swe::grounding::GroundingPacket;
 use loom_codec::Sealed;
 
 /// Fehler beim Zusammenbau — ein Gate-Halt (mit Verdikt) oder ein
@@ -24,6 +30,12 @@ pub enum AssembleError {
 /// versiegelte `benchmark`-Workbody.
 pub struct Assembled {
     pub matrix: ComparisonMatrix,
+    pub sealed: Sealed,
+}
+
+/// Ergebnis eines erfolgreichen Drei-Arm-Zusammenbaus (Dokument 22).
+pub struct ThreeArmAssembled {
+    pub matrix: ThreeArmComparisonMatrix,
     pub sealed: Sealed,
 }
 
@@ -55,6 +67,45 @@ pub fn assemble_benchmark(
     let sealed =
         seal_benchmark_workbody(package, raw, cce, &matrix).map_err(AssembleError::Pack)?;
     Ok(Assembled { matrix, sealed })
+}
+
+/// Stellt DREI Arm-Ergebnisse (Raw / CCE / ExternalTool) fair gegenueber
+/// und versiegelt den Drei-Arm-Benchmark-Workbody (Dokument 22 §2/§3).
+/// Das erweiterte `three_arm_fairness_gate` (packet_digest-Gleichheit +
+/// Fremdarm strikt vor CCE) laeuft VOR jedem Matrixbau.
+pub fn assemble_three_arm_benchmark(
+    package: &BenchmarkTaskPackage,
+    packet: &GroundingPacket,
+    raw: &RawRunResult,
+    cce: &CceRunResult,
+    ext: &ExternalToolResult,
+) -> Result<ThreeArmAssembled, AssembleError> {
+    // 1. Erweitertes FairnessGate: identischer geerdeter Digest ueber alle
+    //    drei Arme, identischer packet_digest, Fremdarm strikt vor CCE.
+    let fairness = three_arm_fairness_gate(package, packet, raw, cce, ext);
+    if !fairness.allows() {
+        return Err(AssembleError::Gate(Box::new(fairness)));
+    }
+    // 2. ComparisonSealGate: Raw+CCE abgeschlossen, Digest identisch.
+    let seal = comparison_seal_gate(Some(raw), Some(cce));
+    if !seal.allows() {
+        return Err(AssembleError::Gate(Box::new(seal)));
+    }
+    // 3. Erst JETZT die Drei-Arm-Matrix bauen.
+    let matrix = build_three_arm_matrix(package.task_class, raw, cce, ext);
+    if !matrix.is_complete() {
+        return Err(AssembleError::Gate(Box::new(InfVerdict::Reject {
+            gate: "MatrixCompleteGate".into(),
+            residue: Box::new(benchmark_residue(
+                "benchmark_matrix_incomplete",
+                &format!("{} Drei-Arm-Matrix-Zeilen statt 6", matrix.rows.len()),
+            )),
+        })));
+    }
+    // 4. Versiegeln.
+    let sealed = seal_three_arm_benchmark_workbody(package, packet, raw, cce, ext, &matrix)
+        .map_err(AssembleError::Pack)?;
+    Ok(ThreeArmAssembled { matrix, sealed })
 }
 
 #[cfg(test)]

@@ -60,6 +60,30 @@ ALLOWED_CORE_TO_OUTER = {
         "loom-replay",
         "loom-verify",
     },
+    # Dokument 23 Track B (P5): RepoIntelligence ist ein Blatt-
+    # Kompositions-Crate OBERHALB beider Welten — es liest ein fremdes
+    # Repo woertlich ueber die bestehenden CSA-Ports (nexus-*, Gates
+    # unveraendert) und siegelt Bauplan+Quelle als .loom-Workbodies
+    # (dieselben benannten .loom-Ports wie cce-swe/cce-benchmark).
+    # KEINE cce-inference-/cce-toolgateway-Kante (Tor-Trennung trivial).
+    "cce-repointel": {
+        # CSA-Ports (Dokument 23: "ueber die bestehenden CSA-Adapter")
+        "nexus-core",
+        "nexus-adapter",
+        "nexus-adapter-git",
+        "nexus-policy",
+        "nexus-fetch",
+        "nexus-validate",
+        "nexus-evidence",
+        "nexus-ledger",
+        # .loom-Ports (Siegelung, wie cce-swe/cce-benchmark)
+        "loom-cites",
+        "loom-canon",
+        "loom-format",
+        "loom-codec",
+        "loom-replay",
+        "loom-verify",
+    },
 }
 
 

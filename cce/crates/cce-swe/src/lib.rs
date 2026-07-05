@@ -5,6 +5,8 @@
 //! aufgezeichnete ToolEvidence (SWE-A2), nie Modell-Selbstauskunft.
 
 pub mod gates;
+pub mod grounded;
+pub mod grounding;
 pub mod kette;
 pub mod model;
 pub mod provider_diff;

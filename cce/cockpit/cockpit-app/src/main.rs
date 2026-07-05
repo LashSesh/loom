@@ -2,6 +2,11 @@
 //! Webview). Vier Flaechen: Wunsch / Lauf / Pruef / Artefakt.
 //! Das GUI RENDERT Motor-Fakten (CockpitCore) — es erzeugt keine.
 
+// Windows: GUI-Subsystem statt Console — Doppelklick oeffnet NUR das
+// Fenster, kein Terminal dahinter (Dokument 23 A1 „null Terminal").
+// Auf allen anderen Zielen wirkungslos.
+#![cfg_attr(windows, windows_subsystem = "windows")]
+
 use eframe::egui;
 
 use cce_core::canonical::Canonicalize;

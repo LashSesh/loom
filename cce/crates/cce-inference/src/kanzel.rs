@@ -15,7 +15,10 @@ pub struct Kanzel;
 
 impl Kanzel {
     /// Wuensche formulieren HELFEN (S4-A4): formt einen InferenceRequest
-    /// — bindend wird erst Motor-Validierung + Bestaetigung.
+    /// — bindend wird erst Motor-Validierung + Bestaetigung. Der
+    /// `system_contract` kommt aus der versionierten Prompt-Bibliothek
+    /// (IG-R4, `contracts.rs`) — v1 ist byte-identisch zum frueheren
+    /// Inline-Text, kein Verhaltenswechsel.
     pub fn form_wish_request(&self, wish_text: &str, projection_id: &str) -> InferenceRequest {
         let mut req = InferenceRequest::example("kanzel:form");
         req.projection_id = projection_id.to_string();
@@ -25,7 +28,10 @@ impl Kanzel {
             content: wish_text.to_string(),
         }];
         req.output_schema = "wunsch-entwurf".to_string();
-        req.system_contract = "annahmen als modellgeformt markieren".to_string();
+        req.system_contract = crate::contracts::system_contract_for("wunsch_formung")
+            .expect("Bibliothek traegt wunsch_formung")
+            .text
+            .to_string();
         req
     }
 
