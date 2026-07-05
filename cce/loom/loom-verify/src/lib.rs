@@ -137,6 +137,21 @@ fn required_kinds(profile: &str) -> Vec<u16> {
             KIND_EVIDENCE,
             KIND_CANDIDATE_OUTPUTS,
         ]),
+        // Dokument 23 Track B (P5): der Bauplan-Koerper braucht CL
+        // (GroundingPacket + zertifizierte Blueprints + cites auf die
+        // Quell-Evidence), HBM (Facetten/Skelett/Ranking der
+        // Destillation), EVIDENCE (Quell-Bindung: CSU/Ledger-Head/
+        // Beobachtungs-Locator), LEDGER, RESIDUE (offene Entscheidungen
+        // SICHTBAR) und REPLAY_MANIFEST (deterministische
+        // Destillations-RD, Klasse = blueprint_class_digest).
+        "blueprint" => base.extend([
+            KIND_CL_SUBSTRATE,
+            KIND_HBM,
+            KIND_LEDGER,
+            KIND_RESIDUE,
+            KIND_EVIDENCE,
+            KIND_REPLAY_MANIFEST,
+        ]),
         _ => {}
     }
     base

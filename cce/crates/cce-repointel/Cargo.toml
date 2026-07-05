@@ -1,0 +1,38 @@
+[package]
+name = "cce-repointel"
+version = "0.1.0"
+edition = "2021"
+license = "SEE-REPO-ROOT"
+publish = false
+
+# P5 (Dokument 23 Track B): RepoIntelligence. Blatt-Crate, reine
+# Komposition — CCE liest ein FREMDES Repo ueber die bestehenden,
+# UNVERAENDERTEN CSA-Adapter (git_repository; Lizenz-/Policy-Gates
+# wortidentisch scharf), destilliert Strukturmuster ueber die bestehende
+# HBM-Kette, kompiliert ein GroundingPacket (Dokument 21, cce-swe) und
+# versiegelt das Ganze als zertifizierten Bauplan-Workbody der neuen
+# Container-Klasse "blueprint" (additiv, dieselbe Disziplin wie
+# "repo"/"benchmark"). Kein Netz-Fetch ohne die volle CSA-Kette: der
+# einzige Transport ist der versiegelte fetch(&ApprovedFetchPlan, ...).
+# KEINE Abhaengigkeit auf cce-inference/cce-toolgateway — P5 braucht
+# weder Modell- noch Werkzeug-Egress (Tor-Trennung bleibt trivial wahr).
+[dependencies]
+cce-core = { path = "../cce-core" }
+cce-swe = { path = "../cce-swe" }
+cce-hbm = { path = "../cce-hbm" }
+nexus-core = { path = "../../nexus/nexus-core" }
+nexus-adapter = { path = "../../nexus/nexus-adapter" }
+nexus-adapter-git = { path = "../../nexus/adapters/git_repository" }
+nexus-policy = { path = "../../nexus/nexus-policy" }
+nexus-fetch = { path = "../../nexus/nexus-fetch" }
+nexus-validate = { path = "../../nexus/nexus-validate" }
+nexus-evidence = { path = "../../nexus/nexus-evidence" }
+nexus-ledger = { path = "../../nexus/nexus-ledger" }
+loom-canon = { path = "../../loom/loom-canon" }
+loom-format = { path = "../../loom/loom-format" }
+loom-codec = { path = "../../loom/loom-codec" }
+loom-cites = { path = "../../loom/loom-cites" }
+loom-replay = { path = "../../loom/loom-replay" }
+
+[dev-dependencies]
+loom-verify = { path = "../../loom/loom-verify" }

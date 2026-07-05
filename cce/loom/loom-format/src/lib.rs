@@ -61,8 +61,11 @@ pub const FLAG_SEALED: u8 = 1 << 0;
 /// SWE-RepoWorkbody (ein zertifizierter Bauauftrag IST ein
 /// .loom-Workbody). Dokument 20 §5 (P4) fuegt additiv "benchmark" hinzu:
 /// die Speicherform eines Vergleichslaufs (die Ueberlegenheitsbehauptung
-/// wird selbst ein zertifiziertes Artefakt).
-pub const PROFILES: [&str; 9] = [
+/// wird selbst ein zertifiziertes Artefakt). Dokument 23 Track B (P5)
+/// fuegt additiv "blueprint" hinzu: die Speicherform des
+/// RepoIntelligence-Bauplans (destilliertes Repo-Verstaendnis +
+/// GroundingPacket, mit cites auf die Quell-Evidence).
+pub const PROFILES: [&str; 10] = [
     "inspection",
     "workcell",
     "source",
@@ -72,6 +75,7 @@ pub const PROFILES: [&str; 9] = [
     "norm",
     "repo",
     "benchmark",
+    "blueprint",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
