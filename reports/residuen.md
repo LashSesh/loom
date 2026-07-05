@@ -575,6 +575,33 @@ Cursor/Copilot/Bolt selbst (bräuchte deren Konten/Lizenzen —
 `cce-benchmark` nimmt jeden weiteren Arm ohne neue Architektur auf);
 breitere Aufgaben-Stichproben zur statistischen Absicherung.
 
+## Etappen P2-Ext (Dokument 21) + P4-Ext (Dokument 22) — Nachtrag
+
+**P2-Ext · Agent-Grounding: GESCHLOSSEN (gebaut + bezeugt).**
+`cce-swe/grounding` (RuleAtom/DecisionSlot/GroundingPacket/
+compile_grounding/export_context), drei neue Gates (DeltaBudget/
+ContextBudget/RuleCompliance), fünf neue Residuen. Zeugen R-GND-1..4,
+N-GND-1..2 hermetisch im Wächter, plus Wert-Beweis: ein Diff, den die
+P2-Gates grün durchlassen, fängt `run_grounded_swe_task` via
+RuleComplianceGate (`conformance/grounding/grounding_catalog.rs`).
+`run_swe_task` selbst unverändert (Alt-Zeugen unberührt).
+
+**P4-Ext · Dritter Arm (echte Werkzeuge): Bausteine GESCHLOSSEN,
+echter Lauf UMKLASSIFIZIERT.** ExternalToolResult,
+ThreeArmComparisonMatrix, `three_arm_fairness_gate`
+(packet_digest-Gleichheit über alle Arme; packet_digest per
+`grounded_task_package_digest` strukturell in den task_package_digest
+eingefaltet), Drei-Arm-Workbody (echte Obermenge des
+Zwei-Arm-Containers, `verify == Valid`). Zeugen R-BENCH-EXT-STRUCT,
+N-BENCH-EXT-1 (+ Digest-Variante), R-BENCH-EXT-2-Residuumpfad
+hermetisch im Wächter; `#[ignore]`-Export-Schritt
+(`r_bench_ext_export.rs`) liefert das GroundingPacket samt Digests
+für einen Fremdarm.
+
+| Nummer | Gegenstand | Endstatus |
+|---|---|---|
+| R-BENCH-EXT-1/2 (realer Lauf) | echter Vergleich gegen Cursor/Copilot/Bolt mit identischem GroundingPacket-Digest | OFFEN, OPTIONAL — Auftraggeber-Entscheidung (Dokument 23): zurückgestellt, Bedienlast läge beim Menschen; jederzeit nachholbar, blockiert nichts. K9 gilt in der P4-Fassung; der wörtliche Marktvergleich bleibt sichtbar offen — kein Overclaim |
+
 ---
 
 **Keine verwaiste Nummer:** jede oben gelistete Nummer hat einen

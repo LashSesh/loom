@@ -34,6 +34,8 @@ Werkzeug-Gates, Kern-Kette bis PhaseBlock, RepoWorkbody-Containerklasse
 | P2 | **crate `cce-swe`**: RepoWorkbody/RepoSnapshot/DiffCandidate/TaskLedger, fs_write/git/build/test real im ToolGateway (Feature `process`, hermetisch im Default), sechs Werkzeug-Gates, Kern-Kette bis PhaseBlock, provider-erzeugte Diff (recorded), Replay, RepoWorkbody `verify == Valid`, 14 Zeugen | `reports/P2_bericht.md` |
 | P3 | **crate `cce-dogfood`** (Dogfooding-Kerntest): TaskProposal + ProtectedPathFence + drei neue Gates; R-DOG-1 real am eigenen Repo (echte Kanzel → Diff → Build/Test → PhaseBlock → RepoWorkbody `Valid` → Replay → git commit auf `dogfood/p3-001`, KEIN Merge nach main), N-DOG-1..4 im Wächter | `reports/P3_dogfooding_bericht.md` |
 | P4 | **crate `cce-benchmark`** (Vergleichsläufe, K9): FairnessGate + ComparisonSealGate, Container-Klasse `"benchmark"`; R-BENCH-1 (Coding) + R-BENCH-2 (Dokument) real: ungegatet vs. CCE, dasselbe Modell — D4/D5 Parität (kostenlos), D1/D2/D3/D6 kategorisch nur CCE; beide Benchmark-Workbodies `verify == Valid` | `reports/P4_vergleichslaeufe_bericht.md` |
+| P2-Ext | **Agent-Grounding** (Dok 21, in `cce-swe`): RuleAtom/DecisionSlot/GroundingPacket + DeltaBudget-/ContextBudget-/RuleComplianceGate; R-GND-1..4, N-GND-1..2 + Wert-Beweis (Grounding fängt, was P2-Gates allein passieren ließen) | `reports/residuen.md` (Nachtrag) |
+| P4-Ext | **Dritter Arm** (Dok 22, in `cce-benchmark`): ExternalToolResult, ThreeArmComparisonMatrix, packet_digest-Fairness (strukturell eingefaltet + explizit geprüft); Bausteine + Zeugen hermetisch GRUEN. **Echter Lauf gegen Cursor/Copilot/Bolt: zurückgestellt (Dok 23) — offen, optional, blockiert nichts** | `reports/residuen.md` (Nachtrag) |
 
 **R-CYC-1-Stand: GRUEN, dauerhaft im Waechter** (`conformance/tests/
 x4_r_cyc_1.rs`) — Quelle→Arbeit→Verbund→Selbstbezug→Gedaechtnis→
@@ -55,7 +57,7 @@ ist ab jetzt der oberste Kerntest der Plattform.
 | H Brückenraum L9b | `cce-bridge` vollstaendig, R-1b GESCHLOSSEN |
 | I SWE-Tiefe | `cce-swe` real gebaut (P2): fs_write/git/build/test im ToolGateway, sechs Werkzeug-Gates, Kern-Kette bis PhaseBlock, RepoWorkbody `"repo"`; Dauerbetrieb (echte Subprozesse) bleibt Feature `process` |
 | J Dogfooding | `cce-dogfood` (P3): R-DOG-1 real am eigenen Repo erbracht (`dogfood/p3-001`, ungemergt); Schutzzone/BranchIsolation/MergeExclusion strukturell |
-| K Vergleich | `cce-benchmark` (P4): R-BENCH-1/2 real gefahren, D1–D6-Matrix belegt; K9 · CompetitiveDoD erfüllt. Weitere Arme (Cursor/Copilot/Bolt) = benannter Folgeschritt |
+| K Vergleich | `cce-benchmark` (P4 + P4-Ext): R-BENCH-1/2 real gefahren, D1–D6-Matrix belegt; K9 · CompetitiveDoD erfüllt (P4-Fassung). Drei-Arm-Bausteine (Dok 22) gebaut + bezeugt; der echte Lauf gegen Cursor/Copilot/Bolt ist per Auftraggeber-Entscheidung (Dok 23) **zurückgestellt: offen, optional, jederzeit nachholbar, blockiert nichts** — der wörtliche Marktvergleich bleibt sichtbar offen, kein Overclaim |
 
 ## Host-Leiste (Stand nach P1)
 
