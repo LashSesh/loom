@@ -24,6 +24,53 @@ cp target/release/loom-viewer "$OUT/bin/"
 cp target/release/nexus "$OUT/bin/"
 cp library/seed/*.loom "$OUT/library/seed/"
 cp docs/operator/*.md "$OUT/docs/operator/"
+# ERSTSTART (Dokument 23 A2): dieselbe Drei-Schritte-Datei wie im
+# Windows-Paket, in Linux-Fassung (Binaernamen ohne .exe, bin/-Pfad).
+cat > "$OUT/ERSTSTART.txt" <<'STARTEOF'
+CCE LOOM — ERSTSTART (Linux)
+============================
+
+Drei Schritte, kein Terminal noetig:
+
+  1. Dieses Archiv entpacken.
+
+  2. bin/cce-cockpit starten (Doppelklick im Dateimanager oder
+     einmalig ausfuehrbar machen).
+
+  3. Die Saat-Reise fahren:
+     Wunsch -> Lauf -> Pruef -> Artefakt.
+     Sie beschreiben im Reiter "Wunsch", was Sie brauchen; die
+     KI-Kanzel hilft, daraus einen pruefbaren Arbeitsauftrag zu
+     formen (sie ist Fuehrer und Dolmetscher, niemals Richter).
+     Nach Ihrer Bestaetigung faehrt der deterministische Motor den
+     Lauf. Im Reiter "Pruef" sehen Sie schon im ersten Durchlauf
+     ein Residuenfeld "geschlossen (0)", einen Gate-Report und den
+     Abschlussbeweis; im Reiter "Artefakt" entnehmen Sie das
+     Ergebnis. Jeder Lauf laesst sich identisch wiederholen
+     (Replay) — die Wiederholung erzeugt dieselbe Klasse, nie eine
+     neue KI-Antwort.
+
+Was sonst noch in diesem Paket liegt:
+
+  bin/loom            Pruef-Werkzeug fuer .loom-Arbeitskoerper.
+  bin/loom-viewer     Motorfreier Betrachter.
+  bin/nexus           CSA-Referenz-CLI (Quellen-Einzug).
+  library/seed/       Die Saat-Bibliothek: mitgelieferte, bereits
+                      versiegelte .loom-Arbeitskoerper (u. a. das
+                      Drei-Risiken-Memo als erstes gefuehrtes
+                      Beispiel).
+  docs/operator/      Handbuch und Lesarten.
+
+Ehrliche Reichweite (keine Uebertreibung):
+
+  Ohne konfigurierten KI-Anbieter laeuft das Produkt vollstaendig —
+  die Kanzel zeigt sich dann sichtbar degradiert (Fuehrung ohne
+  Cloud-Intelligenz). Dieses Paket behauptet nichts jenseits der
+  gepruefteren Reichweite des Korpus: die Dokument-Domaene D01
+  (Drei-Risiken-Memo-Reise) ist Produkt-Kerntest-gruen (PL4); die
+  uebrigen Katalog-Domaenen sind Registry-Staende ohne Vollausbau
+  (Details: PL_KENNZEICHNUNG.md).
+STARTEOF
 cat > "$OUT/PL_KENNZEICHNUNG.md" <<'PLEOF'
 # Produkt-Level-Kennzeichnung (Anti-Overclaim, S11)
 - Dokument-Domaene D01 (Drei-Risiken-Memo-Reise): PL4 (Produkt-Kerntest gruen)
