@@ -91,8 +91,50 @@ fn debug_rect(name: &str, rect: egui::Rect) {
     }
 }
 
+/// Font-Atlas-Wache (Programm 23, Nachtrag): der wiederholt beobachtete
+/// Schwarzbild-Befund (Sandbox glow/llvmpipe UND wgpu/lavapipe, s.
+/// `reports/ux/`, UND real auf Windows-Hardware) hatte EINE Ursache —
+/// dem eframe-Dependency in `Cargo.toml` fehlte das Feature
+/// `default_fonts` (jetzt behoben), wodurch `FontDefinitions::default()`
+/// eine LEERE `font_data`-Map lieferte: Text bekam Nullbreite, waehrend
+/// Flaechen/Checkboxen (kein Glyph noetig) normal renderten. Diese
+/// Wache verschluckt einen KUENFTIGEN Ausfall derselben Art nie wieder
+/// still: bleibt `font_data` aus irgendeinem Grund leer, zeichnet das
+/// Programm ein unuebersehbares farbiges Warnfeld — als reine Flaeche
+/// (Painter, kein Text), denn genau Text ist im Fehlerfall unsichtbar.
+fn fonts_missing(ctx: &egui::Context) -> bool {
+    ctx.fonts(|f| f.definitions().font_data.is_empty())
+}
+
+fn draw_font_atlas_warning(ui: &egui::Ui) {
+    let band =
+        egui::Rect::from_min_size(ui.max_rect().min, egui::vec2(ui.max_rect().width(), 64.0));
+    // Grelles Magenta: in keinem normalen Cockpit-Stil vorkommend, daher
+    // unverwechselbar als Fehlersignal — sichtbar auch ohne Glyphen.
+    ui.painter()
+        .rect_filled(band, 0.0, egui::Color32::from_rgb(255, 0, 200));
+    ui.painter().rect_filled(
+        egui::Rect::from_min_size(band.min + egui::vec2(8.0, 8.0), egui::vec2(24.0, 24.0)),
+        0.0,
+        egui::Color32::BLACK,
+    );
+    // Text-Versuch zusaetzlich (falls doch teilweise lesbar) — die
+    // Flaeche oben ist der eigentliche, garantierte Beweis.
+    ui.painter().text(
+        band.min + egui::vec2(40.0, 32.0),
+        egui::Align2::LEFT_CENTER,
+        "FONT-ATLAS FEHLT — Text unsichtbar (Residuum, kein Motorfehler)",
+        egui::FontId::monospace(14.0),
+        egui::Color32::WHITE,
+    );
+}
+
 impl eframe::App for CockpitApp {
     fn ui(&mut self, root: &mut egui::Ui, _frame: &mut eframe::Frame) {
+        if fonts_missing(root.ctx()) {
+            draw_font_atlas_warning(root);
+            root.add_space(64.0);
+        }
         {
             let ui = &mut *root;
             ui.horizontal(|ui| {
@@ -397,9 +439,19 @@ fn main() -> eframe::Result {
             }
         }
     }
-    let mut options = eframe::NativeOptions::default();
-    // Default bleibt glow; COCKPIT_RENDERER=wgpu waehlt den Vulkan-Pfad
-    // (WO-2-Test auf Software-Vulkan). Kein Verhaltenswechsel ohne die Var.
+    // Default bleibt glow — EXPLIZIT gesetzt (Befund Programm 23:
+    // `eframe::Renderer::default()` waehlt selbst Wgpu, sobald BEIDE
+    // Backend-Features kompiliert sind — "let's pick the better of the
+    // two", s. eframe/src/epi.rs — was den hier dokumentierten Vorsatz
+    // "glow ist Default" stillschweigend unterlief. `NativeOptions::
+    // default()` haette also schon Wgpu geliefert, OHNE dass
+    // COCKPIT_RENDERER je gesetzt wurde. Jetzt wieder wortgetreu: glow
+    // ist der Default, COCKPIT_RENDERER=wgpu waehlt den Vulkan-Pfad
+    // (WO-2-Test auf Software-Vulkan) — kein Verhaltenswechsel ohne die Var.
+    let mut options = eframe::NativeOptions {
+        renderer: eframe::Renderer::Glow,
+        ..Default::default()
+    };
     if std::env::var("COCKPIT_RENDERER").as_deref() == Ok("wgpu") {
         options.renderer = eframe::Renderer::Wgpu;
     }
@@ -408,4 +460,30 @@ fn main() -> eframe::Result {
         options,
         Box::new(|_cc| Ok(Box::new(CockpitApp::default()))),
     )
+}
+
+/// Regressionswaechter fuer den Font-Atlas-Ausfall (Programm 23
+/// Nachtrag): `eframe` OHNE das Feature `default_fonts` liefert eine
+/// LEERE `font_data`-Map — der real beobachtete Schwarzbild-/
+/// Nullbreite-Befund (Sandbox glow+wgpu, s. `reports/ux/`, UND echte
+/// Windows-Hardware). Dieser Test braucht KEIN Display/GPU (reine
+/// Datenstruktur-Pruefung) und faengt eine kuenftige Wiederkehr dieser
+/// exakten Regression VOR jedem Release.
+#[cfg(test)]
+mod tests {
+    use super::egui;
+
+    #[test]
+    fn default_fonts_are_actually_embedded() {
+        let defs = egui::FontDefinitions::default();
+        assert!(
+            !defs.font_data.is_empty(),
+            "font_data ist leer — das eframe-Feature \"default_fonts\" fehlt \
+             wieder (Cargo.toml); Text wird unsichtbar (Nullbreite-Befund)"
+        );
+        assert!(
+            !defs.families.is_empty(),
+            "keine Font-Familien definiert — Text-Layout kollabiert"
+        );
+    }
 }

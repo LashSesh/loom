@@ -15,7 +15,19 @@ cce-inference = { path = "../../crates/cce-inference" }
 # glow ist Default-Renderer; wgpu ist zusaetzlich kompiliert und wird
 # NUR gewaehlt, wenn COCKPIT_RENDERER=wgpu gesetzt ist (WO-2-Test auf
 # Software-Vulkan/lavapipe; kein Verhaltenswechsel im Normalbetrieb).
-eframe = { version = "0.35", default-features = false, features = ["glow", "wgpu", "x11", "wayland"] }
+#
+# WICHTIGER BEFUND (Programm 23, Windows-Betriebsverifikation): "default_fonts"
+# fehlte hier. `default-features = false` schaltet ALLE eframe-Standard-
+# Features ab (eframe's `default` enthaelt u. a. "default_fonts" ->
+# "egui/default_fonts"); ohne dieses Feature liefert `FontDefinitions::default()`
+# eine LEERE font_data-Map (epaint/src/text/fonts.rs) — es gab in KEINEM Build
+# (auch nicht in den fruehren Linux-Sandbox-Laeufen, s. reports/ux/) jemals
+# Schriftdaten. Farbige Flaechen/Checkbox rendern trotzdem (kein Text noetig),
+# Labels/Buttons faellen auf Nullbreite zusammen — genau der beobachtete
+# Schwarzbild-Befund, backend-unabhaengig (glow UND wgpu betroffen, bestaetigt
+# durch reports/ux/reise_protokoll.md + reise_protokoll_v2.md UND jetzt durch
+# den realen Windows-Klickpfad). Fix: "default_fonts" explizit ergaenzt.
+eframe = { version = "0.35", default-features = false, features = ["glow", "wgpu", "x11", "wayland", "default_fonts"] }
 
 [[bin]]
 name = "cce-cockpit"
